@@ -1,0 +1,1024 @@
+/* =============================================================================
+   tema-nusantara.css  -  arah desain A: Hangat & Lokal
+   Simpan di: assets/css/tema-nusantara.css
+
+   Muat PALING AKHIR di <head> index.php, setelah style.css dan order.css.
+   Urutan itu yang membuatnya menang tanpa !important di mana-mana.
+
+   CARA KERJANYA
+   order.css sudah memakai variabel --ord-* di semua komponennya
+   (keranjang, checkout, lacak, chat, panel penjual). Berkas ini
+   mendefinisikan ulang variabel itu - jadi seluruh halaman ikut berganti
+   warna tanpa satu per satu disentuh. Beranda, navbar, dan footer punya
+   komponen sendiri berawalan .nt- supaya tidak bertabrakan dengan Furni.
+   ========================================================================== */
+
+
+/* ---------------------------------------------------------------- token --- */
+
+:root {
+  --nt-krem:       #FBF4E9;
+  --nt-krem-2:     #F3E6D0;
+  --nt-pasir:      #EAD9BF;
+  --nt-pasir-2:    #E4D3B4;
+  --nt-indigo:     #1F2A44;
+  --nt-indigo-2:   #16203A;
+  --nt-bata:       #A8441F;
+  --nt-bata-tua:   #7E2F12;
+  --nt-kunyit:     #D9A441;
+  --nt-emas-muda:  #F3D08A;
+  --nt-teks-2:     #4B5268;
+  --nt-samar:      #5B6275;
+  --nt-garis:      #EADFCC;
+  --nt-garis-2:    #E3D5BD;
+
+  --nt-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --nt-sans:  'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Motif kawung - pola batik Jawa: empat bentuk lonjong mengelilingi satu
+     titik. Disimpan sebagai variabel supaya hero, panel, dan CTA memakai
+     motif yang persis sama. */
+  --nt-kawung: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23D9A441' stroke-width='1.4'%3E%3Cellipse cx='36' cy='18' rx='10' ry='16'/%3E%3Cellipse cx='36' cy='54' rx='10' ry='16'/%3E%3Cellipse cx='18' cy='36' rx='16' ry='10'/%3E%3Cellipse cx='54' cy='36' rx='16' ry='10'/%3E%3Ccircle cx='36' cy='36' r='2.6' fill='%23D9A441'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* ---- Pemetaan ke variabel order.css ----------------------------------
+     Satu blok ini yang mengubah keranjang, checkout, lacak pesanan, chat,
+     dan panel penjual sekaligus. */
+  --ord-green: var(--nt-bata);
+  --ord-dark:  var(--nt-indigo);
+  --ord-muted: var(--nt-samar);
+  --ord-line:  var(--nt-garis);
+  --ord-bg:    #FFFFFF;
+  --ord-soft:  #F6EEDF;
+  --ord-amber: var(--nt-kunyit);
+  --ord-red:   #B3261E;
+  /* Hijau dipertahankan untuk status berhasil - itu makna, bukan hiasan.
+     Kalau ikut jadi terakota, "Sudah dibayar" dan "Gagal" tampak sama. */
+  --ord-ok:    #2F6B4F;
+}
+
+
+/* ----------------------------------------------------------------- dasar --- */
+
+body {
+  font-family: var(--nt-sans);
+  background: var(--nt-krem);
+  color: var(--nt-indigo);
+}
+
+h1, h2, .section-title, .form-card-title, .order-number, .panel-judul h1 {
+  font-family: var(--nt-serif);
+  color: var(--nt-indigo);
+}
+
+a { color: var(--nt-bata); }
+a:hover { color: var(--nt-bata-tua); }
+
+:focus-visible { outline: 3px solid var(--nt-kunyit); outline-offset: 3px; }
+
+.nt-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 64px);
+  box-sizing: border-box;
+}
+
+
+/* --------------------------------------------------------------- tombol --- */
+/* Menata ulang tombol Furni yang dipakai di semua halaman. */
+
+.btn {
+  font-family: var(--nt-sans);
+  font-weight: 600;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn.btn-primary,
+.btn.btn-primary:focus {
+  background: var(--nt-bata);
+  border-color: var(--nt-bata);
+  color: #FFFFFF;
+}
+.btn.btn-primary:hover {
+  background: var(--nt-bata-tua);
+  border-color: var(--nt-bata-tua);
+  color: #FFFFFF;
+}
+
+.btn.btn-black-hover-outline {
+  background: transparent;
+  border: 1.5px solid var(--nt-indigo);
+  color: var(--nt-indigo);
+}
+.btn.btn-black-hover-outline:hover {
+  background: var(--nt-indigo);
+  color: var(--nt-krem);
+}
+
+.btn.btn-secondary {
+  background: var(--nt-kunyit);
+  border-color: var(--nt-kunyit);
+  color: var(--nt-indigo);
+}
+
+.btn:focus-visible { outline: 3px solid var(--nt-kunyit); outline-offset: 3px; }
+
+
+/* ------------------------------------------------------------ formulir --- */
+
+.form-control,
+.form-select {
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  color: var(--nt-indigo);
+  font-family: var(--nt-sans);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--nt-bata);
+  box-shadow: 0 0 0 3px rgba(168, 68, 31, 0.15);
+}
+
+.form-card {
+  border-color: var(--nt-garis);
+  border-radius: 22px;
+}
+
+
+/* ------------------------------------------- hero halaman dalam (Furni) --- */
+/* Katalog, keranjang, checkout, lacak - semuanya memakai .hero.hero-page. */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--nt-indigo);
+}
+
+/* Dua kelas sekaligus supaya menang atas <style> di v_shop.php yang masih
+   memasang foto latar bunga lama - itu cuma satu kelas. */
+.hero.hero-page {
+  padding: 56px 0 48px;
+  background-color: var(--nt-indigo) !important;
+  background-image: none !important;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--nt-kawung);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hero > .container { position: relative; }
+
+.hero .intro-excerpt h1 {
+  font-family: var(--nt-serif);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 48px);
+  color: var(--nt-krem);
+  margin: 0;
+}
+
+
+/* ------------------------------------- kartu produk di katalog & detail --- */
+
+.product-section .product-item::before,
+.product-item::before { display: none; }
+
+.product-section .product-item,
+.untree_co-section .product-item {
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  border-radius: 22px;
+  padding: 12px 14px 60px;
+}
+
+.product-item .product-thumbnail {
+  border-radius: 14px;
+  background: var(--nt-pasir);
+}
+
+.product-item .product-title {
+  font-family: var(--nt-sans);
+  font-weight: 700;
+  color: var(--nt-indigo);
+}
+
+.product-item .product-price {
+  font-family: var(--nt-serif);
+  color: var(--nt-indigo);
+}
+
+.product-item .product-cat { color: var(--nt-bata); }
+
+/* Tombol + selalu terlihat. Versi Furni menyembunyikannya sampai kursor
+   di atas kartu - di layar sentuh tidak ada kursor, jadi tombolnya tidak
+   pernah muncul. */
+.product-item .icon-cross {
+  width: 44px;
+  height: 44px;
+  bottom: 12px;
+  margin-bottom: 0;
+  opacity: 1;
+  visibility: visible;
+  background: var(--nt-bata);
+}
+.product-item .icon-cross:hover { background: var(--nt-bata-tua); }
+
+
+/* ===================================================================== */
+/*  NAVBAR                                                               */
+/* ===================================================================== */
+
+.nt-strip {
+  background: var(--nt-indigo);
+  color: var(--nt-krem);
+  font-size: 13px;
+}
+
+.nt-strip-in {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 40px;
+}
+
+.nt-lokasi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--nt-emas-muda);
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.nt-lokasi strong { font-weight: 700; }
+.nt-lokasi:hover { color: #FFFFFF; }
+
+.nt-nav {
+  background: var(--nt-krem);
+  border-bottom: 1px solid var(--nt-garis);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.nt-nav-in {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  min-height: 84px;
+}
+
+.nt-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--nt-indigo);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+.nt-logo:hover { color: var(--nt-indigo); }
+.nt-logo span {
+  font-family: var(--nt-serif);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.nt-menu {
+  display: flex;
+  gap: 26px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.nt-menu a {
+  color: var(--nt-indigo);
+  text-decoration: none;
+  padding: 8px 0;
+  border-bottom: 2px solid transparent;
+}
+.nt-menu a:hover { color: var(--nt-bata); }
+.nt-menu a[aria-current="page"] {
+  color: var(--nt-bata);
+  border-bottom-color: var(--nt-bata);
+}
+
+.nt-cari {
+  margin: 0 0 0 auto;
+  width: min(340px, 100%);
+}
+.nt-cari label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  margin: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 999px;
+  color: var(--nt-samar);
+}
+.nt-cari label:focus-within {
+  border-color: var(--nt-bata);
+  box-shadow: 0 0 0 3px rgba(168, 68, 31, 0.15);
+}
+.nt-cari input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--nt-indigo);
+  width: 100%;
+  min-width: 0;
+}
+
+.nt-keranjang {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--nt-indigo);
+  color: var(--nt-krem);
+}
+.nt-keranjang:hover { background: var(--nt-bata); color: #FFFFFF; }
+
+/* .cart-badge dipertahankan - shop.js dan produk.js memperbarui angkanya
+   lewat kelas ini. */
+.nt-keranjang .cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px solid var(--nt-krem);
+  background: var(--nt-kunyit);
+  color: var(--nt-indigo);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+.nt-keranjang .cart-badge[hidden] { display: none; }
+
+.nt-burger {
+  display: none;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--nt-indigo);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@media (max-width: 991.98px) {
+  .nt-strip-teks { display: none; }
+  .nt-strip-in { justify-content: flex-end; }
+
+  .nt-nav-in {
+    flex-wrap: wrap;
+    gap: 12px 14px;
+    min-height: 0;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .nt-logo { margin-right: auto; }
+  .nt-burger { display: flex; }
+
+  /* Kotak cari pindah ke baris sendiri, selebar layar - di HP pencarian
+     lebih sering dipakai daripada menu. */
+  .nt-cari { order: 5; width: 100%; margin: 0; }
+
+  .nt-menu {
+    order: 6;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    display: none;
+    border-top: 1px solid var(--nt-garis);
+  }
+  .nt-menu.is-buka { display: flex; }
+  .nt-menu a {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--nt-garis);
+  }
+  .nt-menu a[aria-current="page"] { border-bottom-color: var(--nt-garis); }
+}
+
+
+/* ===================================================================== */
+/*  BERANDA                                                              */
+/* ===================================================================== */
+
+/* ---- tombol beranda (tidak memakai .btn Furni supaya tidak saling
+        menimpa padding dan tinggi) ---- */
+
+.nt-tombol,
+.nt-tombol-garis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.nt-tombol { background: var(--nt-bata); color: #FFFFFF; }
+.nt-tombol:hover { background: var(--nt-bata-tua); color: #FFFFFF; }
+
+.nt-tombol-garis {
+  border: 1.5px solid var(--nt-indigo);
+  color: var(--nt-indigo);
+  font-weight: 600;
+}
+.nt-tombol-garis:hover { background: var(--nt-indigo); color: var(--nt-krem); }
+
+.nt-tombol-kunyit { background: var(--nt-kunyit); color: var(--nt-indigo); }
+.nt-tombol-kunyit:hover { background: var(--nt-emas-muda); color: var(--nt-indigo); }
+
+
+/* ---- hero ---- */
+
+.nt-hero { padding: 64px 0 80px; }
+
+.nt-hero-in {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 56px;
+  align-items: center;
+}
+
+.nt-hero-teks {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.nt-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nt-bata);
+}
+
+.nt-hero h1 {
+  margin: 0;
+  font-family: var(--nt-serif);
+  font-size: clamp(40px, 5.2vw, 66px);
+  line-height: 1.04;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.nt-lead {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--nt-teks-2);
+  max-width: 34em;
+}
+
+.nt-aksi { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+
+.nt-janji {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--nt-teks-2);
+}
+.nt-janji li { display: flex; align-items: center; gap: 8px; }
+.nt-janji svg { color: var(--nt-bata); flex: 0 0 auto; }
+
+/* Panel kanan dengan motif kawung */
+.nt-panel {
+  position: relative;
+  height: 540px;
+  border-radius: 32px;
+  background: var(--nt-indigo);
+  overflow: hidden;
+}
+.nt-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--nt-kawung);
+  opacity: 0.55;
+}
+
+.nt-panel-foto {
+  position: absolute;
+  left: 48px;
+  top: 48px;
+  width: 300px;
+  height: 360px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--nt-pasir);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+.nt-panel-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.nt-panel-kartu {
+  position: absolute;
+  right: 40px;
+  top: 120px;
+  width: 250px;
+  box-sizing: border-box;
+  padding: 18px;
+  border-radius: 20px;
+  background: #FFFFFF;
+  color: var(--nt-indigo);
+  text-decoration: none;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nt-panel-kartu:hover { color: var(--nt-indigo); }
+.nt-panel-kartu b { font-size: 17px; }
+
+.nt-panel-lencana {
+  position: absolute;
+  right: 72px;
+  bottom: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--nt-kunyit);
+  color: var(--nt-indigo);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+/* ---- bagian umum ---- */
+
+.nt-bagian { padding: 0 0 88px; }
+
+.nt-judul-baris {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.nt-judul-baris h2,
+.nt-h2 {
+  margin: 0;
+  font-family: var(--nt-serif);
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 700;
+}
+
+.nt-sub { margin: 8px 0 0; font-size: 16px; color: var(--nt-teks-2); }
+
+.nt-tautan { font-weight: 600; font-size: 15px; text-decoration: none; }
+
+.nt-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nt-bata);
+}
+
+.nt-harga {
+  font-family: var(--nt-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--nt-indigo);
+}
+
+.nt-meta { font-size: 13px; color: var(--nt-samar); }
+
+
+/* ---- kategori ---- */
+
+.nt-kategori {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.nt-kat {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 20px;
+  border-radius: 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  color: var(--nt-indigo);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.nt-kat:hover { border-color: var(--nt-bata); color: var(--nt-indigo); }
+
+.nt-kat-ikon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #F6E7CF;
+  color: var(--nt-bata);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nt-kat b { font-size: 16px; }
+.nt-kat small { font-size: 13px; color: var(--nt-samar); }
+
+
+/* ---- chip filter ---- */
+
+.nt-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.nt-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--nt-garis-2);
+  color: var(--nt-indigo);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.nt-chip:hover { border-color: var(--nt-indigo); color: var(--nt-indigo); }
+.nt-chip.is-aktif { background: var(--nt-indigo); border-color: var(--nt-indigo); color: var(--nt-krem); }
+
+
+/* ---- kartu produk ---- */
+
+.nt-produk {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.nt-kartu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  overflow: hidden;
+}
+
+.nt-kartu-tautan {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  color: var(--nt-indigo);
+  text-decoration: none;
+}
+.nt-kartu-tautan:hover { color: var(--nt-indigo); }
+
+.nt-kartu-foto {
+  aspect-ratio: 1 / 1;
+  background: var(--nt-pasir);
+}
+.nt-kartu-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.nt-kartu-isi {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Ruang bawah untuk tombol tambah yang ditaruh di luar tautan. */
+  padding: 18px 20px 76px;
+}
+
+.nt-kartu-isi b {
+  font-size: 17px;
+  line-height: 1.35;
+  /* Nama produk dipotong dua baris supaya harga di semua kartu sejajar. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.nt-kartu-bawah {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.nt-kartu-bawah .btn-add { pointer-events: auto; }
+
+.nt-tambah {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: var(--nt-bata);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.nt-tambah:hover { background: var(--nt-bata-tua); }
+
+.nt-kosong {
+  padding: 48px 24px;
+  border-radius: 22px;
+  border: 1px dashed var(--nt-garis-2);
+  text-align: center;
+  color: var(--nt-teks-2);
+}
+
+
+/* ---- toko di sekitarmu ---- */
+
+.nt-pita { background: var(--nt-krem-2); padding: 80px 0; margin-bottom: 0; }
+
+.nt-toko {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.nt-toko-kartu {
+  padding: 24px;
+  border-radius: 22px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.nt-toko-kepala { display: flex; align-items: center; gap: 14px; }
+
+.nt-avatar {
+  width: 60px;
+  height: 60px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nt-serif);
+  font-size: 22px;
+  font-weight: 700;
+}
+.nt-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nt-avatar-0 { background: var(--nt-indigo); color: var(--nt-emas-muda); }
+.nt-avatar-1 { background: var(--nt-bata); color: var(--nt-krem); }
+.nt-avatar-2 { background: var(--nt-kunyit); color: var(--nt-indigo); }
+
+.nt-toko-nama { display: flex; flex-direction: column; gap: 3px; flex: 1 1 auto; min-width: 0; }
+.nt-toko-nama b { font-size: 18px; }
+
+.nt-jarak {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #F6E7CF;
+  color: var(--nt-bata-tua);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nt-mini {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.nt-mini span {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: var(--nt-pasir);
+  overflow: hidden;
+}
+.nt-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+
+/* ---- langkah belanja ---- */
+
+.nt-langkah-bagian { padding: 96px 0; }
+
+.nt-langkah-bagian .nt-h2 { text-align: center; margin-bottom: 40px; }
+
+.nt-langkah {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: langkah;
+}
+
+.nt-langkah li {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px;
+  border-top: 3px solid var(--nt-kunyit);
+  counter-increment: langkah;
+}
+
+/* Nomor dari counter CSS, bukan ketikan - urutannya memang berurutan,
+   jadi nomornya membawa makna. */
+.nt-langkah li::before {
+  content: counter(langkah);
+  font-family: var(--nt-serif);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nt-bata);
+}
+
+.nt-langkah b { font-size: 20px; }
+.nt-langkah span { font-size: 15px; line-height: 1.6; color: var(--nt-teks-2); }
+
+
+/* ---- ajakan untuk pelaku UMKM ---- */
+
+.nt-cta-wrap { padding-bottom: 96px; }
+
+.nt-cta {
+  position: relative;
+  padding: 64px;
+  border-radius: 32px;
+  background: var(--nt-indigo);
+  color: var(--nt-krem);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+.nt-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--nt-kawung);
+  opacity: 0.18;
+}
+.nt-cta > * { position: relative; }
+
+.nt-cta h2 {
+  margin: 0 0 14px;
+  font-family: var(--nt-serif);
+  font-size: clamp(30px, 3.6vw, 44px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--nt-krem);
+}
+.nt-cta p { margin: 0; font-size: 17px; line-height: 1.6; color: #D8DCE6; max-width: 36em; }
+
+
+/* ===================================================================== */
+/*  FOOTER                                                               */
+/* ===================================================================== */
+
+.nt-footer {
+  background: var(--nt-indigo-2);
+  color: #C9CEDB;
+  padding: 64px 0 40px;
+}
+
+.nt-footer-kolom {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+.nt-footer h2 {
+  font-family: var(--nt-serif);
+  font-size: 24px;
+  color: var(--nt-krem);
+  margin: 0 0 14px;
+}
+
+.nt-footer h3 {
+  font-family: var(--nt-sans);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nt-krem);
+  margin: 0 0 14px;
+}
+
+.nt-footer p,
+.nt-footer li { font-size: 14px; line-height: 1.7; }
+
+.nt-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.nt-footer a { color: #C9CEDB; text-decoration: none; }
+.nt-footer a:hover { color: var(--nt-emas-muda); }
+
+.nt-footer-bawah {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid #2B3654;
+  padding-top: 24px;
+  font-size: 13px;
+}
+
+
+/* ===================================================================== */
+/*  RESPONSIF                                                            */
+/* ===================================================================== */
+
+@media (max-width: 1199.98px) {
+  .nt-kategori { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nt-produk   { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 991.98px) {
+  .nt-hero { padding: 40px 0 64px; }
+  .nt-hero-in { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+
+  .nt-panel { height: 440px; }
+  .nt-panel-foto { left: 32px; top: 32px; width: 56%; height: 300px; }
+  .nt-panel-kartu { right: 24px; top: auto; bottom: 88px; }
+  .nt-panel-lencana { right: 24px; bottom: 24px; }
+
+  .nt-produk { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .nt-toko { grid-template-columns: minmax(0, 1fr); }
+  .nt-langkah { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nt-langkah li { padding: 24px 0; }
+
+  .nt-cta { flex-direction: column; align-items: flex-start; padding: 44px 32px; }
+
+  .nt-footer-kolom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+  .nt-lead { font-size: 17px; }
+  .nt-aksi { flex-direction: column; }
+  .nt-aksi a { width: 100%; }
+
+  .nt-panel { height: 380px; border-radius: 24px; }
+  .nt-panel-foto { left: 20px; top: 20px; width: 62%; height: 250px; }
+  .nt-panel-kartu { right: 16px; bottom: 16px; width: 64%; padding: 14px; }
+  .nt-panel-lencana { display: none; }
+
+  .nt-kategori { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .nt-kat { padding: 18px 16px; }
+
+  .nt-kartu-isi { padding: 14px 14px 68px; }
+  .nt-kartu-isi b { font-size: 15px; }
+  .nt-kartu-bawah { left: 14px; right: 14px; bottom: 14px; }
+  .nt-harga { font-size: 18px; }
+
+  .nt-pita { padding: 56px 0; }
+  .nt-langkah-bagian { padding: 64px 0; }
+
+  .nt-footer-kolom { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .nt-kat { transition: none; }
+}

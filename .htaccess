@@ -1,0 +1,16 @@
+RewriteOptions inherit
+RewriteEngine on
+RewriteCond $1 !^(index\.php|public|\.txt)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?$1
+
+RewriteRule ^(.*/)?\.git(/|$) - [F,L]
+
+# Block all access to assets/ except CSS, JS, images etc.
+RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|otf|xls|xlsx|mp3|json)$ [NC]
+RewriteRule ^assets(/|$) - [F,L]
+
+# Allow only images, videos, PDFs, and text files in uploads/
+RewriteCond %{REQUEST_URI} !\.(jpg|jpeg|png|gif|svg|webp|mp4|avi|mov|pdf|txt|doc|docx|xls|xlsx|zip|rar)$ [NC]
+RewriteRule ^upload/ - [F,L]
