@@ -278,22 +278,19 @@
 </section>
 
 <!-- ============================ AJAKAN UMKM ========================== -->
-<?php if ($wa_admin): ?>
 <section class="nt-cta-wrap">
   <div class="nt-wrap">
     <div class="nt-cta">
       <div>
         <h2>Punya usaha? Jualkan di sini.</h2>
-        <p>Daftarkan tokomu dan jangkau pembeli di sekitar. Kelola produk, pesanan, dan chat pelanggan dari satu tempat.</p>
+        <p>Buka tokomu dan jangkau pembeli di sekitar. Kelola produk, pesanan, dan chat pelanggan dari satu tempat.</p>
       </div>
-      <!-- Akun penjual dibuat admin, jadi ajakannya berujung ke WhatsApp
-           admin - bukan formulir pendaftaran yang tidak ada. -->
-      <a href="https://wa.me/<?= html_escape($wa_admin) ?>?text=<?= rawurlencode('Halo, saya ingin mendaftarkan UMKM saya di ' . $brand) ?>"
-         class="nt-tombol nt-tombol-kunyit" target="_blank" rel="noopener">Daftarkan UMKM</a>
+      <!-- Buka toko sendiri dari akun. Kalau belum masuk, Member_Controller
+           mengarahkan ke login lalu kembali ke sini sesudahnya. -->
+      <a href="<?= site_url('akun/buka_toko') ?>" class="nt-tombol nt-tombol-kunyit">Buka toko</a>
     </div>
   </div>
 </section>
-<?php endif; ?>
 
 <script>
   window.SHOP_URLS = {

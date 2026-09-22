@@ -345,8 +345,8 @@ class Seller extends Seller_Controller
 
         $hasil = $this->ai_lib->daftar_model();
 
-        $this->config->load('ai', TRUE);
-        $cfg = $this->config->item('ai', 'ai');
+        $this->config->load('ai', TRUE, TRUE);
+        $cfg = $this->config->item('ai', 'ai') ?: array('model' => array(), 'model_vision' => array());
 
         $data = array(
             'models' => isset($hasil['models']) ? $hasil['models'] : array(),
@@ -404,6 +404,7 @@ class Seller extends Seller_Controller
 
     public function update_profile()
     {
+        $this->load->model('toko_model');
         $this->load->model('region_model');
 
         // Kolom nominal dikirim berformat "25.000" - dibersihkan SEBELUM
@@ -411,7 +412,7 @@ class Seller extends Seller_Controller
         $this->bersihkan_angka_profil();
 
         $this->form_validation->set_rules('name', 'Nama pemilik', 'required|trim|max_length[100]');
-        $this->form_validation->set_rules('store_name', 'Nama toko', 'required|trim|max_length[120]');
+        $this->form_validation->set_rules('store_name', 'Nama toko', 'required|trim|min_length[3]|max_length[120]|callback_nama_toko_unik');
         $this->form_validation->set_rules('phone', 'No. Telp', 'required|trim|callback_valid_phone');
         $this->form_validation->set_rules('description', 'Deskripsi', 'trim|max_length[1000]');
         $this->form_validation->set_rules('address', 'Alamat', 'required|trim|max_length[255]');
@@ -501,7 +502,10 @@ class Seller extends Seller_Controller
         $this->db->where('id', (int) $this->me['id'])->update('users', $u);
 
         $this->db->where('id', (int) $this->store['id'])->update('stores', array(
-            'name' => $this->input->post('store_name', TRUE),
+            // Spasi ganda dirapikan supaya cocok dengan pengecekan keunikan.
+            // Slug SENGAJA tidak diubah: mengganti slug memutus semua
+            // tautan produk yang sudah terlanjur dibagikan.
+            'name' => $this->toko_model->rapikan($this->input->post('store_name', TRUE)),
             'phone' => $this->normalize_phone($this->input->post('phone', TRUE)),
             'description' => $this->input->post('description', TRUE) ?: NULL,
             'address' => $this->input->post('address', TRUE),
@@ -546,6 +550,19 @@ class Seller extends Seller_Controller
      * method-nya tidak ada CI menjawab dengan pesan yang membingungkan:
      * "Unable to access an error message corresponding to your field name".
      */
+    /** Nama toko unik, kecuali milik toko ini sendiri. WAJIB public. */
+    public function nama_toko_unik($str)
+    {
+        $this->load->model('toko_model');
+
+        if ($this->toko_model->nama_dipakai($str, $this->store['id'])) {
+            $this->form_validation->set_message('nama_toko_unik',
+                'Nama toko "' . html_escape($this->toko_model->rapikan($str)) . '" sudah dipakai toko lain.');
+            return FALSE;
+        }
+        return TRUE;
+    }
+
     public function valid_phone($str)
     {
         $p = $this->normalize_phone($str);

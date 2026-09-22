@@ -24,16 +24,12 @@
         </ul>
       </nav>
 
-      <nav aria-label="Untuk penjual">
-        <h3>Untuk penjual</h3>
+      <nav aria-label="Akun">
+        <h3>Akun</h3>
         <ul>
-          <?php if ($wa): ?>
-            <li><a href="https://wa.me/<?= html_escape($wa) ?>?text=<?= rawurlencode('Halo, saya ingin mendaftarkan UMKM saya di ' . $brand) ?>"
-                   target="_blank" rel="noopener">Daftarkan UMKM</a></li>
-          <?php endif; ?>
-          <!-- Pindah dari ikon orang di navbar lama. Pembeli tidak butuh
-               login sama sekali, jadi ikon itu justru membingungkan mereka. -->
-          <li><a href="<?= site_url('auth/login') ?>">Masuk sebagai penjual</a></li>
+          <li><a href="<?= site_url('auth/login') ?>">Masuk</a></li>
+          <li><a href="<?= site_url('auth/register') ?>">Daftar</a></li>
+          <li><a href="<?= site_url('akun/buka_toko') ?>">Buka toko</a></li>
         </ul>
       </nav>
 

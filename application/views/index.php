@@ -1,16 +1,14 @@
-<!-- Partial: HEADER (hero) -->
-<!-- <div data-include="<?= base_url() ?>parts/header.php"></div> -->
-<?php $this->load->view('parts/header.php') ?>
+<?php
+/* =============================================================================
+   Layout halaman publik.
 
-<!-- Partial: NAVBAR -->
-<!-- <div data-include="<?= base_url() ?>parts/navbar.php"></div> -->
-<?php $this->load->view('parts/navbar.php') ?>
+   Navbar dan footer memakai v_navbar & v_footer (tema Nusantara).
+   Sebelumnya berkas ini masih memuat parts/navbar.php dan
+   parts/footer.php - navbar dan footer Furni lama - sehingga tema baru
+   tidak pernah terlihat walau berkasnya sudah terpasang.
+   ========================================================================== */
 
-
-<!-- Partial: BODY (konten utama) -->
-<!-- <div data-include="<?= $pages ?>"></div> -->
-<?php $this->load->view($pages) ?>
-
-<!-- Partial: FOOTER -->
-<!-- <div data-include="<?= base_url() ?>parts/footer.php"></div> -->
-<?php $this->load->view('parts/footer.php') ?>
+$this->load->view('parts/header');   // <head>, CSS, <body>
+$this->load->view('v_navbar');
+$this->load->view($pages);
+$this->load->view('parts/footer');   // v_footer, script, </body></html>

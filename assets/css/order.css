@@ -2016,7 +2016,7 @@ select.form-control:disabled {
    ========================================================================== */
 
 .produk-detail {
-  padding-top: 40px;
+  padding-top: 40px !important;
 }
 
 .remah {
@@ -2363,7 +2363,7 @@ select.form-control:disabled {
 
 @media (max-width: 767.98px) {
   .produk-detail {
-    padding-top: 24px;
+    padding-top: 24px !important;
   }
 
   .produk-nama {

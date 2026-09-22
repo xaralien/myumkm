@@ -108,7 +108,7 @@ class Stores extends Admin_Controller {
                 'name'          => $this->input->post('owner_name', TRUE),
                 'email'         => $this->input->post('email', TRUE),
                 'password_hash' => password_hash($this->input->post('password', FALSE), PASSWORD_DEFAULT),
-                'role'          => 'seller',
+                'role'          => 'user',
             ));
             $user_id = (int) $this->db->insert_id();
         }
@@ -149,7 +149,11 @@ class Stores extends Admin_Controller {
 
         $baru = $store['is_active'] ? 0 : 1;
         $this->db->where('id', $store['id'])->update('stores', array('is_active' => $baru));
-        $this->db->where('id', $store['user_id'])->update('users', array('is_active' => $baru));
+
+        /* Akun pemiliknya TIDAK ikut dinonaktifkan. Dulu akun hanya untuk
+           berjualan, jadi keduanya disamakan. Sekarang satu akun juga dipakai
+           belanja - menutup toko tidak boleh sekaligus mengunci orangnya
+           dari riwayat pesanannya sendiri. */
 
         $this->session->set_flashdata('sukses',
             $baru ? 'Toko diaktifkan.' : 'Toko dinonaktifkan. Produknya hilang dari katalog.');

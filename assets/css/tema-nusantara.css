@@ -1022,3 +1022,279 @@ a:hover { color: var(--nt-bata-tua); }
 @media (prefers-reduced-motion: reduce) {
   .btn, .nt-kat { transition: none; }
 }
+
+
+/* ===================================================================== */
+/*  AKUN - tombol profil & panel di navbar                               */
+/* ===================================================================== */
+
+.nt-akun { position: relative; flex: 0 0 auto; }
+
+.nt-akun-tombol {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--nt-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: var(--nt-serif);
+  font-size: 19px;
+  font-weight: 700;
+}
+.nt-akun-tombol:hover,
+.nt-akun-tombol[aria-expanded="true"] { border-color: var(--nt-bata); }
+.nt-akun-tombol img { width: 100%; height: 100%; object-fit: cover; }
+
+.nt-akun-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1040;
+  width: 340px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  border-radius: 20px;
+  box-shadow: 0 18px 44px rgba(31, 42, 68, 0.16);
+  overflow: hidden;
+}
+.nt-akun-panel[hidden] { display: none; }
+
+/* ---- bar profil & bar toko ---- */
+
+.nt-akun-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--nt-garis);
+  color: var(--nt-indigo);
+  text-decoration: none;
+}
+
+.nt-akun-bar-toko,
+.nt-akun-buka { background: #FBF6EE; }
+a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
+
+.nt-akun-foto {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--nt-indigo);
+  color: var(--nt-emas-muda);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nt-serif);
+  font-size: 19px;
+  font-weight: 700;
+}
+.nt-akun-foto img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Toko memakai sudut membulat, bukan lingkaran - supaya sekilas terbedakan
+   dari foto orang, persis seperti di sketsa. */
+.nt-akun-foto-toko { border-radius: 12px; background: var(--nt-bata); color: var(--nt-krem); }
+
+.nt-akun-foto-kosong {
+  border-radius: 12px;
+  background: transparent;
+  border: 1.5px dashed var(--nt-garis-2);
+  color: var(--nt-bata);
+  font-family: var(--nt-sans);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.nt-akun-teks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.nt-akun-teks strong {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nt-akun-teks em {
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--nt-samar);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nt-akun-teks em.nt-akun-tunggu { color: #8A5A10; font-weight: 600; }
+
+.nt-akun-ubah {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nt-samar);
+}
+.nt-akun-ubah:hover { background: var(--nt-krem-2); color: var(--nt-bata); }
+
+/* ---- daftar menu ---- */
+
+.nt-akun-menu { display: flex; flex-direction: column; padding: 8px 0; }
+
+.nt-akun-menu a {
+  padding: 11px 20px;
+  font-size: 14.5px;
+  color: var(--nt-indigo);
+  text-decoration: none;
+}
+.nt-akun-menu a:hover { background: var(--nt-krem); color: var(--nt-bata); }
+
+.nt-akun-sub {
+  padding: 12px 20px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nt-samar);
+}
+
+/* ---- keluar, paling bawah ---- */
+
+.nt-akun-keluar { margin: 0; border-top: 1px solid var(--nt-garis); }
+.nt-akun-keluar button {
+  width: 100%;
+  padding: 14px 20px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #B3261E;
+  cursor: pointer;
+}
+.nt-akun-keluar button:hover { background: #FDF1EF; }
+
+/* ---- tamu ---- */
+
+.nt-akun-tamu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-bottom: 1px solid var(--nt-garis);
+}
+.nt-akun-tamu p { margin: 0 0 4px; font-size: 14px; line-height: 1.55; color: var(--nt-teks-2); }
+.nt-akun-tamu .nt-tombol,
+.nt-akun-tamu .nt-tombol-garis { height: 46px; font-size: 15px; }
+
+
+/* ---- pesan sukses/info di bawah navbar ---- */
+
+.nt-kabar {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #F6EEDF;
+  border-left: 3px solid var(--nt-kunyit);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.nt-kabar.is-ok { background: #EAF3EE; border-left-color: var(--ord-ok); }
+
+
+/* ===================================================================== */
+/*  HALAMAN AKUN                                                         */
+/* ===================================================================== */
+
+.akun-alih { margin: 18px 0 0; text-align: center; font-size: 14px; color: var(--nt-teks-2); }
+
+/* Jebakan bot di formulir daftar - di luar layar, bukan display:none.
+   Sebagian bot sengaja melewati kolom yang display:none. */
+.akun-jebakan {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.akun-inisial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nt-indigo);
+  color: var(--nt-emas-muda);
+  font-family: var(--nt-serif);
+  font-size: 28px;
+  font-weight: 700;
+}
+.akun-inisial[hidden] { display: none; }
+
+.akun-setuju {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--nt-teks-2);
+  cursor: pointer;
+}
+.akun-setuju input { margin-top: 4px; width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--nt-bata); }
+
+.akun-pesanan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.akun-pesanan a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--nt-garis);
+  border-radius: 16px;
+  background: #FFFFFF;
+  color: var(--nt-indigo);
+  text-decoration: none;
+}
+.akun-pesanan a:hover { border-color: var(--nt-bata); color: var(--nt-indigo); }
+
+.akun-pesanan-kiri,
+.akun-pesanan-kanan { display: flex; flex-direction: column; gap: 4px; }
+.akun-pesanan-kanan { align-items: flex-end; text-align: right; }
+.akun-pesanan em { font-style: normal; font-size: 13px; color: var(--nt-samar); }
+
+
+/* ---- layar sempit ---- */
+
+@media (max-width: 991.98px) {
+  .nt-akun { order: 2; }
+  .nt-burger { order: 3; }
+
+  /* Di HP panel menempel ke tepi layar, bukan ke tombol - panel 340px
+     yang ditambatkan ke tombol di pojok kanan akan terpotong di layar
+     360px. */
+  .nt-akun-panel {
+    position: fixed;
+    top: 72px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .akun-pesanan a { flex-direction: column; align-items: flex-start; }
+  .akun-pesanan-kanan { align-items: flex-start; text-align: left; }
+}

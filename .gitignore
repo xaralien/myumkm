@@ -30,3 +30,13 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 *.sublime-project
 /tests/tests/
 /tests/results/
+
+# Kredensial - JANGAN di-commit. Salin dari *.example.php.
+application/config/duitku_lokal.php
+application/config/ai.php
+
+# Unggahan pengguna
+upload/produk/*
+upload/avatar/*
+!upload/**/index.html
+application/config/duitku.php

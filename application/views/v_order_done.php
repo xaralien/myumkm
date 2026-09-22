@@ -44,6 +44,13 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
               Siapkan <strong><?= rupiah($order['total']) ?></strong> saat kurir tiba.</p>
           <?php elseif ($lunas): ?>
             <p>Pembayaran sudah kami terima. Bunga akan dirangkai dan dikirim sesuai jadwal.</p>
+            <?= form_open('track/cari') ?>
+            <input type="hidden" id="order_number" name="order_number" value="<?= $order['order_number'] ?>" required>
+            <?= form_error('order_number') ?>
+            <input type="hidden" id="phone" name="phone" value="<?= $order['recipient_phone'] ?>" required>
+            <?= form_error('phone') ?>
+            <button type="submit" class="btn btn-primary w-100">Lacak Pesanan</button>
+            <?= form_close() ?>
           <?php else: ?>
             <p>Pembayaran belum kami terima. Kalau kamu sudah membayar, status
               akan berubah otomatis dalam beberapa menit.</p>

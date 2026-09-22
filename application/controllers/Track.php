@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Track - lacak pesanan tanpa login.
@@ -8,7 +8,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   GET  track          formulir
  *   POST track/cari     cari pakai nomor pesanan + nomor HP
  */
-class Track extends CI_Controller {
+class Track extends CI_Controller
+{
 
     public function __construct()
     {
@@ -40,21 +41,23 @@ class Track extends CI_Controller {
 
         $order = $this->order_model->find_for_guest($nomor, $phone);
 
-        if ( ! $order) {
+        if (! $order) {
             // Pesan sengaja tidak memisahkan "nomor salah" dan "HP salah".
             // Kalau dipisah, orang bisa menebak nomor pesanan orang lain.
-            $this->session->set_flashdata('error',
-                'Pesanan tidak ditemukan. Periksa lagi nomor pesanan dan nomor WhatsApp-nya.');
+            $this->session->set_flashdata(
+                'error',
+                'Pesanan tidak ditemukan. Periksa lagi nomor pesanan dan nomor WhatsApp-nya.'
+            );
             return $this->index();
         }
 
         /* Nama & WhatsApp toko untuk tombol bantuan. Pesanan lama mungkin
            belum punya store_id, jadi tetap ditangani kalau kosong. */
         $toko = NULL;
-        if ( ! empty($order['store_id'])) {
+        if (! empty($order['store_id'])) {
             $toko = $this->db->select('name, phone')
-                             ->where('id', (int) $order['store_id'])
-                             ->get('stores')->row_array();
+                ->where('id', (int) $order['store_id'])
+                ->get('stores')->row_array();
         }
 
         $data = array(
@@ -70,16 +73,16 @@ class Track extends CI_Controller {
                Payment::pay() akan membuatkan transaksi baru dari pesanan
                yang sudah tersimpan. */
             'bisa_bayar' => $order['payment_method'] === 'duitku'
-                         && in_array($order['payment_status'], array('unpaid', 'failed'), TRUE)
-                         && $order['order_status'] !== 'cancelled',
+                && in_array($order['payment_status'], array('unpaid', 'failed'), TRUE)
+                && $order['order_status'] !== 'cancelled',
 
             /* Link bertoken. Pembeli sudah membuktikan kepemilikan lewat
                nomor pesanan + nomor HP, jadi tidak perlu mencari linknya
                lagi di riwayat WhatsApp. */
             'url_bayar' => site_url('payment/pay/' . $order['order_number']
-                                    . '/' . $order['access_token']),
+                . '/' . $order['access_token']),
             'url_pesanan' => site_url('checkout/done/' . $order['order_number']
-                                    . '/' . $order['access_token']),
+                . '/' . $order['access_token']),
         );
 
         $data['pages'] = 'v_track_result';

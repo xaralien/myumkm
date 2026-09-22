@@ -16,7 +16,7 @@ class Checkout extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->library(array('cart_lib', 'session', 'form_validation', 'duitku'));
+        $this->load->library(array('cart_lib', 'session', 'form_validation', 'duitku', 'auth_lib'));
         $this->load->model(array('order_model', 'region_model'));
         $this->load->helper(array('url', 'form', 'money'));
 
@@ -42,6 +42,10 @@ class Checkout extends CI_Controller
             'items'      => $this->cart_lib->items(),
             'subtotal'   => $subtotal,
             'toko'       => $t,
+
+            // Data pemesan diisi dari akun kalau sedang masuk. Data
+            // PENERIMA sengaja tidak - pembeli sering mengirim ke orang lain.
+            'akun'       => $this->auth_lib->row(),
 
             // Provinsi dimuat di awal; kabupaten & kecamatan lewat AJAX,
             // karena data kecamatan Indonesia ada ~7.277 baris.
@@ -197,6 +201,9 @@ class Checkout extends CI_Controller
 
         $order = array(
             'store_id'          => $this->cart_lib->store_id(),
+
+            // Pesanan tersimpan ke akun kalau pembeli sedang masuk; NULL untuk tamu.
+            'user_id'           => $this->auth_lib->id(),
             'customer_name'     => $this->input->post('customer_name', TRUE),
             'customer_phone'    => $this->normalize_phone($this->input->post('customer_phone', TRUE)),
             'customer_email'    => $this->input->post('customer_email', TRUE) ?: NULL,
@@ -229,6 +236,13 @@ class Checkout extends CI_Controller
             'payment_status'    => 'unpaid',
             'order_status'      => 'pending',
         );
+
+        /* Kolom user_id datang dari migrasi 16. Kalau belum dijalankan,
+           kuncinya DIBUANG - bukan dikosongkan. Nilai NULL pun tetap ikut
+           dikirim ke INSERT dan checkout mati dengan "Unknown column". */
+        if ( ! $this->db->field_exists('user_id', 'orders')) {
+            unset($order['user_id']);
+        }
 
         $saved = $this->order_model->create($order, $items);
         if (! $saved) {

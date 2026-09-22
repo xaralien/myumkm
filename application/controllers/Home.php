@@ -60,8 +60,15 @@ class Home extends CI_Controller {
      */
     protected function kategori_teratas($n)
     {
+        /* Kolom icon & keterangan datang dari migrasi 15_kategori_umkm.sql.
+           Kalau migrasi itu belum dijalankan, beranda tetap tampil - hanya
+           memakai ikon umum - alih-alih mati karena "Unknown column". */
+        $tambahan = $this->db->field_exists('icon', 'categories')
+            ? 'c.icon, c.keterangan'
+            : 'NULL AS icon, NULL AS keterangan';
+
         return $this->db
-            ->select('c.id, c.name, c.slug, c.icon, c.keterangan, COUNT(p.id) AS jml', FALSE)
+            ->select('c.id, c.name, c.slug, ' . $tambahan . ', COUNT(p.id) AS jml', FALSE)
             ->from('categories c')
             ->join('products p', 'p.category_id = c.id AND p.is_active = 1', 'left')
             ->group_by('c.id')

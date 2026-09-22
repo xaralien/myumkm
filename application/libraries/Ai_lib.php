@@ -28,8 +28,13 @@ class Ai_lib
         // Cache dipakai mengingat model mana yang masih hidup, supaya
         // tidak mencoba model mati berulang kali di tiap permintaan.
         $this->CI->load->driver('cache', array('adapter' => 'file', 'backup' => 'dummy'));
-        $this->CI->config->load('ai', TRUE);
-        $this->cfg = $this->CI->config->item('ai', 'ai');
+        /* Parameter ketiga TRUE: kalau config/ai.php tidak ada, JANGAN
+           hentikan halaman. Berkas itu berisi kunci API, jadi wajar tidak
+           ikut di repo - tanpa ini, formulir produk penjual gagal dibuka
+           total hanya karena fitur AI belum disiapkan. */
+        $this->CI->config->load('ai', TRUE, TRUE);
+        $cfg = $this->CI->config->item('ai', 'ai');
+        $this->cfg = is_array($cfg) ? $cfg : array();
     }
 
     public function aktif()

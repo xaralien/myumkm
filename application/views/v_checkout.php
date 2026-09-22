@@ -171,13 +171,13 @@
             <div class="col-sm-6 mb-3">
               <label class="form-label" for="customer_name">Nama *</label>
               <input type="text" id="customer_name" name="customer_name" class="form-control"
-                value="<?= set_value('customer_name') ?>" required>
+                value="<?= set_value('customer_name', ! empty($akun) ? $akun['name'] : '') ?>" required>
               <?= form_error('customer_name') ?>
             </div>
             <div class="col-sm-6 mb-3">
               <label class="form-label" for="customer_phone">Nomor WhatsApp *</label>
               <input type="tel" id="customer_phone" name="customer_phone" class="form-control"
-                placeholder="081234567890" value="<?= set_value('customer_phone') ?>" required>
+                placeholder="081234567890" value="<?= set_value('customer_phone', ! empty($akun) ? $akun['phone'] : '') ?>" required>
               <?= form_error('customer_phone') ?>
             </div>
           </div>
@@ -185,7 +185,7 @@
           <div class="mb-1">
             <label class="form-label" for="customer_email">Email (opsional)</label>
             <input type="email" id="customer_email" name="customer_email" class="form-control"
-              value="<?= set_value('customer_email') ?>">
+              value="<?= set_value('customer_email', ! empty($akun) ? $akun['email'] : '') ?>">
             <?= form_error('customer_email') ?>
           </div>
         </div>

@@ -459,12 +459,24 @@ $config['global_xss_filtering'] = FALSE;
 | 'csrf_regenerate' = Regenerate token on every submission
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 */
-$config['csrf_protection'] = FALSE;
+/* DINYALAKAN. Sebelumnya FALSE - artinya semua token CSRF yang dikirim
+   JavaScript tidak pernah diperiksa, dan situs lain bisa memicu aksi
+   penjual (ubah status pesanan, hapus produk) lewat tautan jebakan.
+   Semua form sudah memakai form_open() dan semua fetch POST sudah
+   membawa token, jadi menyalakannya tidak merusak apa pun. */
+$config['csrf_protection'] = TRUE;
 $config['csrf_token_name'] = 'csrf_test_name';
 $config['csrf_cookie_name'] = 'csrf_cookie_name';
 $config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = TRUE;
-$config['csrf_exclude_uris'] = array();
+/* FALSE: satu token per sesi, bukan per permintaan. Dengan TRUE, dua
+   tab terbuka atau dua permintaan AJAX yang berjalan bersamaan saling
+   membatalkan token - dan salah satunya ditolak 403 tanpa sebab yang
+   jelas bagi pengguna. Perlindungan terhadap CSRF tetap utuh. */
+$config['csrf_regenerate'] = FALSE;
+/* Callback Duitku dikirim server Duitku, bukan browser - tidak mungkin
+   membawa token. Tanpa pengecualian ini setiap notifikasi pembayaran
+   ditolak 403 dan pesanan tidak pernah tercatat lunas. */
+$config['csrf_exclude_uris'] = array('payment/callback');
 
 /*
 |--------------------------------------------------------------------------
@@ -532,3 +544,18 @@ $config['rewrite_short_tags'] = FALSE;
 | Array:		array('10.0.1.200', '192.168.5.0/24')
 */
 $config['proxy_ips'] = '';
+
+
+/* =============================================================================
+   IDENTITAS SITUS - satu tempat untuk nama dan kontak.
+   Dipakai navbar, footer, judul halaman, dan tombol "Daftarkan UMKM".
+   ========================================================================== */
+$config['nama_brand'] = 'MyUMKM';
+$config['slogan']     = 'Belanja langsung dari pelaku UMKM di kotamu';
+
+// Format 62..., tanpa + dan spasi. Kosongkan untuk menyembunyikan tombol
+// "Daftarkan UMKM" sampai nomornya siap.
+$config['wa_admin']   = '';
+
+$config['alamat']     = '';
+$config['email']      = '';
