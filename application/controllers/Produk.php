@@ -101,17 +101,8 @@ class Produk extends CI_Controller
             'lainnya'   => $this->product_model->lain_dari_toko($p['store_id'], $p['id']),
             'lokasi'    => $lokasi,
             'jarak'     => $jarak,
-            /* Semua jam berasal dari TOKO pemilik produk. Halaman ini bisa
-               menampilkan produk toko mana pun, jadi satu nilai global
-               justru akan menyesatkan pembeli.
-
-               "Bisa kirim hari ini" diturunkan dari jam tutup dikurangi
-               jeda persiapan, bukan dari kolom cutoff terpisah. */
-            'same_day'  => date('H:i', time() + ((int) $p['store_jeda'] * 60))
-                <= substr((string) $p['store_close'], 0, 5),
-            'jam_siap'  => date('H:i', time() + ((int) $p['store_jeda'] * 60)),
-            'jam_buka'  => substr((string) $p['store_open'], 0, 5),
-            'jam_tutup' => substr((string) $p['store_close'], 0, 5),
+            // Berapa hari penjual memproses pesanan sebelum dikirim.
+            'proses'    => max(1, (int) $p['store_proses']),
             'wa_toko'   => $p['store_phone'],
 
             // Dipakai di <title> dan meta description.

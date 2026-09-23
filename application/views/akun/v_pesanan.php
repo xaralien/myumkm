@@ -1,11 +1,11 @@
 <!-- application/views/akun/v_pesanan.php -->
 <?php
   $label_status = array(
-    'pending'    => 'Menunggu konfirmasi',
-    'confirmed'  => 'Dikonfirmasi',
-    'preparing'  => 'Sedang disiapkan',
-    'delivering' => 'Dalam pengiriman',
-    'delivered'  => 'Sudah diterima',
+    'pending'    => 'Menunggu diproses',
+    'confirmed'  => 'Diproses penjual',
+    'preparing'  => 'Diproses penjual',
+    'delivering' => 'Dikirim',
+    'delivered'  => 'Selesai',
     'cancelled'  => 'Dibatalkan',
   );
 ?>

@@ -1,16 +1,20 @@
+/* =============================================================================
+   chat-widget.js - percakapan pembeli-penjual, melayang di kanan bawah
+   Simpan di: assets/js/chat-widget.js
+
+   Polling, bukan WebSocket - WebSocket butuh server tersendiri yang tidak
+   ada di XAMPP maupun hosting bersama.
+   ========================================================================== */
 (function () {
   'use strict';
 
   var C = window.CHAT_WIDGET;
   if (!C) { return; }
 
-  /**
-   * Merangkai URL secara langsung:
-   * http://localhost/myflorist/chat/{aksi}/{nomor}/{token}
-   */
+  /** {baseUrl}/chat/{aksi}/{nomor}/{token} */
   function url(aksi) {
-    var base = C.baseUrl || '';
-    return base + '/chat/' + aksi + '/' + encodeURIComponent(C.nomor || '') + '/' + encodeURIComponent(C.token || '');
+    return (C.baseUrl || '') + '/chat/' + aksi + '/' +
+      encodeURIComponent(C.nomor || '') + '/' + encodeURIComponent(C.token || '');
   }
 
   var tombol   = document.getElementById('cwTombol');
@@ -20,18 +24,19 @@
   var teks     = document.getElementById('cwTeks');
   var info     = document.getElementById('cwInfo');
   var lencana  = document.getElementById('cwLencana');
-  var kotakAcc = document.getElementById('cwAcc');
   var lightbox = document.getElementById('cwLightbox');
   if (!tombol || !panel || !isi) { return; }
 
   var sejak = 0;
   var terbuka = false;
-  var belumDibaca = parseInt(lencana ? lencana.textContent : 0, 10) || 0;
+  var pertama = true;
 
+  /* Panel terbuka: pembeli sedang menunggu balasan, 4 detik wajar.
+     Tertutup: cukup tahu ada pesan baru untuk lencana, 30 detik. */
   var JEDA_BUKA = 4000, JEDA_TUTUP = 30000;
   var timer = null;
 
-  /* ------------------------------------------------------------ bantu */
+  /* ------------------------------------------------------------- bantu */
 
   function esc(s) {
     var d = document.createElement('div');
@@ -48,29 +53,24 @@
   function keBawah() { isi.scrollTop = isi.scrollHeight; }
 
   function setLencana(n) {
-    belumDibaca = n;
     if (!lencana) { return; }
     lencana.textContent = n;
     if (n > 0) { lencana.removeAttribute('hidden'); }
     else { lencana.setAttribute('hidden', ''); }
   }
 
+  /* Bentuknya harus sama dengan v_chat_bubble.php - kalau berbeda, pesan
+     yang baru masuk terlihat lain dari yang sudah ada. */
   function bubble(m) {
     if (m.pengirim === 'sistem') {
       return '<div class="cw-sistem">' + esc(m.isi) + '</div>';
     }
-
     var milik = (m.pengirim === 'customer');
     var h = '<div class="cw-baris' + (milik ? ' is-saya' : '') + '"><div class="cw-gelembung">';
 
     if (m.image) {
       var g = C.gambar + m.image;
-      h += '<img src="' + g + '" alt="" class="cw-gambar" data-besar="' + g + '" loading="lazy">';
-      if (m.tipe === 'foto_acc') {
-        h += '<span class="cw-tag">Untuk disetujui</span>';
-      } else if (m.tipe === 'foto_lokasi') {
-        h += '<span class="cw-tag">Foto di lokasi</span>';
-      }
+      h += '<img src="' + g + '" alt="Foto dari toko" class="cw-gambar" data-besar="' + g + '" loading="lazy">';
     }
     if (m.isi) { h += '<p>' + esc(m.isi).replace(/\n/g, '<br>') + '</p>'; }
 
@@ -89,37 +89,24 @@
   }
 
   function csrf(j) {
-    if (window.CSRF && j.csrf_hash) {
+    if (window.CSRF && j && j.csrf_hash) {
       window.CSRF.name = j.csrf_name;
       window.CSRF.hash = j.csrf_hash;
     }
   }
 
-  /** Perbarui tulisan & status tombol "Minta perbaikan". */
-  function setSisaRevisi(sisa) {
-    var btn = document.getElementById('cwRevisi');
-    if (!btn) { return; }
+  /* -------------------------------------------------------- notifikasi */
 
-    btn.textContent = 'Minta perbaikan (' + sisa + 'x)';
-
-    /* Dimatikan kalau jatahnya habis. Membiarkannya aktif berarti customer
-       menekan tombol lalu ditolak server - lebih membingungkan daripada
-       tombol mati yang jelas menunjukkan sisanya nol. */
-    btn.disabled = (sisa < 1);
-  }
-
-  /* ------------------------------------------------------- notifikasi */
-
-  var judulAsli = C.judul || document.title;
+  var judulAsli = document.title;
   var kedipTimer = null;
 
-  /* Judul tab berkedip - cara paling andal. Jalan di semua browser, tanpa
-     izin apa pun, dan terlihat walau tab-nya di latar. */
-  function kedipJudul(teks) {
+  // Judul tab berkedip: jalan di semua browser, tanpa izin, terlihat
+  // walau tab-nya di latar.
+  function kedipJudul(t) {
     clearInterval(kedipTimer);
     var nyala = false;
     kedipTimer = setInterval(function () {
-      document.title = nyala ? judulAsli : teks;
+      document.title = nyala ? judulAsli : t;
       nyala = !nyala;
     }, 1200);
   }
@@ -129,59 +116,29 @@
     document.title = judulAsli;
   }
 
-  /* Nada pendek lewat Web Audio, bukan berkas mp3 - tidak ada berkas
-     tambahan yang harus diunduh dan tidak ada jeda saat pesan pertama. */
+  // Nada pendek lewat Web Audio - tidak ada berkas suara yang diunduh.
   function bunyi() {
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) { return; }
-
       var ctx = new AC();
-
-      // Browser memblokir suara sebelum pengguna pernah menyentuh halaman.
+      // Browser memblokir suara sebelum pengguna menyentuh halaman.
       if (ctx.state === 'suspended') { return; }
-
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
+      var osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = 880;
       gain.gain.setValueAtTime(0.0001, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.36);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.36);
       setTimeout(function () { ctx.close(); }, 600);
-    } catch (e) {
-      // Suara gagal bukan alasan menghentikan apa pun.
-    }
+    } catch (e) { /* suara gagal bukan alasan menghentikan apa pun */ }
   }
 
-  function ringkas(m) {
-    if (m.tipe === 'foto_acc')    { return 'Foto rangkaian dikirim - butuh persetujuan kamu'; }
-    if (m.tipe === 'foto_lokasi') { return 'Foto pengiriman dikirim'; }
-    if (m.pengirim === 'sistem')  { return String(m.isi || '').slice(0, 80); }
-    return String(m.isi || 'Pesan baru dari toko').slice(0, 80);
-  }
-
-  function beritahu(m) {
-    var teks = ringkas(m);
-
-    kedipJudul('(baru) ' + teks.slice(0, 30));
-    bunyi();
-    if (navigator.vibrate) { navigator.vibrate(180); }
-    toast(teks);
-  }
-
-  /* Toast sendiri, BUKAN Notification API browser. Notification API
-     meminta izin lewat dialog yang muncul tiba-tiba, dan kebanyakan orang
-     menolaknya refleks - lalu pemberitahuannya hilang selamanya tanpa
-     bisa dipulihkan. */
-  function toast(teks) {
+  /* Toast sendiri, bukan Notification API - itu meminta izin lewat dialog
+     yang kebanyakan orang tolak refleks, lalu hilang selamanya. */
+  function toast(t) {
     if (terbuka) { return; }
-
     var lama = document.getElementById('cwToast');
     if (lama) { lama.remove(); }
 
@@ -190,27 +147,26 @@
     el.id = 'cwToast';
     el.className = 'cw-toast';
     el.innerHTML = '<strong>Pesan baru dari toko</strong><span></span>';
-    el.querySelector('span').textContent = teks;
-
-    el.addEventListener('click', function () {
-      el.remove();
-      buka();
-    });
+    el.querySelector('span').textContent = t;
+    el.addEventListener('click', function () { el.remove(); buka(); });
 
     document.body.appendChild(el);
-
-    // Menghilang sendiri; lencana di tombol tetap tinggal sebagai penanda.
-    setTimeout(function () {
-      if (el.parentNode) { el.remove(); }
-    }, 8000);
+    setTimeout(function () { if (el.parentNode) { el.remove(); } }, 8000);
   }
 
-  /* --------------------------------------------------------- polling */
+  function beritahu(m) {
+    var t = m.image && !m.isi ? 'Toko mengirim foto' : String(m.isi || 'Pesan baru').slice(0, 80);
+    kedipJudul('(baru) ' + t.slice(0, 30));
+    bunyi();
+    if (navigator.vibrate) { navigator.vibrate(180); }
+    toast(t);
+  }
+
+  /* ----------------------------------------------------------- polling */
 
   function ambil() {
-    /* dibaca=1 HANYA saat panel terbuka. Polling tetap jalan saat panel
-       tertutup - kalau selalu dikirim, pesan penjual ditandai sudah dibaca
-       padahal customer belum melihatnya, dan lencananya tidak pernah muncul. */
+    /* dibaca=1 HANYA saat panel terbuka. Kalau selalu dikirim, pesan toko
+       ditandai sudah dibaca padahal pembeli belum melihatnya. */
     fetch(url('baru') + '?sejak=' + sejak + '&dibaca=' + (terbuka ? '1' : '0'), {
       credentials: 'same-origin',
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -230,58 +186,22 @@
 
           if (terbuka) {
             keBawah();
-          } else {
-            /* Pesan penjual DAN catatan sistem sama-sama dihitung.
-               "Foto sudah dikirim" justru yang paling perlu diketahui,
-               karena tenggat ACC mulai berjalan dari situ. */
-            var dariLain = j.pesan.filter(function (m) {
-              return m.pengirim !== 'customer';
-            });
-            if (dariLain.length) {
-              beritahu(dariLain[dariLain.length - 1]);
-            }
+          } else if (!pertama) {
+            // Pemuatan pertama berisi riwayat lama - bukan "pesan baru".
+            var dariToko = j.pesan.filter(function (m) { return m.pengirim !== 'customer'; });
+            if (dariToko.length) { beritahu(dariToko[dariToko.length - 1]); }
           }
+        } else if (pertama) {
+          var kosong = isi.querySelector('.cw-memuat');
+          if (kosong) { kosong.textContent = 'Belum ada pesan. Tanyakan apa saja soal pesananmu.'; }
         }
 
-        /* Angka lencana diambil dari SERVER, bukan dijumlahkan di browser.
-           Kalau dijumlahkan sendiri, membuka halaman di dua tab
-           menghasilkan dua hitungan berbeda - dan keduanya salah. */
+        // Angka lencana dari SERVER - dua tab tetap menunjukkan angka sama.
         if (typeof j.belum !== 'undefined') {
           setLencana(terbuka ? 0 : parseInt(j.belum, 10) || 0);
         }
-        if (typeof j.sisa_revisi !== 'undefined') {
-          setSisaRevisi(parseInt(j.sisa_revisi, 10) || 0);
-        }
 
-        if (j.acc_status && j.acc_status !== C.acc) {
-          C.acc = j.acc_status;
-
-          /* Tombol MUNCUL LAGI saat status kembali ke 'menunggu'.
-
-             Versi lama hanya menyembunyikan, tidak pernah memunculkan.
-             Akibatnya di siklus revisi: customer minta perbaikan (tombol
-             hilang), penjual kirim foto baru (status kembali 'menunggu'),
-             tapi tombolnya TIDAK kembali - customer harus memuat ulang
-             halaman sendiri padahal tenggat ACC sudah berjalan. */
-          if (kotakAcc) {
-            kotakAcc.hidden = (j.acc_status !== 'menunggu');
-          }
-          var tenggat = document.getElementById('cwTenggat');
-          if (tenggat) {
-            tenggat.hidden = (j.acc_status !== 'menunggu');
-          }
-          var st = document.getElementById('cwStatus');
-          if (st) {
-            st.textContent = ({
-              'disetujui': 'Sudah disetujui',
-              'otomatis':  'Disetujui otomatis',
-              'ditutup':   'Revisi ditutup',
-              'revisi':    'Toko sedang memperbaiki',
-              'menunggu':  'Butuh persetujuan kamu'
-            })[j.acc_status] || st.textContent;
-          }
-        }
-
+        pertama = false;
         jadwal();
       })
       .catch(function () { jadwal(); });
@@ -292,22 +212,19 @@
     timer = setTimeout(ambil, terbuka ? JEDA_BUKA : JEDA_TUTUP);
   }
 
-  /* ------------------------------------------------------ buka/tutup */
+  /* -------------------------------------------------------- buka/tutup */
 
   function buka() {
     terbuka = true;
     panel.hidden = false;
-    berhentiKedip();
-
-    var toastLama = document.getElementById('cwToast');
-    if (toastLama) { toastLama.remove(); }
-
     tombol.setAttribute('aria-expanded', 'true');
     tombol.classList.add('is-aktif');
+    berhentiKedip();
+    var t = document.getElementById('cwToast');
+    if (t) { t.remove(); }
     setLencana(0);
     keBawah();
     if (teks) { teks.focus(); }
-
     clearTimeout(timer);
     timer = setTimeout(ambil, 300);
   }
@@ -317,22 +234,21 @@
     panel.hidden = true;
     tombol.setAttribute('aria-expanded', 'false');
     tombol.classList.remove('is-aktif');
+    tombol.focus();
     jadwal();
   }
 
   tombol.addEventListener('click', function () { terbuka ? tutup() : buka(); });
   document.getElementById('cwTutup').addEventListener('click', tutup);
-
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && terbuka) { tutup(); }
+    if (e.key === 'Escape') {
+      if (lightbox && !lightbox.hidden) { lightbox.hidden = true; return; }
+      if (terbuka) { tutup(); }
+    }
   });
 
-  if (C.buka && !sessionStorage.getItem('cw_dibuka')) {
-    sessionStorage.setItem('cw_dibuka', '1');
-    setTimeout(buka, 1200);
-  } else {
-    jadwal();
-  }
+  // Muat riwayat sekali di awal (tanpa menandai dibaca), lalu berkala.
+  ambil();
 
   /* ------------------------------------------------------ kirim pesan */
 
@@ -352,7 +268,7 @@
       .then(function (j) {
         csrf(j);
         if (!j.ok) {
-          teks.value = t;
+          teks.value = t;   // kembalikan supaya tidak hilang
           return pesan(j.pesan || 'Gagal mengirim.', 'error');
         }
         clearTimeout(timer);
@@ -364,85 +280,7 @@
       });
   });
 
-  /* -------------------------------------------------------- ACC & revisi */
-
-  var btnSetuju = document.getElementById('cwSetuju');
-  var btnRevisi = document.getElementById('cwRevisi');
-
-  if (btnSetuju) {
-    btnSetuju.addEventListener('click', function () {
-      if (!confirm('Setujui rangkaian ini?\n\n'
-                 + 'Kata-kata papan akan dikunci dan tidak bisa diubah lagi.')) {
-        return;
-      }
-      btnSetuju.disabled = true;
-
-      fetch(url('setuju'), {
-        method: 'POST', body: body({}), credentials: 'same-origin',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          csrf(j);
-          btnSetuju.disabled = false;
-          if (!j.ok) { return pesan(j.pesan || 'Gagal.', 'error'); }
-
-          kotakAcc.hidden = true;
-          C.acc = 'disetujui';
-          pesan('Rangkaian disetujui.', 'ok');
-          clearTimeout(timer);
-          timer = setTimeout(ambil, 300);
-        })
-        .catch(function () {
-          btnSetuju.disabled = false;
-          pesan('Koneksi bermasalah.', 'error');
-        });
-    });
-  }
-
-  if (btnRevisi) {
-    btnRevisi.addEventListener('click', function () {
-      var catatan = prompt('Apa yang perlu diperbaiki?');
-      if (catatan === null) { return; }
-
-      catatan = catatan.trim();
-      if (catatan.length < 5) {
-        return pesan('Tulis minimal 5 karakter supaya toko tahu maksudnya.', 'error');
-      }
-
-      btnRevisi.disabled = true;
-
-      fetch(url('revisi'), {
-        method: 'POST', body: body({ catatan: catatan }), credentials: 'same-origin',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          csrf(j);
-          btnRevisi.disabled = false;
-          if (!j.ok) { return pesan(j.pesan || 'Gagal.', 'error'); }
-
-          /* Disembunyikan SEMENTARA - akan muncul lagi sendiri begitu
-             penjual mengirim foto perbaikan dan status kembali 'menunggu'. */
-          kotakAcc.hidden = true;
-          C.acc = 'revisi';
-
-          if (typeof j.sisa_revisi !== 'undefined') {
-            setSisaRevisi(parseInt(j.sisa_revisi, 10) || 0);
-          }
-
-          pesan('Permintaan perbaikan terkirim. Tunggu foto perbaikan dari toko.', 'ok');
-          clearTimeout(timer);
-          timer = setTimeout(ambil, 300);
-        })
-        .catch(function () {
-          btnRevisi.disabled = false;
-          pesan('Koneksi bermasalah.', 'error');
-        });
-    });
-  }
-
-  /* ------------------------------------------------------------ foto besar */
+  /* ------------------------------------------------------- foto besar */
 
   isi.addEventListener('click', function (e) {
     var img = e.target.closest('[data-besar]');
@@ -450,11 +288,7 @@
     lightbox.querySelector('img').src = img.dataset.besar;
     lightbox.hidden = false;
   });
-
   if (lightbox) {
     lightbox.addEventListener('click', function () { lightbox.hidden = true; });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { lightbox.hidden = true; }
-    });
   }
 })();

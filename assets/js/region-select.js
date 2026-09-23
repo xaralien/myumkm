@@ -59,7 +59,40 @@
   /* Saat mengubah toko yang sudah ada, dua dropdown bawah harus terisi
      lebih dulu supaya nilai lamanya kelihatan - bukan kosong seolah
      belum pernah diisi. */
+  /* Dipanggil dari luar (peta-alamat.js) untuk mengisi ketiga dropdown
+     sekaligus. Mengembalikan Promise supaya pemanggilnya tahu kapan
+     kecamatan selesai dimuat - daftar kecamatan baru ada SETELAH kabupaten
+     diambil dari server, jadi tidak bisa diisi seketika. */
+  window.setWilayah = function (provinceId, regencyId, districtId) {
+    prov.value = provinceId ? String(provinceId) : '';
+
+    if (!prov.value) {
+      isi(reg, [], 'Kabupaten / Kota');
+      isi(dis, [], 'Kecamatan');
+      return Promise.resolve();
+    }
+
+    return muatKabupaten(regencyId)
+      .then(function () { return muatKecamatan(districtId); })
+      .then(function () {
+        // Halaman yang menghitung ongkir mendengarkan 'change' di kecamatan.
+        if (dis.value) {
+          dis.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+  };
+
   if (awal.province) {
-    muatKabupaten(awal.regency).then(function () { muatKecamatan(awal.district); });
+    muatKabupaten(awal.regency)
+      .then(function () { return muatKecamatan(awal.district); })
+      .then(function () {
+        /* Memicu 'change' setelah isian awal terpasang. Tanpa ini, halaman
+           yang bereaksi pada pilihan kecamatan (ongkir di checkout) tidak
+           pernah tahu ada nilai awal - ongkir tetap "Pilih wilayah dulu"
+           sampai pembeli mengubahnya sendiri. */
+        if (dis.value) {
+          dis.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
   }
 })();

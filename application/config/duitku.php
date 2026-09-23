@@ -144,3 +144,18 @@ $config['duitku']['sweep_jam'] = 48;
 
 // Nomor WhatsApp toko (format 62...), untuk tombol bantuan di halaman sukses.
 // $config['shop']['whatsapp'] = '628123456789';
+
+
+/* =============================================================================
+   KREDENSIAL LOKAL
+
+   Kode merchant dan API key TIDAK disimpan di berkas ini lagi. Repo ini
+   publik - apa pun yang di-commit bisa dibaca siapa saja, dan tetap
+   tersimpan di riwayat git walau nanti dihapus.
+
+   Isi di application/config/duitku_lokal.php (sudah masuk .gitignore).
+   Salin dari duitku_lokal.example.php.
+   ========================================================================== */
+if (is_file(__DIR__ . '/duitku_lokal.php')) {
+  include __DIR__ . '/duitku_lokal.php';
+}

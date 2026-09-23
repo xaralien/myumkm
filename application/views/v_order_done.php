@@ -1,7 +1,10 @@
 <!-- application/views/v_order_done.php -->
 <?php
 $lunas   = ($order['payment_status'] === 'paid');
-$cod     = ($order['payment_method'] === 'cod');
+$bisa_bayar = in_array($order['payment_status'], array('unpaid', 'failed'), TRUE)
+    && $order['order_status'] !== 'cancelled';
+$url_bayar  = site_url('payment/pay/' . $order['order_number'] . '/' . $order['access_token']);
+$proses     = ! empty($toko['waktu_proses_hari']) ? max(1, (int) $toko['waktu_proses_hari']) : 1;
 $link    = site_url('checkout/done/' . $order['order_number'] . '/' . $order['access_token']);
 $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']);
 ?>
@@ -38,26 +41,48 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
             <span class="badge-status"><?= label_status($order['order_status']) ?></span>
           </p>
 
-          <?php if ($cod): ?>
-            <p>Pesanan kamu sudah masuk. Kami akan menghubungi lewat WhatsApp
-              untuk konfirmasi, lalu bunga dikirim sesuai jadwal.
-              Siapkan <strong><?= rupiah($order['total']) ?></strong> saat kurir tiba.</p>
+          <?php if ($order['order_status'] === 'cancelled'): ?>
+            <p>Pesanan ini dibatalkan.</p>
+
           <?php elseif ($lunas): ?>
-            <p>Pembayaran sudah kami terima. Bunga akan dirangkai dan dikirim sesuai jadwal.</p>
+            <?php if ($order['order_status'] === 'pending' || $order['order_status'] === 'confirmed' || $order['order_status'] === 'preparing'): ?>
+              <p>Pembayaran diterima. Penjual memproses pesananmu dalam
+                <strong><?= $proses ?> hari kerja</strong>, lalu mengirimnya.</p>
+            <?php elseif ($order['order_status'] === 'delivering'): ?>
+              <p>Pesananmu sedang dikirim<?= $order['courier'] ? ' lewat <strong>' . html_escape($order['courier']) . '</strong>' : '' ?>.</p>
+              <?php if ($order['tracking_number']): ?>
+                <p class="resi">Nomor resi <strong><?= html_escape($order['tracking_number']) ?></strong></p>
+              <?php endif; ?>
+              <!-- Konfirmasi dari pembeli yang menutup transaksi. POST, bukan
+                   tautan - tautan bisa terpicu tanpa sengaja oleh pratinjau
+                   tautan di aplikasi chat. -->
+              <?= form_open('checkout/terima/' . $order['order_number'] . '/' . $order['access_token']) ?>
+                <button type="submit" class="btn btn-primary mt-2"
+                        onclick="return confirm('Pesanan sudah sampai dan sesuai?');">Pesanan sudah diterima</button>
+              <?= form_close() ?>
+            <?php else: ?>
+              <p>Pesanan selesai. Terima kasih sudah belanja dari UMKM lokal!</p>
+            <?php endif; ?>
+
+            <!-- Pintasan ke halaman lacak: nomor pesanan dan nomor HP sudah
+                 terisi, jadi pembeli tidak perlu mengetik ulang. -->
             <?= form_open('track/cari') ?>
-            <input type="hidden" id="order_number" name="order_number" value="<?= $order['order_number'] ?>" required>
-            <?= form_error('order_number') ?>
-            <input type="hidden" id="phone" name="phone" value="<?= $order['recipient_phone'] ?>" required>
-            <?= form_error('phone') ?>
-            <button type="submit" class="btn btn-primary w-100">Lacak Pesanan</button>
+            <input type="hidden" name="order_number" value="<?= html_escape($order['order_number']) ?>">
+            <input type="hidden" name="phone" value="<?= html_escape($order['recipient_phone']) ?>">
+            <button type="submit" class="btn btn-black-hover-outline w-100 mt-3">Lacak pesanan</button>
             <?= form_close() ?>
+
           <?php else: ?>
             <p>Pembayaran belum kami terima. Kalau kamu sudah membayar, status
               akan berubah otomatis dalam beberapa menit.</p>
-            <p class="pantau" id="statusPantau"></p>
-            <?php if ($order['duitku_reference'] && $order['payment_method'] === 'duitku'): ?>
-              <a href="<?= site_url('payment/pay/' . $order['order_number'] . '/' . $order['access_token']) ?>"
-                class="btn btn-primary mt-2">Lanjutkan pembayaran</a>
+            <p class="pantau" id="statusPantau" aria-live="polite"></p>
+            <?php if ($bisa_bayar): ?>
+              <!-- Tampil untuk SEMUA pesanan yang belum lunas, termasuk yang
+                   pembuatan invoice-nya gagal. Dulu hanya muncul kalau invoice
+                   pernah berhasil dibuat - pesanan yang gagal jadi buntu, dan
+                   karena itulah keranjang dulu terpaksa tidak dikosongkan.
+                   Payment::pay membuat ulang invoice-nya sendiri. -->
+              <a href="<?= $url_bayar ?>" class="btn btn-primary mt-2">Bayar sekarang</a>
             <?php endif; ?>
           <?php endif; ?>
         </div>
@@ -74,21 +99,16 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
               <td><?= nl2br(html_escape($order['recipient_address'])) ?>,
                 <?= html_escape($order['recipient_city']) ?></td>
             </tr>
-            <tr>
-              <td>Jadwal</td>
-              <td><?= tgl_id($order['delivery_date']) ?> &middot;
-                <?= html_escape($order['delivery_slot']) ?></td>
-            </tr>
-            <?php if ($order['recipient_notes']): ?>
+            <?php if ($order['courier'] || $order['tracking_number']): ?>
               <tr>
-                <td>Catatan</td>
-                <td><?= html_escape($order['recipient_notes']) ?></td>
+                <td>Kurir</td>
+                <td><?= html_escape($order['courier'] ?: '-') ?><?= $order['tracking_number'] ? ' &middot; resi ' . html_escape($order['tracking_number']) : '' ?></td>
               </tr>
             <?php endif; ?>
-            <?php if ($order['surprise_mode']): ?>
+            <?php if ($order['recipient_notes']): ?>
               <tr>
-                <td>Mode</td>
-                <td>Kejutan &mdash; penerima tidak dihubungi lebih dulu</td>
+                <td>Catatan untuk penjual</td>
+                <td><?= html_escape($order['recipient_notes']) ?></td>
               </tr>
             <?php endif; ?>
           </table>
@@ -148,7 +168,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
   </div>
 </div>
 
-<?php if (! $lunas && $order['payment_method'] === 'duitku'): ?>
+<?php if (! $lunas && $bisa_bayar): ?>
   <!-- Pembeli yang kembali ke halaman ini setelah membayar akan melihat
      statusnya berubah sendiri, tanpa perlu menekan muat ulang. -->
   <script>

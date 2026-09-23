@@ -418,17 +418,16 @@ class Seller extends Seller_Controller
         $this->form_validation->set_rules('address', 'Alamat', 'required|trim|max_length[255]');
         $this->form_validation->set_rules('district_id', 'Kecamatan', 'required|integer');
 
-        $this->form_validation->set_rules('open', 'Jam buka', 'required|trim|callback_valid_jam');
-        $this->form_validation->set_rules('close', 'Jam tutup', 'required|trim|callback_valid_jam');
 
         $this->form_validation->set_rules('ongkir_kecamatan', 'Ongkir dalam kecamatan', 'required|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('ongkir_kota', 'Ongkir dalam kota', 'required|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('ongkir_provinsi', 'Ongkir luar kota', 'trim|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('gratis_ongkir_min', 'Gratis ongkir mulai', 'required|integer|greater_than_equal_to[0]');
-        // $this->form_validation->set_rules('cod_max',          'Batas COD',              'required|integer|greater_than_equal_to[0]');
 
-        $this->form_validation->set_rules('jeda_persiapan_menit', 'Jeda persiapan', 'required|integer|greater_than_equal_to[0]|less_than_equal_to[1440]');
-        $this->form_validation->set_rules('maks_hari_kedepan', 'Maks hari ke depan', 'required|integer|greater_than_equal_to[1]|less_than_equal_to[365]');
+        /* Pengganti jam buka, jeda persiapan, dan batas hari pesan - semuanya
+           dulu dipakai menghitung jadwal antar di hari yang sama. Pembeli
+           marketplace cukup tahu berapa hari sampai pesanannya dikirim. */
+        $this->form_validation->set_rules('waktu_proses_hari', 'Waktu proses', 'required|integer|greater_than_equal_to[1]|less_than_equal_to[30]');
 
         $this->form_validation->set_rules('latitude', 'Titik lokasi', 'trim|callback_valid_koordinat[lat]');
         $this->form_validation->set_rules('longitude', 'Titik lokasi', 'trim|callback_valid_koordinat[lng]');
@@ -455,16 +454,6 @@ class Seller extends Seller_Controller
         $wilayah = $this->region_model->district_full($this->input->post('district_id'));
         if (!$wilayah) {
             $this->session->set_flashdata('error', 'Kecamatan tidak valid.');
-            return $this->profile();
-        }
-
-        // Jam tutup harus setelah jam buka. Aman dibandingkan sebagai teks
-        // karena rapikan_jam() menormalkan ke "HH:MM" dengan nol di depan.
-        $buka = $this->rapikan_jam($this->input->post('open', TRUE));
-        $tutup = $this->rapikan_jam($this->input->post('close', TRUE));
-
-        if ($buka >= $tutup) {
-            $this->session->set_flashdata('error', 'Jam tutup harus lebih malam dari jam buka.');
             return $this->profile();
         }
 
@@ -513,15 +502,11 @@ class Seller extends Seller_Controller
             'province_id' => (int) $wilayah['province_id'],
             'regency_id' => (int) $wilayah['regency_id'],
             'district_id' => (int) $wilayah['district_id'],
-            'open' => $buka . ':00',
-            'close' => $tutup . ':00',
             'ongkir_kecamatan' => (int) $this->input->post('ongkir_kecamatan'),
             'ongkir_kota' => (int) $this->input->post('ongkir_kota'),
             'ongkir_provinsi' => $luar,
             'gratis_ongkir_min' => (int) $this->input->post('gratis_ongkir_min'),
-            // 'cod_max'              => (int) $this->input->post('cod_max'),
-            'jeda_persiapan_menit' => (int) $this->input->post('jeda_persiapan_menit'),
-            'maks_hari_kedepan' => (int) $this->input->post('maks_hari_kedepan'),
+            'waktu_proses_hari' => (int) $this->input->post('waktu_proses_hari'),
             'latitude' => $this->input->post('latitude') ?: NULL,
             'longitude' => $this->input->post('longitude') ?: NULL,
             'radius_km' => $this->input->post('radius_km') ?: NULL,
@@ -673,7 +658,6 @@ class Seller extends Seller_Controller
             'ongkir_kota',
             'ongkir_provinsi',
             'gratis_ongkir_min',
-            'cod_max'
         );
 
         foreach ($kolom as $k) {
@@ -1200,10 +1184,14 @@ class Seller extends Seller_Controller
 
     protected function alur_status()
     {
+        /* Alur marketplace: Pesanan baru -> Diproses -> Dikirim -> Selesai.
+           'preparing' (dulu "Dirangkai") tidak lagi jadi langkah sendiri,
+           tapi tetap diterima supaya pesanan lama yang terlanjur berstatus
+           itu bisa dilanjutkan ke Dikirim. */
         return array(
-            'pending' => 'confirmed',
-            'confirmed' => 'preparing',
-            'preparing' => 'delivering',
+            'pending'    => 'confirmed',
+            'confirmed'  => 'delivering',
+            'preparing'  => 'delivering',
             'delivering' => 'delivered',
         );
     }
@@ -1258,9 +1246,8 @@ class Seller extends Seller_Controller
                 $o['alasan'] = 'dibatalkan';
             } elseif (!isset($alur[$o['order_status']])) {
                 $o['alasan'] = 'selesai';
-            } elseif ($o['payment_status'] !== 'paid' && $o['payment_method'] !== 'cod') {
-                // Bunga tidak dirangkai sebelum uangnya masuk. COD
-                // dikecualikan - uangnya memang baru ada saat kurir tiba.
+            } elseif ($o['payment_status'] !== 'paid') {
+                // Pesanan tidak diproses sebelum uangnya masuk.
                 $o['alasan'] = 'belum_bayar';
             } else {
                 $o['boleh_maju'] = TRUE;
@@ -1306,6 +1293,30 @@ class Seller extends Seller_Controller
      * prefetch browser, pemindai antivirus, atau preview tautan WhatsApp -
      * tanpa ada yang menekan apa pun.
      */
+    /**
+     * Kolom yang ikut berubah bersama status.
+     *
+     * Kurir & resi opsional: banyak UMKM mengantar sendiri tanpa ekspedisi,
+     * dan mewajibkan resi membuat mereka mengisi angka asal-asalan.
+     */
+    protected function data_status($baru)
+    {
+        $d = array('order_status' => $baru);
+
+        if ($baru === 'delivering') {
+            $kurir = trim((string) $this->input->post('courier', TRUE));
+            $resi  = trim((string) $this->input->post('tracking_number', TRUE));
+
+            $d['courier']         = $kurir !== '' ? mb_substr($kurir, 0, 50) : NULL;
+            $d['tracking_number'] = $resi  !== '' ? mb_substr($resi, 0, 60)  : NULL;
+            $d['shipped_at']      = date('Y-m-d H:i:s');
+        }
+        if ($baru === 'delivered') {
+            $d['completed_at'] = date('Y-m-d H:i:s');
+        }
+        return $d;
+    }
+
     public function ubah_status($id = NULL)
     {
         if ($this->input->method() !== 'post') {
@@ -1323,7 +1334,7 @@ class Seller extends Seller_Controller
             $this->session->set_flashdata('error', 'Status pesanan sudah final.');
             return redirect('seller/orders');
         }
-        if ($order['payment_status'] !== 'paid' && $order['payment_method'] !== 'cod') {
+        if ($order['payment_status'] !== 'paid') {
             $this->session->set_flashdata(
                 'error',
                 'Pesanan ini belum dibayar. Tunggu pembayaran masuk dulu.'
@@ -1341,7 +1352,7 @@ class Seller extends Seller_Controller
             ->where('id', (int) $order['id'])
             ->where('store_id', (int) $this->store['id'])  // sabuk pengaman kedua
             ->where('order_status', $order['order_status'])  // cegah klik ganda
-            ->update('orders', array('order_status' => $baru));
+            ->update('orders', $this->data_status($baru));
 
         if ($this->db->affected_rows() < 1) {
             $this->db->trans_rollback();
@@ -1373,6 +1384,17 @@ class Seller extends Seller_Controller
             return redirect('seller/orders');
         }
         $this->db->trans_commit();
+
+        // Pembeli diberi tahu lewat percakapan pesanan - di situ juga nomor
+        // resinya tersimpan dan mudah ditemukan lagi.
+        if ($baru === 'delivering') {
+            $this->load->model('chat_model');
+            $kurir = trim((string) $this->input->post('courier', TRUE));
+            $resi  = trim((string) $this->input->post('tracking_number', TRUE));
+            $this->chat_model->sistem($order['id'], 'Pesanan dikirim'
+                . ($kurir ? ' lewat ' . $kurir : '')
+                . ($resi ? '. Nomor resi: ' . $resi : '') . '.');
+        }
 
         $this->session->set_flashdata(
             'sukses',
@@ -1447,7 +1469,13 @@ class Seller extends Seller_Controller
             ->where('id', (int) $order['id'])
             ->where('store_id', (int) $this->store['id'])
             ->where('order_status', $order['order_status'])
-            ->update('orders', array('order_status' => $sebelum['status']));
+            ->update('orders', array(
+                'order_status' => $sebelum['status'],
+                // Mundur dari Dikirim/Selesai: tanggal kirim & selesai ikut
+                // dibersihkan supaya tidak tertinggal tanggal yang tak berlaku.
+                'shipped_at'   => in_array($sebelum['status'], array('pending', 'confirmed', 'preparing'), TRUE) ? NULL : $order['shipped_at'],
+                'completed_at' => NULL,
+            ));
 
         /* Kedua catatan dihapus. Riwayat yang dilihat pembeli sebaiknya
            menampilkan perjalanan pesanan yang sebenarnya - bukan kesalahan
@@ -1503,8 +1531,8 @@ class Seller extends Seller_Controller
             return redirect('seller/orders');
         }
 
-        /* Yang sudah sampai tidak bisa dibatalkan - bunganya sudah di tangan
-           penerima. Kalau ada masalah setelah itu, urusannya refund, bukan
+        /* Yang sudah selesai tidak bisa dibatalkan - barangnya sudah di tangan
+           pembeli. Kalau ada masalah setelah itu, urusannya refund, bukan
            pembatalan. */
         if ($order['order_status'] === 'delivered') {
             $this->session->set_flashdata(
@@ -1583,11 +1611,6 @@ class Seller extends Seller_Controller
         $jam = (int) ceil((int) $cfg['expiry_period'] / 60);
 
         $n = $this->order_model->tandai_kedaluwarsa($jam);
-        $n += $this->order_model->bersihkan_menggantung();
-
-        foreach ($this->chat_model->acc_kedaluwarsa(50) as $o) {
-            $this->chat_model->setujui_otomatis($o['id']);
-        }
 
         if ($n > 0) {
             $this->session->set_flashdata(
@@ -1598,91 +1621,22 @@ class Seller extends Seller_Controller
     }
 
 
-    public function kirim_foto_acc($id = NULL)
-    {
-        if ($this->input->method() !== 'post') {
-            show_404();
-        }
-
-        $order = $this->pesanan_milik($id);
-
-        // Bunga tidak dirangkai sebelum uangnya masuk.
-        if ($order['payment_status'] !== 'paid') {
-            $this->session->set_flashdata('error', 'Pesanan ini belum dibayar.');
-            return redirect('seller/orders');
-        }
-
-        if (in_array($order['acc_status'], array('disetujui', 'otomatis', 'ditutup'), TRUE)) {
-            $this->session->set_flashdata(
-                'error',
-                'Rangkaian sudah disetujui, tidak perlu kirim foto lagi.'
-            );
-            return redirect('seller/chat/' . $order['id']);
-        }
-
-        $gambar = $this->unggah_foto_chat('foto_acc');
-
-        if ($gambar === FALSE) {
-            return redirect('seller/chat/' . $order['id']);   // pesan sudah di-flashdata
-        }
-        if ($gambar === NULL) {
-            $this->session->set_flashdata('error', 'Pilih foto rangkaiannya dulu.');
-            return redirect('seller/chat/' . $order['id']);
-        }
-
-        $toko = $this->db->where('id', (int) $this->store['id'])
-            ->get('stores')->row_array();
-
-        $deadline = $this->chat_model->hitung_deadline($order, $toko);
-
-        $this->db->where('id', (int) $order['id'])->update('orders', array(
-            'acc_status'   => 'menunggu',
-            'acc_deadline' => $deadline,
-        ));
-
-        $this->chat_model->kirim(
-            $order['id'],
-            'seller',
-            'foto_acc',
-            trim((string) $this->input->post('catatan', TRUE)) ?: NULL,
-            $gambar,
-            $this->me['id']
-        );
-
-        /* Tenggatnya dicatat di percakapan, bukan cuma di kolom database.
-           Saat ada sengketa, urutan kejadiannya terbaca utuh dalam satu
-           daftar - kapan foto dikirim, kapan tenggatnya, siapa menyetujui. */
-        $this->chat_model->sistem(
-            $order['id'],
-            'Foto rangkaian dikirim. Menunggu persetujuan sampai '
-                . date('d/m/Y H:i', strtotime($deadline))
-                . '. Lewat itu, rangkaian dianggap disetujui.'
-        );
-
-        $this->session->set_flashdata(
-            'sukses',
-            'Foto terkirim. Customer punya waktu sampai '
-                . date('d/m H:i', strtotime($deadline)) . '.'
-        );
-
-        return redirect('seller/chat/' . $order['id']);
-    }
 
     /**
-     * Kirim foto di lokasi pengiriman.
-     * POST seller/kirim_foto_lokasi/{id}
+     * Kirim foto ke pembeli.  POST seller/kirim_foto/{id}
      *
-     * Pemesan bunga biasanya TIDAK ada di tempat saat bunga sampai -
-     * foto ini pengganti kehadiran mereka.
+     * Misalnya foto paket sebelum dikirim, atau bukti serah terima. Di
+     * marketplace foto seperti ini yang dipakai saat ada keluhan "barang
+     * tidak sesuai" - jadi disimpan di percakapan pesanan, bukan WhatsApp.
      */
-    public function kirim_foto_lokasi($id = NULL)
+    public function kirim_foto($id = NULL)
     {
         if ($this->input->method() !== 'post') {
             show_404();
         }
 
         $order  = $this->pesanan_milik($id);
-        $gambar = $this->unggah_foto_chat('foto_lokasi');
+        $gambar = $this->unggah_foto_chat('foto');
 
         if ($gambar === FALSE) {
             return redirect('seller/chat/' . $order['id']);
@@ -1695,52 +1649,13 @@ class Seller extends Seller_Controller
         $this->chat_model->kirim(
             $order['id'],
             'seller',
-            'foto_lokasi',
+            'foto',
             trim((string) $this->input->post('catatan', TRUE)) ?: NULL,
             $gambar,
             $this->me['id']
         );
 
-        $this->session->set_flashdata('sukses', 'Foto pengiriman terkirim.');
-        return redirect('seller/chat/' . $order['id']);
-    }
-
-    /**
-     * Tutup revisi sepihak.
-     * POST seller/tutup_revisi/{id}
-     */
-    public function tutup_revisi($id = NULL)
-    {
-        if ($this->input->method() !== 'post') {
-            show_404();
-        }
-
-        $order  = $this->pesanan_milik($id);
-        $alasan = trim((string) $this->input->post('alasan', TRUE));
-
-        if (in_array($order['acc_status'], array('disetujui', 'otomatis', 'ditutup'), TRUE)) {
-            $this->session->set_flashdata('error', 'Revisi sudah tertutup.');
-            return redirect('seller/chat/' . $order['id']);
-        }
-        if (mb_strlen($alasan) < 5) {
-            // Ini keputusan sepihak yang merugikan customer, jadi harus ada
-            // penjelasan yang bisa mereka baca.
-            $this->session->set_flashdata('error', 'Tulis alasan minimal 5 karakter.');
-            return redirect('seller/chat/' . $order['id']);
-        }
-
-        $this->db->where('id', (int) $order['id'])->update('orders', array(
-            'acc_status'     => 'ditutup',
-            'card_locked_at' => date('Y-m-d H:i:s'),
-        ));
-
-        $this->chat_model->sistem(
-            $order['id'],
-            'Toko menutup revisi: ' . $alasan
-                . ' Kata-kata papan dikunci dan rangkaian dikirim sesuai foto terakhir.'
-        );
-
-        $this->session->set_flashdata('sukses', 'Revisi ditutup.');
+        $this->session->set_flashdata('sukses', 'Foto terkirim ke pembeli.');
         return redirect('seller/chat/' . $order['id']);
     }
 
@@ -1757,7 +1672,7 @@ class Seller extends Seller_Controller
             'order'    => $order,
             'pesan'    => $this->chat_model->pesan($order['id']),
             'toko'     => $toko,
-            'terkunci' => (bool) $order['card_locked_at'],
+            'items'    => $this->order_model->items($order['id']),
         );
         $this->render('seller/v_chat', $data);
     }
@@ -1794,51 +1709,8 @@ class Seller extends Seller_Controller
         return $this->json_chat(array(
             'ok'         => TRUE,
             'pesan'      => $baru,
-            'acc_status' => $order['acc_status'],
-            'terkunci'   => (bool) $order['card_locked_at'],
+            'order_status' => $order['order_status'],
         ));
-    }
-
-    /** Ubah kata-kata papan. POST seller/ubah_kartu/{id} */
-    public function ubah_kartu($id = NULL)
-    {
-        if ($this->input->method() !== 'post') {
-            show_404();
-        }
-
-        $order = $this->pesanan_milik($id);
-
-        /* Kunci diperiksa DI SERVER, bukan cuma menyembunyikan formnya.
-           Form yang disembunyikan CSS masih bisa dikirim lewat DevTools -
-           dan setelah dikunci, mengubah kata-kata papan berarti papan yang
-           sudah dicetak jadi salah. */
-        if ($order['card_locked_at']) {
-            $this->session->set_flashdata(
-                'error',
-                'Kata-kata papan sudah dikunci sejak '
-                    . date('d/m/Y H:i', strtotime($order['card_locked_at'])) . '.'
-            );
-            return redirect('seller/chat/' . $order['id']);
-        }
-
-        $baru = trim((string) $this->input->post('card_message', TRUE));
-
-        $this->db->where('id', (int) $order['id'])
-            ->where('card_locked_at IS NULL', NULL, FALSE)   // pengaman balapan
-            ->update('orders', array('card_message' => $baru ?: NULL));
-
-        if ($this->db->affected_rows() < 1) {
-            $this->session->set_flashdata('error', 'Kata-kata papan baru saja dikunci.');
-            return redirect('seller/chat/' . $order['id']);
-        }
-
-        $this->chat_model->sistem(
-            $order['id'],
-            'Kata-kata papan diubah menjadi: "' . $baru . '"'
-        );
-
-        $this->session->set_flashdata('sukses', 'Kata-kata papan diperbarui.');
-        return redirect('seller/chat/' . $order['id']);
     }
  
     /* ------------------------------------------------------------------ */
@@ -1959,12 +1831,13 @@ class Seller extends Seller_Controller
 
         $belum = $this->chat_model->belum_dibaca_toko($this->store['id']);
 
-        /* Pesanan yang butuh perhatian - dipakai memberi tanda di daftar
-           walau tidak ada pesan baru. Tenggat ACC berjalan terus, dan
-           pesanan yang menunggu persetujuan perlu terlihat. */
+        /* Pesanan yang butuh tindakan penjual: sudah dibayar tapi belum
+           diproses. Dipakai memberi tanda di daftar walau tidak ada pesan
+           baru - pembeli yang sudah membayar sedang menunggu. */
         $menunggu = $this->db->select('id')
             ->where('store_id', (int) $this->store['id'])
-            ->where('acc_status', 'menunggu')
+            ->where('payment_status', 'paid')
+            ->where('order_status', 'pending')
             ->get('orders')->result_array();
 
         return $this->output

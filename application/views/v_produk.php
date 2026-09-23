@@ -38,8 +38,8 @@ $label_jarak = array(
         <?php if ($jarak === 4): ?>
             <div class="alert-box alert-warn mb-4">
                 Toko ini berada di <?= html_escape($p['store_province']) ?>, di luar provinsi
-                yang kamu pilih. Bunga segar umumnya tidak dikirim antarprovinsi &mdash;
-                hubungi tokonya dulu sebelum memesan.
+                yang kamu pilih. Toko ini mungkin tidak melayani pengiriman ke wilayahmu &mdash;
+                ongkirnya akan terlihat saat checkout.
             </div>
         <?php endif; ?>
 
@@ -193,7 +193,7 @@ foreach ($addons as $a) {
 
                     <p class="produk-catatan" data-note></p>
 
-                    <!-- Tombol WhatsApp, bukan chat di dalam aplikasi. Penjual bunga
+                    <!-- Tombol WhatsApp, bukan chat di dalam aplikasi. Penjual UMKM
                memang hidup di WhatsApp dan akan membalas jauh lebih cepat
                di sana. -->
                     <!-- <a class="produk-wa" href="https://wa.me/<?= $wa_toko ?>?text=<?= $pesan_wa ?>"
@@ -205,18 +205,14 @@ foreach ($addons as $a) {
                 <!-- ---------- PENGIRIMAN ---------- -->
                 <div class="produk-kirim">
                     <p class="produk-label">Pengiriman</p>
-                    <?php if ($same_day): ?>
-                        <p class="produk-kirim-ok">Bisa dikirim hari ini &mdash; paling cepat pukul <?= $jam_siap ?></p>
-                    <?php else: ?>
-                        <p class="produk-kirim-warn">
-                            Pengiriman hari ini sudah tidak memungkinkan &mdash; toko tutup pukul
-                            <?= $jam_tutup ?> dan bunganya perlu dirangkai dulu. Paling cepat besok.
-                        </p>
-                    <?php endif; ?>
-                    <p class="produk-kirim-slot">
-                        Jam antar: <?= $jam_buka ?> &ndash; <?= $jam_tutup ?>
+                    <p class="produk-kirim-ok">
+                        Dikirim dari <?= html_escape($p['store_district']) ?>,
+                        <?= html_escape($p['store_regency']) ?>
                     </p>
-                    <p class="hint">Tanggal dan alamat penerima diisi saat checkout.</p>
+                    <p class="produk-kirim-slot">
+                        Diproses dalam <strong><?= (int) $proses ?> hari kerja</strong> setelah pembayaran diterima.
+                    </p>
+                    <p class="hint">Ongkos kirim dihitung dari alamatmu saat checkout.</p>
                 </div>
 
             </div>

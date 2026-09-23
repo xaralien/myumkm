@@ -52,3 +52,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 $route['default_controller'] = 'home';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+/* 'admin' sendirian mencari controller bawaan di folder admin/ - yang tidak
+   ada, jadi admin mendarat di 404 setelah login. Diarahkan ke ringkasan. */
+$route['admin'] = 'admin/dashboard';

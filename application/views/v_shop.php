@@ -119,7 +119,7 @@
       <div class="filter-bar">
         <div class="filter-search">
           <input type="search" name="q" class="form-control"
-            placeholder="Cari bunga, misalnya: mawar"
+            placeholder="Cari produk, misalnya: keripik tempe"
             value="<?= html_escape($f['q']) ?>" aria-label="Cari produk">
           <button type="submit" class="filter-search-btn" aria-label="Cari">Cari</button>
         </div>

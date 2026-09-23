@@ -50,12 +50,7 @@
     if (m.image) {
       var g = C.gambar + m.image;
       h += '<a href="' + g + '" target="_blank" rel="noopener">'
-         + '<img src="' + g + '" alt="" class="chat-gambar" loading="lazy"></a>';
-      if (m.tipe === 'foto_acc') {
-        h += '<span class="chat-tag">Foto untuk disetujui</span>';
-      } else if (m.tipe === 'foto_lokasi') {
-        h += '<span class="chat-tag">Foto di lokasi</span>';
-      }
+         + '<img src="' + g + '" alt="Foto" class="chat-gambar" loading="lazy"></a>';
     }
     if (m.isi) { h += '<p>' + esc(m.isi).replace(/\n/g, '<br>') + '</p>'; }
 
@@ -90,12 +85,11 @@
           keBawah();
           jeda = JEDA_MIN;
 
-          /* Customer baru menyetujui atau menutup revisi - panel di samping
-             perlu ikut berubah, dan cara paling andal adalah memuat ulang.
-             Menyusunnya ulang di browser berisiko tidak sinkron dengan yang
-             tersimpan di server. */
-          if (j.terkunci && !C.terkunci) {
-            pesan('Customer menyetujui. Memuat ulang...', 'ok');
+          /* Pembeli baru saja menandai pesanan diterima - panel status di
+             samping perlu ikut berubah. Memuat ulang lebih andal daripada
+             menyusun ulang panelnya di browser. */
+          if (j.order_status && C.status && j.order_status !== C.status) {
+            pesan('Status pesanan berubah. Memuat ulang...', 'ok');
             setTimeout(function () { window.location.reload(); }, 900);
             return;
           }

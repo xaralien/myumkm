@@ -150,7 +150,7 @@
         <input type="hidden" name="varian_gambar_hapus[]" value="0">
  
         <input type="text" name="varian_nama[]" class="form-control"
-               placeholder="10 tangkai" value="<?= html_escape($v['name']) ?>">
+               placeholder="Misalnya: 250 gram, ukuran L" value="<?= html_escape($v['name']) ?>">
  
         <input type="text" name="varian_delta[]" class="form-control input-rupiah"
                inputmode="numeric" autocomplete="off" data-minus="1"

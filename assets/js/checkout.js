@@ -54,7 +54,7 @@
       rOngkir.textContent = 'Tidak dilayani';
       rTotal.textContent  = rupiah(T.subtotal);
       pesan(T.nama_toko + ' tidak mengirim ke luar ' + T.nama_prov
-            + '. Bunga segar tidak tahan perjalanan antarprovinsi.', 'error');
+            + '. Coba alamat lain atau pilih toko yang lebih dekat.', 'error');
       return;
     }
 
@@ -70,27 +70,6 @@
   hitung();
 
   /* --- daftar metode Duitku dihapus: metode dipilih di dalam popup --- */
-
-  /* --- penghitung karakter kartu ucapan --- */
-  var msg = document.getElementById('card_message');
-  var cnt = document.getElementById('msgCount');
-  if (msg && cnt) {
-    var upd = function () { cnt.textContent = msg.value.length; };
-    msg.addEventListener('input', upd);
-    upd();
-  }
-
-  /* --- "tanpa nama pengirim" mematikan kolom Dari --- */
-  var anon = document.getElementById('isAnon');
-  var from = document.getElementById('card_from');
-  if (anon && from) {
-    var sync = function () {
-      from.disabled = anon.checked;
-      if (anon.checked) { from.value = ''; }
-    };
-    anon.addEventListener('change', sync);
-    sync();
-  }
 
   /* --- cegah klik ganda yang bikin pesanan kembar --- */
   var form = document.getElementById('formCheckout');

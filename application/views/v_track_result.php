@@ -1,14 +1,17 @@
 <!-- application/views/v_track_result.php -->
 <?php
-$tahap = array('pending', 'confirmed', 'preparing', 'delivering', 'delivered');
-$kini  = array_search($order['order_status'], $tahap, TRUE);
+/* Empat tahap marketplace. 'preparing' (dulu "dirangkai") bukan tahap
+   sendiri lagi; pesanan lama yang berstatus itu ditampilkan sebagai
+   "Diproses" supaya garis kemajuannya tidak melompat. */
+$tahap = array('pending', 'confirmed', 'delivering', 'delivered');
+$status_tampil = ($order['order_status'] === 'preparing') ? 'confirmed' : $order['order_status'];
+$kini  = array_search($status_tampil, $tahap, TRUE);
 if ($kini === FALSE) {
   $kini = -1;
 }
 
 $batal = ($order['order_status'] === 'cancelled');
 $lunas = ($order['payment_status'] === 'paid');
-$cod   = ($order['payment_method'] === 'cod');
 
 $wa = $toko ? $toko['phone'] : '';
 $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']);
@@ -81,14 +84,6 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
             </p>
           </div>
 
-        <?php elseif ($cod && ! $lunas && ! $batal): ?>
-          <div class="form-card">
-            <h3 class="form-card-title">Bayar di tempat</h3>
-            <p class="hint">
-              Siapkan <strong><?= rupiah($order['total']) ?></strong> saat kurir tiba.
-              Tidak perlu membayar lewat situs ini.
-            </p>
-          </div>
         <?php endif; ?>
 
         <?php if (! $batal): ?>
@@ -124,10 +119,15 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
               <td><?= html_escape($order['recipient_city']) ?></td>
             </tr>
             <tr>
-              <td>Jadwal</td>
-              <td><?= tgl_id($order['delivery_date']) ?> &middot;
-                pukul <?= html_escape($order['delivery_slot']) ?></td>
+              <td>Dipesan</td>
+              <td><?= tgl_id(substr($order['created_at'], 0, 10)) ?></td>
             </tr>
+            <?php if ($order['courier'] || $order['tracking_number']): ?>
+              <tr>
+                <td>Pengiriman</td>
+                <td><?= html_escape($order['courier'] ?: '-') ?><?= $order['tracking_number'] ? ' &middot; resi ' . html_escape($order['tracking_number']) : '' ?></td>
+              </tr>
+            <?php endif; ?>
             <?php if ($toko): ?>
               <tr>
                 <td>Toko</td>

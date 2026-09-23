@@ -7,9 +7,6 @@ $avatar = $store['avatar']
     : base_url('assets/images/avatar.png');
 
 // Kolom TIME MySQL keluar "HH:MM:SS", input type=time butuh "HH:MM".
-$jam = function ($v) {
-    return substr((string) $v, 0, 5);
-};
 ?>
 
 <div class="panel-judul">
@@ -123,6 +120,11 @@ $jam = function ($v) {
     di pencarian itu, tapi tetap muncul di pencarian per wilayah.
   </p>
  
+  <p class="hint mb-2">
+    Klik di peta atau geser penandanya &mdash; kolom <strong>Alamat</strong> dan
+    <strong>Wilayah</strong> di atas ikut terisi. Hasilnya perkiraan, jadi
+    periksa dan perbaiki sendiri kalau kurang tepat.
+  </p>
   <div id="petaToko" class="peta-toko"></div>
  
   <div class="peta-alat">
@@ -240,62 +242,24 @@ $jam = function ($v) {
                 <?= form_error('gratis_ongkir_min') ?>
             </div>
 
-            <!-- <div class="mb-1">
-                <label class="form-label" for="cod_max">Batas nominal COD *</label>
-                <div class="rupiah-wrap">
-                    <input type="text" id="cod_max" name="cod_max"
-                        class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
-                        value="<?= set_value('cod_max', (int) $store['cod_max']) ?>" required>
-                </div>
-                <p class="hint">Isi 0 kalau toko kamu tidak menerima COD sama sekali.</p>
-                <?= form_error('cod_max') ?>
-            </div> -->
         </div>
 
         <div class="form-card">
-            <h3 class="form-card-title">Jam &amp; jadwal</h3>
-
-            <div class="row">
-                <div class="col-6 mb-3">
-                    <label class="form-label" for="open">Jam buka *</label>
-                    <input type="time" id="open" name="open" class="form-control" step="900"
-                        value="<?= set_value('open', $jam($store['open'])) ?>" required>
-                    <?= form_error('open') ?>
-                </div>
-                <div class="col-6 mb-3">
-                    <label class="form-label" for="close">Jam tutup *</label>
-                    <input type="time" id="close" name="close" class="form-control" step="900"
-                        value="<?= set_value('close', $jam($store['close'])) ?>" required>
-                    <?= form_error('close') ?>
-                </div>
-            </div>
-
-
-
-            <div class="mb-3">
-                <label class="form-label" for="jeda_persiapan_menit">Jeda persiapan (menit) *</label>
-                <input type="number" id="jeda_persiapan_menit" name="jeda_persiapan_menit" class="form-control"
-                    min="0" max="1440" step="15"
-                    value="<?= set_value('jeda_persiapan_menit', (int) $store['jeda_persiapan_menit']) ?>" required>
-                <!-- Angka ini sekaligus MENENTUKAN batas pemesanan hari ini:
-             begitu (sekarang + jeda) melewati jam tutup, tanggal hari ini
-             otomatis tidak bisa dipilih pembeli. Tidak ada kolom cutoff
-             terpisah yang harus dijaga tetap selaras. -->
-                <p class="hint">
-                    Waktu minimum dari pesanan masuk sampai bunga bisa diantar.
-                    Ini juga yang menentukan sampai jam berapa toko masih menerima
-                    pesanan untuk hari yang sama.
-                </p>
-                <?= form_error('jeda_persiapan_menit') ?>
-            </div>
-
+            <h3 class="form-card-title">Waktu proses</h3>
             <div class="mb-1">
-                <label class="form-label" for="maks_hari_kedepan">Maksimal hari ke depan *</label>
-                <input type="number" id="maks_hari_kedepan" name="maks_hari_kedepan" class="form-control"
-                    min="1" max="365"
-                    value="<?= set_value('maks_hari_kedepan', (int) $store['maks_hari_kedepan']) ?>" required>
-                <p class="hint">Berapa jauh ke depan pembeli boleh memilih tanggal kirim.</p>
-                <?= form_error('maks_hari_kedepan') ?>
+                <label class="form-label" for="waktu_proses_hari">Pesanan dikirim dalam *</label>
+                <div class="input-satuan">
+                    <input type="number" id="waktu_proses_hari" name="waktu_proses_hari" class="form-control"
+                        min="1" max="30" inputmode="numeric"
+                        value="<?= set_value('waktu_proses_hari', max(1, (int) $store['waktu_proses_hari'])) ?>" required>
+                    <span>hari kerja</span>
+                </div>
+                <p class="hint">
+                    Dihitung sejak pembayaran diterima. Tampil di halaman produk dan
+                    checkout &mdash; isi dengan jujur, karena pembeli menunggu sesuai angka ini.
+                    Produk yang dibuat setelah dipesan (pre-order) biasanya butuh lebih lama.
+                </p>
+                <?= form_error('waktu_proses_hari') ?>
             </div>
         </div>
 
@@ -323,4 +287,17 @@ $jam = function ($v) {
 <script src="<?= base_url('assets/js/avatar-preview.js') ?>"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="<?= base_url('assets/js/map-picker.js') ?>"></script>
+<script>
+  window.PETA_ALAMAT = {
+    peta: 'petaToko',
+    alamat: 'address',
+    info: 'petaInfo',
+    cari: 'btnCariAlamat',
+    lokasiSaya: 'btnLokasiSaya',
+    lat: 'inputLat',
+    lng: 'inputLng',
+    // Menerjemahkan nama wilayah dari OpenStreetMap ke id di database.
+    urlCocok: '<?= site_url('region/cocok') ?>'
+  };
+</script>
+<script src="<?= base_url('assets/js/peta-alamat.js') ?>"></script>

@@ -35,11 +35,11 @@ if ( ! function_exists('label_status'))
     function label_status($status)
     {
         $peta = array(
-            'pending'    => 'Menunggu konfirmasi',
-            'confirmed'  => 'Dikonfirmasi',
-            'preparing'  => 'Sedang dirangkai',
-            'delivering' => 'Dalam pengiriman',
-            'delivered'  => 'Sudah diterima',
+            'pending'    => 'Menunggu diproses',
+            'confirmed'  => 'Diproses penjual',
+            'preparing'  => 'Diproses penjual',
+            'delivering' => 'Dikirim',
+            'delivered'  => 'Selesai',
             'cancelled'  => 'Dibatalkan',
         );
         return isset($peta[$status]) ? $peta[$status] : $status;

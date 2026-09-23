@@ -96,6 +96,24 @@
           </select>
         </div>
       </div>
+
+      <div class="peta-blok">
+        <p class="hint mb-2">
+          Atau tandai di peta &mdash; klik titik rumahmu, lalu kolom
+          <strong>Alamat</strong> dan <strong>Wilayah</strong> di atas terisi
+          sendiri. Hasilnya perkiraan; kamu tetap bisa mengubahnya.
+        </p>
+        <div id="petaAlamat" class="peta-toko"></div>
+        <div class="peta-aksi">
+          <button type="button" class="btn btn-black-hover-outline btn-sm" id="btnLokasiSaya">
+            Gunakan lokasi saya
+          </button>
+          <button type="button" class="btn btn-black-hover-outline btn-sm" id="btnCariAlamat">
+            Cari dari alamat di atas
+          </button>
+        </div>
+        <p class="peta-info" id="petaInfo" aria-live="polite"></p>
+      </div>
     </div>
 
     <div class="form-card">
@@ -138,6 +156,22 @@
   };
 </script>
 <script src="<?= base_url('assets/js/region-select.js') ?>"></script>
+
+<!-- Leaflet dimuat hanya di halaman yang butuh peta - bukan di semua
+     halaman lewat header. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  window.PETA_ALAMAT = {
+    peta: 'petaAlamat',
+    alamat: 'address',
+    info: 'petaInfo',
+    cari: 'btnCariAlamat',
+    lokasiSaya: 'btnLokasiSaya',
+    urlCocok: '<?= site_url('region/cocok') ?>'
+  };
+</script>
+<script src="<?= base_url('assets/js/peta-alamat.js') ?>"></script>
 <script src="<?= base_url('assets/js/avatar-preview.js') ?>"></script>
 <script>
   /* Akun tanpa foto menampilkan inisial, dan <img> pratinjaunya disembunyikan.

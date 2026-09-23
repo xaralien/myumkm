@@ -122,10 +122,8 @@
       '<div>' +
       '<p class="addpanel-name">' + esc(p.name) + '</p>' +
       '<p class="addpanel-base">' + rupiah(p.price) + '</p>' +
-      (state.sameDay
-        ? '<p class="addpanel-ok">Bisa kirim hari ini</p>'
-        : '<p class="addpanel-warn">Pesanan hari ini sudah tutup (jam ' +
-        state.cutoff + ':00), kirim paling cepat besok</p>') +
+      '<p class="addpanel-ok">' + esc(state.storeName || '') +
+        ' &middot; diproses ' + (state.proses || 1) + ' hari</p>' +
       '</div>' +
       '</div>';
 
@@ -317,7 +315,8 @@
           variantId: (d.variants && d.variants.length) ? +d.variants[0].id : 0,
           addonIds: [],
           qty: 1,
-          sameDay: d.same_day,
+          proses: d.proses,
+          storeName: d.store_name,
           cutoff: d.cutoff_jam
         };
         render();

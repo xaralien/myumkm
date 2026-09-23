@@ -188,7 +188,9 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
 
             <?php if ($akun['role'] === 'admin'): ?>
               <span class="nt-akun-sub">Admin</span>
+              <a href="<?= site_url('admin') ?>">Ringkasan</a>
               <a href="<?= site_url('admin/stores') ?>">Kelola toko</a>
+              <a href="<?= site_url('admin/categories') ?>">Kategori</a>
             <?php endif; ?>
           </nav>
 

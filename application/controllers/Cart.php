@@ -59,12 +59,6 @@ class Cart extends CI_Controller
             return $this->json(array('ok' => FALSE, 'message' => 'Produk tidak ditemukan.'), 404);
         }
 
-        /* Bisa kirim hari ini? Diturunkan dari jam tutup dikurangi jeda
-           persiapan - tidak ada lagi kolom cutoff terpisah. */
-        $tutup    = substr((string) $product['store_close'], 0, 5);
-        $siap     = date('H:i', time() + ((int) $product['store_jeda'] * 60));
-        $same_day = $siap <= $tutup;
-
         return $this->json(array(
             'ok'      => TRUE,
             'product' => array(
@@ -75,11 +69,9 @@ class Cart extends CI_Controller
             ),
             'variants'   => $this->product_model->variants($product_id),
             'addons'     => $this->product_model->addons_for_product($product_id),
-            'same_day'   => $same_day,
-            'jam_siap'   => $siap,
             'store_name' => $product['store_name'],
-            'jam_buka'   => substr((string) $product['store_open'], 0, 5),
-            'jam_tutup'  => substr((string) $product['store_close'], 0, 5),
+            // Perkiraan hari proses - pengganti "bisa kirim hari ini" ala toko bunga.
+            'proses'     => max(1, (int) $product['store_proses']),
         ));
     }
 

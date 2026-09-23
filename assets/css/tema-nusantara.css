@@ -1298,3 +1298,199 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   .akun-pesanan a { flex-direction: column; align-items: flex-start; }
   .akun-pesanan-kanan { align-items: flex-start; text-align: left; }
 }
+
+
+/* ===================================================================== */
+/*  MARKETPLACE - checkout, pengaturan toko, resi                        */
+/* ===================================================================== */
+
+/* Perkiraan waktu proses di ringkasan checkout. */
+.ringkasan-proses {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ord-soft);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--nt-teks-2);
+}
+
+/* Angka + satuan dalam satu baris: [ 2 ] hari kerja */
+.input-satuan { display: flex; align-items: center; gap: 10px; }
+.input-satuan .form-control { width: 110px; flex: 0 0 auto; }
+.input-satuan span { font-size: 14px; color: var(--nt-teks-2); }
+
+/* Nomor resi - dibuat mudah disalin dan terlihat jelas. */
+.resi {
+  display: inline-block;
+  margin: 4px 0 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--ord-soft);
+  font-size: 14px;
+}
+.resi strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+  user-select: all;   /* sekali klik langsung terpilih semua */
+}
+
+
+/* ===================================================================== */
+/*  PETA ALAMAT - profil toko, profil pengguna, checkout                 */
+/* ===================================================================== */
+
+.peta-blok {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--nt-garis);
+}
+
+.peta-aksi {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.peta-info {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--nt-samar);
+  /* Ruangnya dipesan sejak awal supaya isian di bawah peta tidak melompat
+     setiap kali pesan muncul dan hilang. */
+  min-height: 20px;
+}
+.peta-info.is-ok    { color: var(--ord-ok); }
+.peta-info.is-error { color: var(--ord-red); }
+
+/* Kartu "alamat di profilmu" di checkout */
+.alamat-profil {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: var(--ord-soft);
+}
+.alamat-profil strong { display: block; font-size: 14px; }
+.alamat-profil em {
+  display: block;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--nt-samar);
+  margin-top: 2px;
+}
+
+/* Leaflet menaruh kontrol zoom di z-index 1000 - di atas panel akun (1040)
+   kalau tidak diturunkan, sehingga tombol + peta menembus menu. */
+.leaflet-container { z-index: 1; }
+
+@media (max-width: 575.98px) {
+  .peta-aksi .btn { flex: 1 1 100%; }
+  .alamat-profil { flex-direction: column; align-items: flex-start; }
+}
+
+
+/* ===================================================================== */
+/*  PANEL ADMIN - ringkasan, kategori, akun                              */
+/* ===================================================================== */
+
+.adm-angka {
+  display: grid;
+  /* auto-fit + minmax: jumlah kolom menyesuaikan lebar layar sendiri,
+     tanpa titik putus khusus untuk tiap ukuran. */
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.adm-kartu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--nt-garis);
+  border-radius: 18px;
+  background: #FFFFFF;
+}
+
+.adm-nilai {
+  font-family: var(--nt-serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--nt-indigo);
+  /* Angka selebar sama supaya kartu tidak bergeser saat nilainya berubah. */
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-label { font-size: 13.5px; color: var(--nt-teks-2); line-height: 1.45; }
+.adm-catatan { font-size: 12px; color: var(--nt-samar); margin-top: 2px; }
+.adm-catatan.is-warn { color: var(--nt-bata); font-weight: 600; }
+
+.panel-bagian { margin-bottom: 36px; }
+
+.panel-sub {
+  font-family: var(--nt-serif);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+/* --- daftar baris (kategori, akun, toko menunggu) --- */
+
+.adm-tabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  border: 1px solid var(--nt-garis);
+  border-radius: 14px;
+  background: #FFFFFF;
+}
+
+/* Baris nonaktif diredupkan, bukan disembunyikan - admin tetap perlu
+   melihatnya untuk mengaktifkan kembali. */
+.adm-baris.is-mati { background: var(--ord-soft); opacity: 0.75; }
+
+.adm-baris strong { display: block; font-size: 15px; }
+.adm-baris em {
+  display: block;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--nt-samar);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.adm-aksi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adm-aksi .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* Kolom password + tombol untuk mengatur ulang sandi akun. */
+.adm-sandi { display: flex; gap: 6px; align-items: center; }
+.adm-sandi .form-control { width: 150px; padding: 6px 12px; font-size: 13px; }
+
+@media (max-width: 767.98px) {
+  .adm-baris { flex-direction: column; align-items: stretch; }
+  .adm-aksi { justify-content: flex-start; }
+  .adm-sandi .form-control { width: 100%; }
+}

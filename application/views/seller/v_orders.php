@@ -11,20 +11,19 @@
    --------------------------------------------------------------------------- */
 
 $label_status = array(
-  'pending'    => 'Menunggu konfirmasi',
-  'confirmed'  => 'Dikonfirmasi',
-  'preparing'  => 'Sedang dirangkai',
-  'delivering' => 'Dalam pengiriman',
-  'delivered'  => 'Sudah diterima',
+  'pending'    => 'Pesanan baru',
+  'confirmed'  => 'Diproses',
+  'preparing'  => 'Diproses',
+  'delivering' => 'Dikirim',
+  'delivered'  => 'Selesai',
   'cancelled'  => 'Dibatalkan',
 );
 
 // Tulisan pada tombol - kalimat perintah, beda dari label status di atas.
 $label_tombol = array(
-  'confirmed'  => 'Konfirmasi',
-  'preparing'  => 'Mulai dirangkai',
-  'delivering' => 'Kirim sekarang',
-  'delivered'  => 'Tandai diterima',
+  'confirmed'  => 'Proses',
+  'delivering' => 'Tandai dikirim',
+  'delivered'  => 'Tandai selesai',
 );
 
 $label_alasan = array(
@@ -88,7 +87,7 @@ $tampil = function ($peta, $kode) {
       <span role="columnheader">Nomor</span>
       <span role="columnheader">Pemesan</span>
       <span role="columnheader">Penerima</span>
-      <span role="columnheader">Jadwal kirim</span>
+      <span role="columnheader">Dipesan</span>
       <span role="columnheader">Total</span>
       <span role="columnheader">Bayar</span>
       <span role="columnheader">Status</span>
@@ -116,9 +115,9 @@ $tampil = function ($peta, $kode) {
           <em><?= html_escape($o['recipient_city']) ?></em>
         </span>
 
-        <span class="gt__cell gt__cell--jadwal" role="cell" data-label="Kirim">
-          <?= tgl_id($o['delivery_date']) ?>
-          <em>pukul <?= html_escape($o['delivery_slot']) ?></em>
+        <span class="gt__cell gt__cell--jadwal" role="cell" data-label="Dipesan">
+          <?= tgl_id(substr($o['created_at'], 0, 10)) ?>
+          <em>pukul <?= date('H:i', strtotime($o['created_at'])) ?></em>
         </span>
 
         <span class="gt__cell gt__cell--total" role="cell" data-label="Total">

@@ -84,28 +84,29 @@ class Ai_lib
            "menghadirkan keindahan alam dengan warna-warna cerah".
            Sekarang dibalik: WAJIB menyebut hal yang benar-benar terlihat,
            dan frasa klise yang sering muncul dilarang satu per satu. */
-        $sistem = "Kamu menulis deskripsi produk untuk toko bunga di Indonesia.\n\n"
+        $sistem = "Kamu menulis deskripsi produk untuk UMKM (usaha kecil) di Indonesia:\n"
+            . "makanan, minuman, kerajinan, fashion, kecantikan, dan barang rumah tangga.\n\n"
             . "ATURAN ISI:\n"
-            . "- Kalimat pertama WAJIB menyebut hal yang konkret: jenis bunga, warna\n"
-            . "  yang terlihat, dan cara dirangkai atau dibungkus.\n"
-            . "- Kalimat kedua boleh menyebut satu momen yang cocok, sebut yang\n"
-            . "  spesifik (wisuda, ulang tahun ibu, pembukaan toko), bukan\n"
-            . "  \"momen spesial\".\n"
+            . "- Kalimat pertama WAJIB menyebut hal yang konkret tentang produknya:\n"
+            . "  bahan, rasa, ukuran, warna, atau cara pembuatannya - sesuai jenis produk.\n"
+            . "- Kalimat kedua menyebut satu kegunaan atau momen yang spesifik\n"
+            . "  (bekal kantor, oleh-oleh, hadiah ulang tahun), bukan \"momen spesial\".\n"
             . "- Kalau ada foto, JELASKAN APA YANG KAMU LIHAT di foto itu.\n"
-            . "  Jangan menebak dari nama produk kalau foto tersedia.\n\n"
+            . "  Jangan menebak dari nama produk kalau foto tersedia.\n"
+            . "- Jangan mengarang klaim yang tidak terlihat: tanpa pengawet, halal,\n"
+            . "  organik, buatan tangan - kecuali tertulis di nama produk.\n\n"
             . "DILARANG memakai frasa kosong berikut:\n"
-            . "\"keindahan alam\", \"warna-warna cerah\", \"momen spesial\",\n"
-            . "\"kasih sayang dan kebahagiaan\", \"sentuhan alami\", \"sempurna untuk\",\n"
-            . "\"tak terlupakan\", \"menghadirkan\", \"mempercantik hari\".\n\n"
-            . "DILARANG menyebut harga, angka, diskon, atau jumlah tangkai.\n"
+            . "\"momen spesial\", \"sempurna untuk\", \"tak terlupakan\", \"menghadirkan\",\n"
+            . "\"kualitas terbaik\", \"dijamin puas\", \"wajib punya\", \"cita rasa istimewa\".\n\n"
+            . "DILARANG menyebut harga, angka, diskon, atau stok.\n"
             . "DILARANG memakai emoji, tanda bintang, judul, atau tanda kutip.\n"
             . "Balas HANYA deskripsinya. Bahasa Indonesia, 2 kalimat, maksimal 45 kata.\n\n"
             . "CONTOH BURUK (jangan tiru):\n"
-            . "Menghadirkan keindahan alam dengan warna-warna cerah, buket ini cocok\n"
-            . "untuk momen spesial.\n\n"
+            . "Menghadirkan cita rasa istimewa dengan kualitas terbaik, sempurna untuk\n"
+            . "momen spesial keluarga.\n\n"
             . "CONTOH BAIK:\n"
-            . "Mawar merah tua dipadu baby breath putih, dibungkus kertas kraft cokelat\n"
-            . "dengan pita satin. Pilihan yang tenang untuk anniversary atau permintaan maaf.";
+            . "Keripik tempe tipis dengan bumbu cabai dan daun jeruk, renyah sampai\n"
+            . "gigitan terakhir. Cocok jadi teman nasi atau oleh-oleh untuk keluarga di luar kota.";
 
         $pengguna = "Nama produk: " . trim($nama) . "\n"
             . "Kategori: " . trim($kategori);
@@ -113,8 +114,8 @@ class Ai_lib
             $pengguna .= "\nToko: " . trim($toko);
         }
         if ($data_gambar) {
-            $pengguna .= "\n\nLihat foto produknya, lalu sebutkan bunga dan warna "
-                . "yang benar-benar terlihat di sana.";
+            $pengguna .= "\n\nLihat foto produknya, lalu sebutkan bahan, bentuk, "
+                . "atau warna yang benar-benar terlihat di sana.";
         }
 
         // Isi pesan berbentuk array kalau ada gambar - format multimodal OpenAI.
@@ -185,7 +186,7 @@ class Ai_lib
      *
      * Pengecilan bukan sekadar optimasi: foto 3000px dari kamera HP menjadi
      * base64 raksasa yang memakan ribuan token dan bisa menembus batas
-     * ukuran permintaan. Untuk mengenali jenis bunga dan warnanya,
+     * ukuran permintaan. Untuk mengenali jenis produk dan warnanya,
      * 768px sudah lebih dari cukup.
      *
      * @return string|NULL data URI, atau NULL kalau gagal

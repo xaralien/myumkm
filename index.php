@@ -66,7 +66,11 @@
 switch (ENVIRONMENT)
 {
 	case 'development':
-		error_reporting(-1);
+		/* Semua galat KECUALI E_DEPRECATED. CodeIgniter 3.1.13 belum ditulis
+		   untuk PHP 8.2+, yang menandai "dynamic property" sebagai usang - tiap
+		   halaman memuntahkan puluhan peringatan dari inti CI sendiri (bukan
+		   dari kode aplikasi), dan galat sungguhan jadi tenggelam di antaranya. */
+		error_reporting(E_ALL & ~E_DEPRECATED);
 		ini_set('display_errors', 1);
 	break;
 

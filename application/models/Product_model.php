@@ -17,8 +17,7 @@ class Product_model extends CI_Model
                TIAP TOKO - bukan lagi satu nilai global di config. */
             ->select('p.*,
                 s.id AS store_id, s.name AS store_name,
-                s.open AS store_open, s.close AS store_close,
-                s.jeda_persiapan_menit AS store_jeda', FALSE)
+                s.waktu_proses_hari AS store_proses', FALSE)
             ->from('products p')
             ->join('stores s', 's.id = p.store_id')
             ->where('p.id', (int) $id)
@@ -44,8 +43,7 @@ class Product_model extends CI_Model
                TIAP TOKO - bukan lagi satu nilai global di config. */
             ->select('p.*,
                 s.id AS store_id, s.name AS store_name,
-                s.open AS store_open, s.close AS store_close,
-                s.jeda_persiapan_menit AS store_jeda', FALSE)
+                s.waktu_proses_hari AS store_proses', FALSE)
             ->from('products p')
             ->join('stores s', 's.id = p.store_id')
             ->where_in('p.id', $ids)
@@ -444,8 +442,7 @@ class Product_model extends CI_Model
                 s.id AS store_id, s.name AS store_name, s.slug AS store_slug,
                 s.phone AS store_phone, s.address AS store_address,
                 s.avatar AS store_avatar,
-                s.open AS store_open, s.close AS store_close,
-                s.jeda_persiapan_menit AS store_jeda,
+                s.waktu_proses_hari AS store_proses,
                 s.description AS store_description,
                 s.province_id AS store_province_id,
                 s.regency_id  AS store_regency_id,

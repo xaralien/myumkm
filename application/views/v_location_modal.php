@@ -14,7 +14,7 @@
       <button type="button" class="locmodal-x" data-close aria-label="Tutup">&times;</button>
     <?php endif; ?>
 
-    <h2 class="locmodal-title" id="locTitle">Kirim bunga ke mana?</h2>
+    <h2 class="locmodal-title" id="locTitle">Kirim pesanan ke mana?</h2>
     <p class="locmodal-sub">
       Kami tampilkan toko yang bisa mengantar ke daerahmu, dari yang terdekat.
     </p>

@@ -246,22 +246,11 @@ class Payment extends CI_Controller
         //     $jam_expired
         // ));
 
-        $acc = 0;
-        foreach ($this->chat_model->acc_kedaluwarsa(50) as $o) {
-            if ($this->chat_model->setujui_otomatis($o['id'])) {
-                $acc++;
-            }
-        }
-
-        // Tambahkan $acc ke baris keluaran:
-
         return $this->plain(sprintf(
-            "diperiksa=%d lunas=%d kedaluwarsa=%d acc_otomatis=%d\n",
+            "diperiksa=%d lunas=%d kedaluwarsa=%d\n",
             count($daftar),
             $lunas,
-            $kedaluwarsa,
-            $jam_expired,
-            $acc
+            $kedaluwarsa
         ));
     }
 

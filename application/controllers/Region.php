@@ -53,4 +53,39 @@ class Region extends CI_Controller {
         }
         return $this->json($this->region_model->search_districts($q));
     }
+
+    /**
+     * Cocokkan nama wilayah dari peta ke id di database.
+     * GET region/cocok?provinsi=...&kabupaten=...&kecamatan=...
+     *
+     * Tiap parameter boleh berisi beberapa kandidat dipisah "|", karena
+     * OpenStreetMap menaruh kecamatan di kolom yang berbeda-beda.
+     */
+    public function cocok()
+    {
+        $pisah = function ($v) {
+            $out = array();
+            foreach (explode('|', (string) $v) as $x) {
+                $x = trim($x);
+                if ($x !== '') {
+                    $out[] = $x;
+                }
+            }
+            // Maksimal 6 kandidat - membatasi kerja pencocokan dari kiriman
+            // yang dibuat-buat.
+            return array_slice($out, 0, 6);
+        };
+
+        $hasil = $this->region_model->cocokkan(
+            $pisah($this->input->get('provinsi', TRUE)),
+            $pisah($this->input->get('kabupaten', TRUE)),
+            $pisah($this->input->get('kecamatan', TRUE))
+        );
+
+        $hasil['ok'] = ($hasil['district_id'] !== NULL);
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($hasil));
+    }
 }

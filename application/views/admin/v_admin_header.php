@@ -20,13 +20,16 @@
 
   <nav class="panel-nav">
     <div class="container">
-      <a href="<?= site_url($me['role'] === 'admin' ? 'admin/stores' : 'seller') ?>" class="panel-brand">
+      <a href="<?= site_url($me['role'] === 'admin' ? 'admin' : 'seller') ?>" class="panel-brand">
         <?= $me['role'] === 'admin' ? 'Admin' : 'Toko' ?>
       </a>
 
       <div class="panel-links">
         <?php if ($me['role'] === 'admin'): ?>
-          <a href="<?= site_url('admin/stores') ?>">Daftar Toko</a>
+          <a href="<?= site_url('admin') ?>">Ringkasan</a>
+          <a href="<?= site_url('admin/stores') ?>">Toko</a>
+          <a href="<?= site_url('admin/categories') ?>">Kategori</a>
+          <a href="<?= site_url('admin/users') ?>">Akun</a>
         <?php else: ?>
           <a href="<?= site_url('seller') ?>">Produk</a>
           <a href="<?= site_url('seller/orders') ?>">Pesanan</a>
