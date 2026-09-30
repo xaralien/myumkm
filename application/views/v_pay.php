@@ -60,7 +60,7 @@
     maks: <?= (int) $poll_maks ?>
   };
 </script>
-<script src="<?= base_url('assets/js/payment-status.js') ?>"></script>
+<script src="<?= aset('assets/js/payment-status.js') ?>"></script>
 
 <!-- Script Duitku. URL sandbox dan production berbeda, diambil dari config. -->
 <script src="<?= html_escape($js_url) ?>"></script>

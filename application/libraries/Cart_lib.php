@@ -19,10 +19,19 @@ class Cart_lib
 {
 
     const KEY      = 'cart_items';
+
+    /* Wadah TERPISAH untuk "Beli sekarang". Isinya satu produk saja dan
+       tidak menyentuh keranjang biasa - pembeli yang sudah mengumpulkan
+       beberapa barang tidak kehilangan isinya hanya karena membeli satu
+       barang lain secara langsung. */
+    const KEY_LANGSUNG = 'cart_langsung';
     const MAX_QTY  = 20;
     const MAX_LINE = 30;
 
     protected $CI;
+
+    /** Wadah yang sedang dipakai: KEY (keranjang) atau KEY_LANGSUNG. */
+    protected $key = self::KEY;
 
     public function __construct()
     {
@@ -31,18 +40,36 @@ class Cart_lib
         $this->CI->load->model('product_model');
     }
 
+    /**
+     * Pindah ke wadah "beli langsung", atau kembali ke keranjang biasa.
+     *
+     * Semua method lain membaca dan menulis lewat raw()/save()/clear(),
+     * jadi cukup menukar kuncinya di sini - tidak ada logika yang perlu
+     * digandakan.
+     */
+    public function mode($mode = 'keranjang')
+    {
+        $this->key = ($mode === 'langsung') ? self::KEY_LANGSUNG : self::KEY;
+        return $this;
+    }
+
+    public function mode_langsung()
+    {
+        return $this->key === self::KEY_LANGSUNG;
+    }
+
     /* -------------------------------------------------- isi keranjang --- */
 
     /** Isi mentah dari session: hanya id dan jumlah, tanpa harga. */
     protected function raw()
     {
-        $raw = $this->CI->session->userdata(self::KEY);
+        $raw = $this->CI->session->userdata($this->key);
         return is_array($raw) ? $raw : array();
     }
 
     protected function save(array $raw)
     {
-        $this->CI->session->set_userdata(self::KEY, $raw);
+        $this->CI->session->set_userdata($this->key, $raw);
     }
 
     /**
@@ -153,7 +180,7 @@ class Cart_lib
 
     public function clear()
     {
-        $this->CI->session->unset_userdata(self::KEY);
+        $this->CI->session->unset_userdata($this->key);
     }
 
     /* ---------------------------------------------------------- toko --- */

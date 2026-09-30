@@ -8,14 +8,14 @@
   <meta name="description" content="<?= html_escape($this->config->item('slogan') ?: '') ?>">
   <title><?= html_escape($this->config->item('nama_brand') ?: 'Nama Brand') ?></title>
 
-  <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
-  <link href="<?= base_url('assets/css/tiny-slider.css') ?>" rel="stylesheet">
-  <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet">
+  <link href="<?= aset('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
+  <link href="<?= aset('assets/css/tiny-slider.css') ?>" rel="stylesheet">
+  <link href="<?= aset('assets/css/style.css') ?>" rel="stylesheet">
 
   <!-- order.css WAJIB ada di sini. Sebelumnya hanya dimuat di panel admin,
        jadi keranjang, checkout, filter katalog, bilah lokasi, dan widget
        chat tampil tanpa gaya sama sekali di halaman pembeli. -->
-  <link href="<?= base_url('assets/css/order.css') ?>" rel="stylesheet">
+  <link href="<?= aset('assets/css/order.css') ?>" rel="stylesheet">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
   <!-- Tema PALING AKHIR, sesudah order.css. Tema mendefinisikan ulang
        variabel --ord-* milik order.css; kalau urutannya terbalik,
        order.css menimpanya balik dan warnanya kembali hijau Furni. -->
-  <link rel="stylesheet" href="<?= base_url('assets/css/tema-nusantara.css') ?>">
+  <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
 </head>
 
 <body>

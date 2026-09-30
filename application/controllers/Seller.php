@@ -726,6 +726,10 @@ class Seller extends Seller_Controller
             $this->session->set_flashdata('error', 'Gagal menyimpan avatar.');
             return FALSE;
         }
+
+        // Ukuran diseragamkan supaya katalog rata.
+        // Avatar toko cukup 400px - ditampilkan paling besar 60px.
+        rapikan_gambar($nyata . DIRECTORY_SEPARATOR . $nama_baru, 400);
         @chmod($nyata . DIRECTORY_SEPARATOR . $nama_baru, 0644);
 
         if ($lama) {
@@ -849,6 +853,9 @@ class Seller extends Seller_Controller
             );
             return FALSE;
         }
+
+        // Ukuran diseragamkan supaya katalog rata.
+        rapikan_gambar($tujuan, 900);
 
         @chmod($tujuan, 0644);  // berkas data, tidak perlu bisa dieksekusi
 
@@ -1156,6 +1163,9 @@ class Seller extends Seller_Controller
             );
             return FALSE;
         }
+
+        // Ukuran diseragamkan supaya katalog rata.
+        rapikan_gambar($folder . $baru, 900);
         @chmod($folder . $baru, 0644);
 
         return $baru;
@@ -1659,6 +1669,115 @@ class Seller extends Seller_Controller
         return redirect('seller/chat/' . $order['id']);
     }
 
+    /**
+     * Kotak masuk pesan.  GET seller/pesan[/{id}]
+     *
+     * Di layar lebar: daftar percakapan di kiri, isinya di kanan - penjual
+     * bisa membalas beberapa pembeli tanpa bolak-balik ke daftar pesanan.
+     * Di HP: daftarnya saja; menyentuh satu baris membuka halaman chat.
+     */
+    /** GET seller/conv_baru/{id}?sejak=N [AJAX] */
+    public function conv_baru($id = NULL)
+    {
+        $c = $this->conv_milik($id);
+        $baru = $this->chat_model->pesan_conv($c['id'], (int) $this->input->get('sejak'));
+
+        if ($baru && $this->input->get('dibaca') !== '0') {
+            $this->chat_model->tandai_dibaca_conv($c['id'], 'seller');
+        }
+        return $this->json_chat(array('ok' => TRUE, 'pesan' => $baru));
+    }
+
+    /** POST seller/conv_kirim/{id} [AJAX] */
+    public function conv_kirim($id = NULL)
+    {
+        $c   = $this->conv_milik($id);
+        $isi = trim((string) $this->input->post('isi', TRUE));
+
+        if ($isi === '') {
+            return $this->json_chat(array('ok' => FALSE, 'pesan' => 'Pesan kosong.'), 422);
+        }
+
+        $this->chat_model->kirim_conv($c['id'], 'seller', 'teks', mb_substr($isi, 0, 1000),
+                                      NULL, $this->me['id']);
+        return $this->json_chat(array('ok' => TRUE));
+    }
+
+    /**
+     * Wadah percakapan milik TOKO ini, atau 404. Dicocokkan ke store_id -
+     * tanpa itu, menaikkan angka di alamat cukup untuk membaca percakapan
+     * toko lain.
+     */
+    protected function conv_milik($id)
+    {
+        $c = $this->chat_model->conv_row($id);
+
+        if ( ! $c || (int) $c['store_id'] !== (int) $this->store['id']) {
+            show_404();
+        }
+        return $c;
+    }
+
+    public function pesan($id = NULL)
+    {
+        $data = array(
+            'daftar' => $this->chat_model->inbox_toko_conv($this->store['id']),
+            'aktif'  => NULL,
+            'pesan'  => array(),
+        );
+
+        if ($id) {
+            /* $id di sini adalah id PERCAKAPAN, bukan id pesanan - satu
+               halaman melayani percakapan pesanan maupun tanya sebelum beli. */
+            $data['aktif'] = $this->conv_milik($id);
+            $this->chat_model->tandai_dibaca_conv($data['aktif']['id'], 'seller');
+            $data['pesan'] = $this->chat_model->pesan_conv($data['aktif']['id']);
+
+            // Hitungan di daftar diambil ulang supaya baris yang baru dibuka
+            // tidak lagi menunjukkan angka merah.
+            $data['daftar'] = $this->chat_model->inbox_toko_conv($this->store['id']);
+        }
+
+        $this->render('seller/v_pesan', $data);
+    }
+
+    /**
+     * Daftar percakapan untuk gelembung chat.  GET seller/inbox_json [AJAX]
+     *
+     * Alamat endpoint tiap percakapan ikut dikirim dari server, bukan
+     * disusun di JavaScript: sisi penjual memakai id pesanan sedangkan sisi
+     * pembeli memakai nomor + token, dan menyusunnya di browser berarti
+     * menyalin aturan itu ke tempat kedua yang gampang ketinggalan.
+     */
+    public function inbox_json()
+    {
+        $daftar = array();
+        $total  = 0;
+
+        foreach ($this->chat_model->inbox_toko_conv($this->store['id'], 30) as $d) {
+            $total += (int) $d['belum'];
+            $daftar[] = array(
+                'id'      => (int) $d['id'],
+                'nomor'   => $d['order_number'] ?: 'Tanya sebelum beli',
+                'lawan'   => $d['lawan'],
+                'status'  => $d['order_status'],
+                // Teks status dibuat di server, bukan dipetakan ulang di
+                // JavaScript: dua daftar label untuk hal yang sama cepat
+                // berbeda begitu salah satunya diubah.
+                // Percakapan tanpa pesanan tidak punya status pesanan.
+                'status_teks' => $d['order_id'] ? label_status($d['order_status']) : 'Belum memesan',
+                'cuplik'  => $d['pesan_akhir'] ?: ($d['gambar_akhir'] ? 'Mengirim foto' : ''),
+                'waktu'   => $d['waktu_akhir'] ?: $d['created_at'],
+                'belum'   => (int) $d['belum'],
+                'url_baru'  => site_url('seller/conv_baru/' . (int) $d['id']),
+                'url_kirim' => site_url('seller/conv_kirim/' . (int) $d['id']),
+                'url_buka'  => site_url('seller/pesan/' . (int) $d['id']),
+            );
+        }
+
+        return $this->json_chat(array('ok' => TRUE, 'total' => $total, 'daftar' => $daftar));
+    }
+
     /** Halaman percakapan satu pesanan. GET seller/chat/{id} */
     public function chat($id = NULL)
     {
@@ -1790,6 +1909,10 @@ class Seller extends Seller_Controller
             return FALSE;
         }
         @chmod($nyata . DIRECTORY_SEPARATOR . $nama, 0644);
+
+        // Foto chat ikut diseragamkan supaya gelembung pesan tidak melar
+        // mengikuti foto yang sangat tinggi.
+        rapikan_gambar($nyata . DIRECTORY_SEPARATOR . $nama, 900);
 
         return $nama;
     }

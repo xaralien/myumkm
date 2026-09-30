@@ -43,6 +43,83 @@ class Akun extends Member_Controller
         $this->load->view('index', $data);
     }
 
+    /**
+     * Kotak masuk pesan pembeli.  GET akun/pesan[/{nomor}]
+     *
+     * Berisi percakapan untuk tiap pesanan yang pernah dibuat sambil masuk.
+     */
+    public function pesan($nomor = NULL)
+    {
+        $this->load->model('chat_model');
+
+        $data = array(
+            'daftar' => $this->chat_model->inbox_user($this->me['id']),
+            'aktif'  => NULL,
+            'pesan'  => array(),
+        );
+
+        if ($nomor) {
+            /* Dicocokkan ke pesanan MILIK akun ini, bukan sekadar nomornya.
+               Tanpa itu, mengetik nomor pesanan orang lain di alamat cukup
+               untuk membaca percakapannya. */
+            $o = $this->db->where('order_number', $nomor)
+                          ->where('user_id', (int) $this->me['id'])
+                          ->get('orders')->row_array();
+            if ( ! $o) {
+                show_404();
+            }
+
+            $this->chat_model->tandai_dibaca($o['id'], 'customer');
+
+            $data['aktif']  = $o;
+            $data['pesan']  = $this->chat_model->pesan($o['id']);
+            $data['daftar'] = $this->chat_model->inbox_user($this->me['id']);
+        }
+
+        $data['pages'] = 'akun/v_pesan';
+        $this->load->view('index', $data);
+    }
+
+    /** Daftar percakapan untuk gelembung chat.  GET akun/inbox_json [AJAX] */
+    public function inbox_json()
+    {
+        $this->load->model('chat_model');
+
+        $daftar = array();
+        $total  = 0;
+
+        foreach ($this->chat_model->inbox_user($this->me['id'], 30) as $d) {
+            $total += (int) $d['belum'];
+
+            $jalur = rawurlencode($d['order_number']) . '/' . rawurlencode($d['access_token']);
+
+            $daftar[] = array(
+                'id'      => (int) $d['id'],
+                'nomor'   => $d['order_number'],
+                'lawan'   => $d['lawan'] ?: 'Toko',
+                'status'  => $d['order_status'],
+                // Teks status dibuat di server, bukan dipetakan ulang di
+                // JavaScript: dua daftar label untuk hal yang sama cepat
+                // berbeda begitu salah satunya diubah.
+                'status_teks' => label_status($d['order_status']),
+                'cuplik'  => $d['pesan_akhir'] ?: ($d['gambar_akhir'] ? 'Mengirim foto' : ''),
+                'waktu'   => $d['waktu_akhir'] ?: $d['created_at'],
+                'belum'   => (int) $d['belum'],
+                'url_baru'  => site_url('chat/baru/' . $jalur),
+                'url_kirim' => site_url('chat/kirim/' . $jalur),
+                'url_buka'  => site_url('akun/pesan/' . rawurlencode($d['order_number'])),
+            );
+        }
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(array(
+                'ok' => TRUE, 'total' => $total, 'daftar' => $daftar,
+                'csrf_name' => $this->security->get_csrf_token_name(),
+                'csrf_hash' => $this->security->get_csrf_hash(),
+            )));
+    }
+
     /* --------------------------------------------------------------- profil */
 
     public function profil()
@@ -270,6 +347,10 @@ class Akun extends Member_Controller
             $this->session->set_flashdata('error', 'Gagal menyimpan foto.');
             return FALSE;
         }
+
+        /* Avatar cukup 400px - ditampilkan paling besar 60px, jadi ukuran di
+           atas itu hanya memberatkan unduhan tanpa terlihat bedanya. */
+        rapikan_gambar($folder . $nama, 400);
 
         if ($lama && is_file($folder . basename($lama))) {
             @unlink($folder . basename($lama));

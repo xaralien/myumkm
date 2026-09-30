@@ -108,4 +108,4 @@
     hash: '<?= $this->security->get_csrf_hash() ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/cart.js') ?>"></script>
+<script src="<?= aset('assets/js/cart.js') ?>"></script>

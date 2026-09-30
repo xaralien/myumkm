@@ -176,6 +176,7 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
           <!-- ---------- menu ---------- -->
           <nav class="nt-akun-menu" aria-label="Menu akun">
             <a href="<?= site_url('akun/pesanan') ?>">Pesanan saya</a>
+            <a href="<?= site_url('akun/pesan') ?>">Pesan</a>
             <!-- <a href="<?= site_url('track') ?>">Lacak pesanan</a> -->
 
             <?php if ($toko): ?>
@@ -194,8 +195,11 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
             <?php endif; ?>
           </nav>
 
+          <?php $this->load->view('parts/tampilan_toggle'); ?>
+
           <!-- POST, bukan tautan. Tautan GET untuk keluar bisa dipicu dari
                situs lain (atau pemindai tautan) tanpa sepengetahuan pengguna. -->
+
           <?= form_open('auth/logout', array('class' => 'nt-akun-keluar')) ?>
           <button type="submit">Keluar</button>
           <?= form_close() ?>
@@ -210,6 +214,11 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
           <nav class="nt-akun-menu" aria-label="Menu tamu">
             <a href="<?= site_url('track') ?>">Lacak pesanan</a>
           </nav>
+
+          <!-- Tamu juga perlu bisa memilih tampilan: yang salah dikenali
+               belum tentu punya akun, dan justru merekalah yang paling
+               mungkin menutup situs karena tampilannya tidak cocok. -->
+          <?php $this->load->view('parts/tampilan_toggle'); ?>
 
         <?php endif; ?>
       </div>

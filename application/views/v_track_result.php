@@ -209,5 +209,5 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
       maks: 300
     };
   </script>
-  <script src="<?= base_url('assets/js/payment-status.js') ?>"></script>
+  <script src="<?= aset('assets/js/payment-status.js') ?>"></script>
 <?php endif; ?>

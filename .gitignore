@@ -40,3 +40,4 @@ upload/produk/*
 upload/avatar/*
 !upload/**/index.html
 application/config/duitku.php
+application/config/duitku - Copy.php

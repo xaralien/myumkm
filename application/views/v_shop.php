@@ -290,11 +290,11 @@
   };
   window.FILTER_OPEN = <?= $ada_filter ? 'true' : 'false' ?>;
 </script>
-<script src="<?= base_url('assets/js/shop.js') ?>"></script>
-<script src="<?= base_url('assets/js/filter.js') ?>"></script>
+<script src="<?= aset('assets/js/shop.js') ?>"></script>
+<script src="<?= aset('assets/js/filter.js') ?>"></script>
 
 <script>
   window.LOKASI_URLS = { titik: '<?= site_url('location/titik') ?>' };
 </script>
-<script src="<?= base_url('assets/js/nearby.js') ?>"></script>
+<script src="<?= aset('assets/js/nearby.js') ?>"></script>
 <?php $this->load->view('v_location_modal'); ?>

@@ -1,14 +1,29 @@
 <?php
 /* =============================================================================
-   Layout halaman publik.
+   Layout halaman publik - memilih tampilan mobile atau desktop.
 
-   Navbar dan footer memakai v_navbar & v_footer (tema Nusantara).
-   Sebelumnya berkas ini masih memuat parts/navbar.php dan
-   parts/footer.php - navbar dan footer Furni lama - sehingga tema baru
-   tidak pernah terlihat walau berkasnya sudah terpasang.
+   Di HP, KERANGKA mobile selalu dipakai (bilah atas + tab bar bawah). Yang
+   jatuh ke versi desktop hanya ISI halamannya, kalau versi HP-nya belum
+   dibuat. Sebelumnya seluruh kerangka ikut desktop, sehingga halaman
+   seperti keranjang dan lacak kehilangan tab bar bawahnya.
    ========================================================================== */
 
-$this->load->view('parts/header');   // <head>, CSS, <body>
-$this->load->view('v_navbar');
-$this->load->view($pages);
-$this->load->view('parts/footer');   // v_footer, script, </body></html>
+$CI =& get_instance();
+$CI->load->library('tampilan_lib');
+
+if ($CI->tampilan_lib->is_mobile()) {
+
+    $isi = file_exists(VIEWPATH . 'mobile/' . $pages . '.php')
+        ? 'mobile/' . $pages
+        : $pages;
+
+    $this->load->view('mobile/parts/header');
+    $this->load->view($isi);
+    $this->load->view('mobile/parts/footer');
+
+} else {
+    $this->load->view('parts/header');   // <head>, CSS, <body>
+    $this->load->view('v_navbar');
+    $this->load->view($pages);
+    $this->load->view('parts/footer');   // v_footer, script, </body></html>
+}

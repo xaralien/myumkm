@@ -701,6 +701,7 @@ a:hover { color: var(--nt-bata-tua); }
   background: #FFFFFF;
   border: 1px solid var(--nt-garis);
   overflow: hidden;
+  padding: 12px 14px 60px;
 }
 
 .nt-kartu-tautan {
@@ -716,7 +717,23 @@ a:hover { color: var(--nt-bata-tua); }
   aspect-ratio: 1 / 1;
   background: var(--nt-pasir);
 }
-.nt-kartu-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nt-kartu-foto img { 
+    margin-bottom: 30px;
+    position: relative;
+    top: 0;
+    -webkit-transition: .3s all ease;
+    -o-transition: .3s all ease;
+    transition: .3s all ease;
+
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    -o-object-fit: cover;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px;
+    background: #f5f7f6;
+    margin-bottom: 14px;
+  }
 
 .nt-kartu-isi {
   flex: 1 1 auto;
@@ -1494,3 +1511,117 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   .adm-aksi { justify-content: flex-start; }
   .adm-sandi .form-control { width: 100%; }
 }
+
+/* Tautan pindah tampilan di kerangka desktop - hanya muncul untuk
+   pengunjung yang perangkatnya memang HP. */
+.tukar-tampilan { text-align: center; padding: 16px 0 24px; margin: 0; background: var(--nt-krem); }
+.tukar-tampilan a { font-size: 13px; color: var(--nt-samar); text-decoration: underline; }
+
+
+/* --- Sakelar tampilan di menu akun -------------------------------------- */
+
+.tampilan-sakelar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--nt-garis);
+  background: var(--ord-soft);
+}
+
+.tampilan-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nt-samar);
+}
+
+/* Dua pilihan berdampingan dalam satu alur - bentuk sakelar geser, tapi
+   dibuat dari dua tautan supaya tetap berfungsi tanpa JavaScript. */
+.tampilan-geser {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis-2);
+}
+
+.tampilan-geser a {
+  padding: 8px 10px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nt-samar);
+  text-decoration: none;
+}
+.tampilan-geser a:hover { color: var(--nt-indigo); }
+.tampilan-geser a.is-aktif { background: var(--nt-indigo); color: var(--nt-krem); }
+
+.tampilan-ket { font-style: normal; font-size: 11.5px; color: var(--nt-samar); }
+
+.tampilan-auto {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nt-bata);
+  text-decoration: underline;
+}
+
+/* Tombol di lembar tamu versi HP */
+.mb-sheet-tamu { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--nt-garis); }
+.mb-sheet-tamu p { margin: 0 0 4px; font-size: 13.5px; line-height: 1.55; color: var(--nt-teks-2); }
+
+.mb-sheet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 999px;
+  border: 1.5px solid var(--nt-indigo);
+  color: var(--nt-indigo);
+  font-weight: 600;
+  font-size: 15px;
+}
+.mb-sheet-btn.is-utama { background: var(--nt-bata); border-color: var(--nt-bata); color: #FFFFFF; }
+
+/* --- Kartu produk: tinggi seragam ---------------------------------------- */
+
+/* Kotak foto tidak boleh ikut memanjang atau memendek mengikuti sisa ruang
+   kartu. Tanpa ini, kartu yang teksnya pendek menyisakan ruang kosong dan
+   fotonya terlihat berbeda ukuran dari kartu sebelahnya. */
+.nt-kartu-foto { flex: 0 0 auto; }
+
+/* Cadangan untuk browser lama yang belum mengenal aspect-ratio: kotak
+   dibuat persegi lewat padding, dan fotonya diisi menutupi. */
+@supports not (aspect-ratio: 1 / 1) {
+  .nt-kartu-foto { position: relative; height: 0; padding-top: 100%; }
+  .nt-kartu-foto img { position: absolute; inset: 0; }
+}
+
+/* Nama toko dipotong satu baris - nama panjang yang membungkus dua baris
+   membuat tinggi isi kartu berbeda-beda dalam satu baris grid. */
+.nt-kartu-toko,
+.nt-kartu-isi .nt-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* --- Foto produk: tampil utuh ------------------------------------------- */
+
+/* Berkasnya sudah diseragamkan jadi persegi saat diunggah (lihat
+   application/helpers/gambar_helper.php), jadi di sini fotonya cukup
+   ditampilkan apa adanya - tidak ada yang perlu dipotong lagi.
+
+   contain, bukan cover: foto LAMA yang diunggah sebelum penyeragaman ini
+   masih beragam bentuknya, dan dengan cover bagian atas-bawahnya akan
+   terpangkas. Dengan contain semuanya tetap utuh. */
+/* .nt-kartu-foto img,
+.mb-kartu-foto img { object-fit: contain; } */
+
+.nt-kartu-foto,
+.mb-kartu-foto { background: #FFFFFF; }

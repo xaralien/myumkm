@@ -14,6 +14,16 @@ if (empty($order) || $order['payment_status'] !== 'paid') {
     return;
 }
 
+/* Pembeli yang sudah masuk memakai gelembung kotak masuk yang ada di semua
+   halaman - dua gelembung sekaligus di halaman ini hanya membingungkan.
+   Gelembung per-pesanan ini khusus untuk pemesan TAMU, yang tidak punya
+   daftar percakapan. */
+$CI_w =& get_instance();
+$CI_w->load->library('auth_lib');
+if ($CI_w->auth_lib->id()) {
+    return;
+}
+
 // Lewat get_instance(): model yang dimuat di tengah view tidak ikut
 // tersalin ke $this.
 $CI =& get_instance();
@@ -67,4 +77,4 @@ $belum = (int) $CI->chat_model->belum_dibaca($order['id'], 'customer');
         hash: '<?= $this->security->get_csrf_hash() ?>'
     };
 </script>
-<script src="<?= base_url('assets/js/chat-widget.js') ?>"></script>
+<script src="<?= aset('assets/js/chat-widget.js') ?>"></script>

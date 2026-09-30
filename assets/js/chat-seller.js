@@ -8,7 +8,13 @@
   var C = window.CHAT_SELLER;
   if (!C) { return; }
 
+  /* Dua bentuk: percakapan pesanan (chat_baru/chat_kirim + id pesanan) dan
+     wadah percakapan (conv_baru/conv_kirim + id percakapan). Halaman Pesan
+     memakai yang kedua, halaman kelola pesanan memakai yang pertama. */
   function url(aksi) {
+    if (C.conv) {
+      return C.base + '/seller/conv_' + aksi.replace('chat_', '') + '/' + C.conv;
+    }
     return C.base + '/seller/' + aksi + '/' + C.orderId;
   }
 

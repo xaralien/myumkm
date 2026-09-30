@@ -1,9 +1,7 @@
-<!-- application/views/v_chat_customer.php - halaman percakapan penuh untuk pembeli.
-     Dipakai untuk tautan langsung (misalnya dari notifikasi); di halaman
-     pesanan, pembeli memakai widget melayang. -->
+<!-- application/views/v_chat_conv.php - percakapan dengan toko (tanpa pesanan) -->
 <div class="hero hero-page">
   <div class="container"><div class="row"><div class="col-lg-12">
-    <div class="intro-excerpt text-center"><h1>Percakapan pesanan</h1></div>
+    <div class="intro-excerpt text-center"><h1><?= html_escape($conv['store_name']) ?></h1></div>
   </div></div></div>
 </div>
 
@@ -13,10 +11,11 @@
     <div class="form-card">
       <div class="chat-kepala">
         <div>
-          <p class="hint mb-1">Nomor pesanan</p>
-          <p class="order-number mb-0"><?= html_escape($order['order_number']) ?></p>
+          <p class="hint mb-1">Percakapan dengan toko</p>
+          <p class="order-number mb-0"><?= html_escape($conv['store_name']) ?></p>
         </div>
-        <?php if ($toko): ?><p class="hint mb-0"><?= html_escape($toko['name']) ?></p><?php endif; ?>
+        <a href="<?= site_url('shop') ?>?store=<?= (int) $conv['store_id'] ?>"
+           class="btn btn-black-hover-outline btn-sm">Lihat toko</a>
       </div>
     </div>
 
@@ -25,7 +24,7 @@
         <?php $this->load->view('v_chat_bubble', array('m' => $m, 'sisi' => 'customer')); ?>
       <?php endforeach; ?>
       <?php if (! $pesan): ?>
-        <p class="hint text-center" id="chatKosong">Belum ada pesan. Tanyakan apa saja soal pesananmu.</p>
+        <p class="hint text-center" id="chatKosong">Tanyakan apa saja tentang produk toko ini.</p>
       <?php endif; ?>
     </div>
 
@@ -36,19 +35,13 @@
     </form>
     <p class="chat-info" id="chatInfo" aria-live="polite"></p>
 
-    <div class="text-center mt-4">
-      <a href="<?= site_url('checkout/done/' . $order['order_number'] . '/' . $order['access_token']) ?>"
-         class="btn btn-black-hover-outline">Lihat detail pesanan</a>
-    </div>
-
   </div></div></div>
 </div>
 
 <script>
   window.CHAT = {
     baseUrl: <?= json_encode(rtrim(site_url(), '/')) ?>,
-    nomor:   <?= json_encode($order['order_number']) ?>,
-    token:   <?= json_encode($order['access_token']) ?>,
+    conv:    <?= (int) $conv['id'] ?>,
     sisi:    'customer',
     sejak:   <?= $pesan ? (int) end($pesan)['id'] : 0 ?>,
     gambar:  <?= json_encode(base_url('upload/produk/')) ?>

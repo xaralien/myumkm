@@ -96,6 +96,36 @@ class Cart extends CI_Controller
         ), $res['ok'] ? 200 : 422);
     }
 
+    /**
+     * Beli sekarang - lewati keranjang.  POST cart/beli_langsung [AJAX]
+     *
+     * Barangnya masuk ke wadah terpisah, bukan keranjang biasa: pembeli yang
+     * sudah mengumpulkan beberapa barang tidak kehilangan isinya hanya
+     * karena membeli satu barang lain secara langsung. Wadah itu juga
+     * dikosongkan lebih dulu, supaya checkout benar-benar berisi satu
+     * barang yang baru saja dipilih - bukan sisa percobaan sebelumnya.
+     */
+    public function beli_langsung()
+    {
+        $addons = $this->input->post('addons');
+        $addons = is_array($addons) ? $addons : array();
+
+        $this->cart_lib->mode('langsung')->clear();
+
+        $res = $this->cart_lib->add(
+            $this->input->post('product_id'),
+            $this->input->post('variant_id'),
+            $addons,
+            $this->input->post('qty')
+        );
+
+        return $this->json(array(
+            'ok'      => $res['ok'],
+            'message' => $res['message'],
+            'lanjut'  => $res['ok'] ? site_url('checkout') . '?langsung=1' : NULL,
+        ), $res['ok'] ? 200 : 422);
+    }
+
     public function update()
     {
         $ok = $this->cart_lib->update_qty(

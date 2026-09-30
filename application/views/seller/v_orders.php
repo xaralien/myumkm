@@ -194,7 +194,7 @@ $tampil = function ($peta, $kode) {
     total: <?= (int) ($total_belum ?? 0) ?>
   };
 </script>
-<script src="<?= base_url('assets/js/orders-notif.js') ?>"></script>
+<script src="<?= aset('assets/js/orders-notif.js') ?>"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

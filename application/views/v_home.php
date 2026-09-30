@@ -304,5 +304,5 @@
     hash: '<?= $this->security->get_csrf_hash() ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/shop.js') ?>"></script>
+<script src="<?= aset('assets/js/shop.js') ?>"></script>
 <?php $this->load->view('v_location_modal'); ?>

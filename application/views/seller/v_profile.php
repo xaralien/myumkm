@@ -282,9 +282,9 @@ $avatar = $store['avatar']
         district: <?= (int) $store['district_id'] ?>
     };
 </script>
-<script src="<?= base_url('assets/js/region-select.js') ?>"></script>
-<script src="<?= base_url('assets/js/format-rupiah.js') ?>"></script>
-<script src="<?= base_url('assets/js/avatar-preview.js') ?>"></script>
+<script src="<?= aset('assets/js/region-select.js') ?>"></script>
+<script src="<?= aset('assets/js/format-rupiah.js') ?>"></script>
+<script src="<?= aset('assets/js/avatar-preview.js') ?>"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -300,4 +300,4 @@ $avatar = $store['avatar']
     urlCocok: '<?= site_url('region/cocok') ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/peta-alamat.js') ?>"></script>
+<script src="<?= aset('assets/js/peta-alamat.js') ?>"></script>

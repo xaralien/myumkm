@@ -155,7 +155,7 @@
     district: <?= (int) $akun['district_id'] ?>
   };
 </script>
-<script src="<?= base_url('assets/js/region-select.js') ?>"></script>
+<script src="<?= aset('assets/js/region-select.js') ?>"></script>
 
 <!-- Leaflet dimuat hanya di halaman yang butuh peta - bukan di semua
      halaman lewat header. -->
@@ -171,8 +171,8 @@
     urlCocok: '<?= site_url('region/cocok') ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/peta-alamat.js') ?>"></script>
-<script src="<?= base_url('assets/js/avatar-preview.js') ?>"></script>
+<script src="<?= aset('assets/js/peta-alamat.js') ?>"></script>
+<script src="<?= aset('assets/js/avatar-preview.js') ?>"></script>
 <script>
   /* Akun tanpa foto menampilkan inisial, dan <img> pratinjaunya disembunyikan.
      Begitu foto dipilih, tukar keduanya. Dijalankan SESUDAH avatar-preview.js:

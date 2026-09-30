@@ -8,7 +8,14 @@
   var C = window.CHAT;
   if (!C) { return; }
 
+  /* Dua bentuk percakapan memakai berkas ini:
+       pesanan     -> chat/{aksi}/{nomor}/{token}
+       tanya toko  -> chat/conv_{aksi}/{id}
+     Yang membedakan hanya alamatnya; isi dan perilakunya sama. */
   function url(aksi) {
+    if (C.conv) {
+      return C.baseUrl + '/chat/conv_' + aksi + '/' + C.conv;
+    }
     return C.baseUrl + '/chat/' + aksi + '/' +
       encodeURIComponent(C.nomor) + '/' + encodeURIComponent(C.token);
   }
@@ -30,6 +37,11 @@
   function bubble(m) {
     if (m.pengirim === 'sistem') { return '<div class="chat-sistem">' + esc(m.isi) + '</div>'; }
     var h = '<div class="chat-baris' + (m.pengirim === C.sisi ? ' is-saya' : '') + '"><div class="chat-gelembung">';
+    if (m.produk_nama) {
+      h += '<span class="chat-produk">'
+         + '<img src="' + C.gambar + esc(m.produk_gambar) + '" alt="">'
+         + '<span><strong>' + esc(m.produk_nama) + '</strong></span></span>';
+    }
     if (m.image) {
       var g = C.gambar + m.image;
       h += '<a href="' + g + '" target="_blank" rel="noopener"><img src="' + g + '" alt="Foto" class="chat-gambar" loading="lazy"></a>';

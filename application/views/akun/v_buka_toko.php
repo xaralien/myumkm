@@ -106,4 +106,4 @@
     district: <?= (int) $akun['district_id'] ?>
   };
 </script>
-<script src="<?= base_url('assets/js/region-select.js') ?>"></script>
+<script src="<?= aset('assets/js/region-select.js') ?>"></script>

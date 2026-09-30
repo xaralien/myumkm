@@ -146,4 +146,4 @@
     hash: '<?= $this->security->get_csrf_hash() ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/chat-seller.js') ?>"></script>
+<script src="<?= aset('assets/js/chat-seller.js') ?>"></script>

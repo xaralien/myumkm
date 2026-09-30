@@ -17,6 +17,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Checkout extends CI_Controller
 {
     protected $toko;
+    protected $langsung = FALSE;
 
     public function __construct()
     {
@@ -24,6 +25,14 @@ class Checkout extends CI_Controller
         $this->load->library(array('cart_lib', 'session', 'form_validation', 'duitku', 'auth_lib'));
         $this->load->model(array('order_model', 'region_model'));
         $this->load->helper(array('url', 'form', 'money'));
+
+        /* Mode "beli sekarang": checkout memakai wadah terpisah berisi satu
+           barang. Penandanya dikirim ulang lewat kolom tersembunyi di
+           formulir, supaya tetap dikenali saat pesanan disimpan (POST). */
+        $this->langsung = ($this->input->get_post('langsung') == '1');
+        if ($this->langsung) {
+            $this->cart_lib->mode('langsung');
+        }
 
         // Pengaturan ongkir diambil dari TOKO pemilik keranjang.
         $this->toko = $this->cart_lib->store();
@@ -34,7 +43,7 @@ class Checkout extends CI_Controller
     public function index()
     {
         if ($this->cart_lib->is_empty() || ! $this->toko) {
-            return redirect('cart');
+            return redirect($this->langsung ? 'shop' : 'cart');
         }
 
         $subtotal = $this->cart_lib->subtotal();
@@ -46,6 +55,7 @@ class Checkout extends CI_Controller
             'subtotal'  => $subtotal,
             'toko'      => $t,
             'akun'      => $akun,
+            'langsung'  => $this->langsung,
             'provinces' => $this->region_model->provinces(),
 
             /* Di marketplace, alamat pengiriman hampir selalu alamat pembeli
@@ -82,7 +92,7 @@ class Checkout extends CI_Controller
     public function place()
     {
         if ($this->cart_lib->is_empty() || ! $this->toko) {
-            return redirect('cart');
+            return redirect($this->langsung ? 'shop' : 'cart');
         }
 
         $this->set_rules();
@@ -99,6 +109,7 @@ class Checkout extends CI_Controller
 
         $items    = $this->cart_lib->items();
         $subtotal = $this->cart_lib->subtotal();
+        $akun     = $this->auth_lib->row();
 
         /* "Toko tidak melayani wilayah ini" BUKAN sama dengan "ongkir nol".
            Kalau dipaksa jadi angka, pesanan ke luar jangkauan lolos dengan
@@ -115,9 +126,18 @@ class Checkout extends CI_Controller
             'store_id'          => $this->cart_lib->store_id(),
             'user_id'           => $this->auth_lib->id(),
 
-            'customer_name'     => $this->input->post('customer_name', TRUE),
-            'customer_phone'    => $this->normalize_phone($this->input->post('customer_phone', TRUE)),
-            'customer_email'    => $this->input->post('customer_email', TRUE) ?: NULL,
+            /* Data pemesan diambil dari penerima kalau kolomnya tidak
+               dikirim. Kolom ini tetap terisi di database karena dipakai
+               halaman lacak, notifikasi, dan invoice Duitku - dibiarkan
+               kosong berarti pesanan tanpa identitas pemesan sama sekali. */
+            'customer_name'     => $this->input->post('customer_name', TRUE)
+                                    ?: $this->input->post('recipient_name', TRUE),
+            'customer_phone'    => $this->normalize_phone(
+                                     $this->input->post('customer_phone', TRUE)
+                                     ?: $this->input->post('recipient_phone', TRUE)
+                                   ),
+            'customer_email'    => $this->input->post('customer_email', TRUE)
+                                    ?: ($akun ? $akun['email'] : NULL),
 
             'recipient_name'        => $this->input->post('recipient_name', TRUE),
             'recipient_phone'       => $this->normalize_phone($this->input->post('recipient_phone', TRUE)),
@@ -202,8 +222,15 @@ class Checkout extends CI_Controller
     {
         $v = $this->form_validation;
 
-        $v->set_rules('customer_name',  'Nama pemesan',   'required|trim|max_length[100]');
-        $v->set_rules('customer_phone', 'Nomor WhatsApp', 'required|trim|callback_valid_phone');
+        /* Kolom "Data pemesan" dinonaktifkan di v_checkout.php, jadi tiga
+           nilai ini tidak lagi dikirim formulir - aturannya TIDAK boleh
+           mewajibkannya. Kalau tetap diwajibkan, setiap checkout ditolak
+           validasi dan pembeli dipantulkan kembali ke formulir tanpa tahu
+           sebabnya, karena kolom yang salah pun tidak terlihat.
+
+           Kalau blok itu diaktifkan lagi, kembalikan aturan required-nya. */
+        $v->set_rules('customer_name',  'Nama pemesan',   'trim|max_length[100]');
+        $v->set_rules('customer_phone', 'Nomor WhatsApp', 'trim');
         $v->set_rules('customer_email', 'Email',          'trim|valid_email|max_length[150]');
 
         $v->set_rules('recipient_name',        'Nama penerima', 'required|trim|max_length[100]');

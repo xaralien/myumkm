@@ -1,0 +1,1226 @@
+/* =============================================================================
+   mobile.css  -  tampilan khusus layar HP
+   Simpan di: assets/css/mobile.css
+
+   Dimuat SETELAH order.css dan tema-nusantara.css, dan hanya di halaman
+   versi mobile. Token warna & huruf memakai milik tema (--nt-*), jadi
+   mengganti warna cukup di satu tempat untuk kedua tampilan.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- dasar --- */
+
+.mb {
+  margin: 0;
+  background: var(--nt-krem);
+  color: var(--nt-indigo);
+  font-family: var(--nt-sans);
+  font-size: 15px;
+  line-height: 1.5;
+
+  /* Jarak aman dari poni layar dan bilah geser bawah. Nilainya 0 di
+     perangkat yang tidak punya keduanya, jadi aman dipakai di mana saja. */
+  padding-top: env(safe-area-inset-top, 0px);
+
+  /* Ruang untuk tab bar yang menempel di bawah - tanpa ini, isi terakhir
+     halaman tertutup tab bar dan tidak bisa dibaca. */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+
+  -webkit-text-size-adjust: 100%;
+}
+
+.mb * { -webkit-tap-highlight-color: rgba(168, 68, 31, 0.12); }
+
+.mb h1, .mb h2, .mb h3 { font-family: var(--nt-serif); margin: 0; }
+.mb a { color: inherit; text-decoration: none; }
+
+.mb-isi { padding-bottom: 8px; }
+
+/* Semua yang bisa disentuh minimal 44px - di bawah itu, jari orang dewasa
+   sering meleset. */
+.mb a, .mb button, .mb .mb-ikon { min-height: 44px; }
+
+.mb-wrap { padding: 0 16px; }
+
+/* --------------------------------------------------------- bilah atas --- */
+
+.mb-atas {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--nt-krem);
+  border-bottom: 1px solid var(--nt-garis);
+}
+
+.mb-logo { display: flex; align-items: center; flex: 0 0 auto; }
+
+.mb-lokasi {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--nt-indigo);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.mb-lokasi span {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  /* Nama kecamatan bisa panjang - dipotong, bukan membuat bilah melar. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mb-lokasi svg:first-child { color: var(--nt-bata); flex: 0 0 auto; }
+
+.mb-ikon {
+  flex: 0 0 auto;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nt-indigo);
+}
+
+.mb-kabar {
+  margin: 10px 16px 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #EAF3EE;
+  border-left: 3px solid var(--ord-ok);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ----------------------------------------------------------- tab bawah --- */
+
+.mb-tab {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(251, 244, 233, 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--nt-garis);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mb-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 9px 2px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--nt-samar);
+}
+
+.mb-tab-item.is-aktif { color: var(--nt-bata); }
+
+.mb-tab-ikon { position: relative; display: block; }
+
+.mb-tab-lencana {
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--nt-bata);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+.mb-tukar { text-align: center; padding: 4px 0 12px; margin: 0; }
+.mb-tukar a { font-size: 12.5px; color: var(--nt-samar); text-decoration: underline; }
+
+/* --------------------------------------------------------------- hero --- */
+
+.mb-hero {
+  position: relative;
+  margin: 12px 16px 0;
+  padding: 22px 20px 24px;
+  border-radius: 24px;
+  background: var(--nt-indigo);
+  color: var(--nt-krem);
+  overflow: hidden;
+}
+.mb-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--nt-kawung);
+  background-size: 96px 96px;
+  /* Tipis saja: motifnya latar, bukan isi. Di atas 0.2 ia mulai bersaing
+     dengan tulisan di depannya. */
+  opacity: 0.16;
+}
+.mb-hero > * { position: relative; }
+
+.mb-hero h1 {
+  font-size: 27px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--nt-krem);
+  margin-bottom: 8px;
+}
+.mb-hero p { margin: 0 0 16px; font-size: 14px; line-height: 1.55; color: #D8DCE6; }
+
+.mb-hero-aksi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--nt-kunyit);
+  color: var(--nt-indigo);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------- bagian --- */
+
+.mb-bagian { margin-top: 26px; }
+
+.mb-judul {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+.mb-judul h2 { font-size: 20px; font-weight: 700; }
+.mb-judul a { font-size: 13px; font-weight: 600; color: var(--nt-bata); }
+
+/* --- deret mendatar yang "mengunci" di tiap kartu --- */
+.mb-geser {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 16px 6px;
+  scroll-snap-type: x mandatory;
+  /* Bilah gulir disembunyikan: di HP ia hanya menutupi isi, dan jari
+     sudah tahu caranya menggeser. */
+  scrollbar-width: none;
+}
+.mb-geser::-webkit-scrollbar { display: none; }
+.mb-geser > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+/* --------------------------------------------------------- kategori --- */
+
+.mb-kat {
+  width: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.mb-kat span {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  background: #F6E7CF;
+  color: var(--nt-bata);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mb-kat b { font-size: 11.5px; font-weight: 600; line-height: 1.3; }
+
+/* ------------------------------------------------------ kartu produk --- */
+
+.mb-produk {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.mb-kartu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  overflow: hidden;
+}
+
+/* Kartu di deret mendatar butuh lebar tetap; di grid, lebarnya ikut kolom. */
+.mb-geser .mb-kartu { width: 158px; }
+
+.mb-kartu-foto { aspect-ratio: 1 / 1; background: var(--nt-pasir); }
+.mb-kartu-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.mb-kartu-isi {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px 12px;
+  flex: 1 1 auto;
+}
+
+.mb-kartu-nama {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  /* Dipotong dua baris supaya harga di semua kartu tetap sejajar. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mb-kartu-toko {
+  font-size: 11.5px;
+  color: var(--nt-samar);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mb-kartu-harga {
+  font-family: var(--nt-serif);
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.mb-kartu-harga small { font-family: var(--nt-sans); font-size: 10.5px; font-weight: 500; color: var(--nt-samar); }
+
+/* ---------------------------------------------------------- kartu toko --- */
+
+.mb-toko {
+  width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+}
+.mb-toko-avatar {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  background: var(--nt-indigo);
+  color: var(--nt-emas-muda);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nt-serif);
+  font-size: 18px;
+  font-weight: 700;
+  overflow: hidden;
+}
+.mb-toko-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mb-toko-teks { min-width: 0; }
+.mb-toko-teks b { display: block; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb-toko-teks em { font-style: normal; font-size: 11.5px; color: var(--nt-samar); }
+
+/* ------------------------------------------------------------ langkah --- */
+
+.mb-langkah {
+  margin: 0 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--nt-krem-2);
+  list-style: none;
+  counter-reset: l;
+}
+.mb-langkah li {
+  display: flex;
+  gap: 12px;
+  padding: 9px 0;
+  counter-increment: l;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.mb-langkah li::before {
+  content: counter(l);
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--nt-bata);
+  color: #FFFFFF;
+  font-family: var(--nt-serif);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mb-langkah b { display: block; font-size: 14px; }
+.mb-langkah span { color: var(--nt-teks-2); }
+
+/* --------------------------------------------------------------- ajakan --- */
+
+.mb-cta {
+  margin: 26px 16px 8px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--nt-bata);
+  color: #FFFFFF;
+  text-align: center;
+}
+.mb-cta h2 { font-size: 19px; color: #FFFFFF; margin-bottom: 6px; }
+.mb-cta p { font-size: 13.5px; margin: 0 0 14px; color: #FBE7DC; }
+.mb-cta a {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--nt-bata);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------- kosong --- */
+
+.mb-kosong {
+  margin: 24px 16px;
+  padding: 32px 20px;
+  border-radius: 18px;
+  border: 1px dashed var(--nt-garis-2);
+  text-align: center;
+  color: var(--nt-teks-2);
+  font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-geser { scroll-behavior: auto; }
+}
+
+
+/* ===================================================================== */
+/*  KATALOG                                                              */
+/* ===================================================================== */
+
+.mb-cari {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 16px 0;
+  padding: 0 14px;
+  height: 46px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis-2);
+  color: var(--nt-samar);
+}
+.mb-cari input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  /* 16px: di bawah itu, iOS ikut memperbesar seluruh halaman saat kolom
+     disentuh, dan tata letaknya jadi berantakan. */
+  font-size: 16px;
+  color: var(--nt-indigo);
+}
+
+.mb-chips { margin-top: 12px; }
+
+.mb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 999px;
+  border: 1px solid var(--nt-garis-2);
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.mb-chip em { font-style: normal; font-size: 11px; color: var(--nt-samar); }
+.mb-chip.is-aktif { background: var(--nt-indigo); border-color: var(--nt-indigo); color: var(--nt-krem); }
+.mb-chip.is-aktif em { color: var(--nt-emas-muda); }
+
+.mb-urut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  font-size: 12.5px;
+  color: var(--nt-samar);
+}
+.mb-urut select {
+  border: 1px solid var(--nt-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--nt-indigo);
+  max-width: 55vw;
+}
+
+.mb-halaman {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 16px 4px;
+  font-size: 13px;
+  color: var(--nt-samar);
+}
+.mb-halaman a { font-weight: 700; color: var(--nt-bata); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+
+/* ===================================================================== */
+/*  DETAIL PRODUK                                                        */
+/* ===================================================================== */
+
+.mb-foto { position: relative; background: var(--nt-pasir); }
+
+.mb-foto-geser {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.mb-foto-geser::-webkit-scrollbar { display: none; }
+.mb-foto-geser img {
+  flex: 0 0 100%;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  scroll-snap-align: center;
+  display: block;
+}
+
+.mb-foto-titik {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.mb-foto-titik span {
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.mb-foto-titik span.is-aktif { background: #FFFFFF; width: 18px; }
+
+.mb-kembali {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--nt-indigo);
+}
+
+.mb-detail {
+  padding: 16px;
+  background: var(--nt-krem);
+  border-radius: 22px 22px 0 0;
+  margin-top: -18px;
+  position: relative;
+}
+
+.mb-detail-kat {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nt-bata);
+}
+.mb-detail h1 { font-size: 22px; line-height: 1.25; margin: 4px 0 6px; }
+
+.mb-detail-harga { margin: 0 0 14px; font-family: var(--nt-serif); font-size: 24px; font-weight: 700; }
+.mb-detail-harga em { display: block; font-family: var(--nt-sans); font-style: normal; font-size: 11.5px; font-weight: 500; color: var(--nt-samar); }
+
+.mb-detail-toko {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  margin-bottom: 18px;
+}
+.mb-detail-toko b { display: block; font-size: 14px; }
+.mb-detail-toko em { font-style: normal; font-size: 12px; color: var(--nt-samar); }
+
+.mb-detail-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+.mb-detail-label span { font-weight: 400; color: var(--nt-samar); }
+
+.mb-opsi { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+
+.mb-opsi-item { display: block; margin: 0; }
+/* Kotak pilihan bawaan disembunyikan tapi tetap ADA - pembaca layar dan
+   navigasi keyboard masih memakainya. */
+.mb-opsi-item input { position: absolute; opacity: 0; pointer-events: none; }
+
+.mb-opsi-item span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1.5px solid var(--nt-garis-2);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-size: 14px;
+}
+.mb-opsi-item b { font-weight: 600; }
+.mb-opsi-item em { font-style: normal; font-size: 13px; color: var(--nt-samar); }
+
+.mb-opsi-item input:checked + span {
+  border-color: var(--nt-bata);
+  background: #FDF3EE;
+}
+.mb-opsi-item input:focus-visible + span { outline: 3px solid var(--nt-kunyit); outline-offset: 2px; }
+
+.mb-kirim {
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: var(--nt-krem-2);
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.mb-kirim p { margin: 0; }
+.mb-kirim p + p { color: var(--nt-teks-2); margin-top: 3px; }
+
+.mb-deskripsi { font-size: 14px; line-height: 1.65; color: var(--nt-teks-2); margin: 0; }
+
+/* --- bilah beli menempel --- */
+
+.mb-beli {
+  position: fixed;
+  left: 0; right: 0;
+  /* Tepat di atas tab bar, ikut menghormati area aman perangkat. */
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--nt-garis);
+}
+
+.mb-beli-total { flex: 0 0 auto; line-height: 1.2; }
+.mb-beli-total span { display: block; font-size: 10.5px; color: var(--nt-samar); }
+.mb-beli-total strong { font-family: var(--nt-serif); font-size: 17px; }
+
+.mb-qty { flex: 0 0 auto; }
+
+.mb-beli-btn {
+  flex: 1 1 auto;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--nt-bata);
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+}
+.mb-beli-btn:disabled { opacity: 0.6; }
+
+/* Halaman produk butuh ruang ekstra: tab bar DAN bilah beli. */
+.mb-isi:has(.mb-beli) { padding-bottom: 60px; }
+
+
+/* ===================================================================== */
+/*  MODAL WILAYAH - versi HP: lembar yang naik dari bawah                */
+/*                                                                       */
+/*  Gaya .locmodal-* di order.css dirancang sebagai kotak di tengah layar */
+/*  desktop. Di HP bentuk itu sempit dan kolomnya menciut, jadi ditimpa   */
+/*  di sini. Semua aturan diawali .mb supaya hanya berlaku di versi HP.   */
+/* ===================================================================== */
+
+.mb .locmodal { z-index: 1100; }
+
+.mb .locmodal-box {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+
+  width: auto;
+  max-width: none;
+  max-height: 88vh;
+  overflow-y: auto;
+
+  /* Sudut atas saja - sisi bawahnya menempel ke tepi layar. */
+  border-radius: 24px 24px 0 0;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+
+  background: var(--nt-krem);
+  box-shadow: 0 -10px 40px rgba(31, 42, 68, 0.22);
+
+  /* Naik dari bawah, bukan muncul di tengah: arah geraknya sama dengan
+     arah jempol membuka sesuatu. */
+  animation: mb-naik 0.22s ease;
+  transform: none;
+}
+
+@keyframes mb-naik {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Garis pegangan kecil di atas - penanda bahwa ini lembar, bukan halaman. */
+.mb .locmodal-box::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: var(--nt-garis-2);
+}
+
+.mb .locmodal-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nt-samar);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.mb .locmodal-title {
+  font-family: var(--nt-serif);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 40px 6px 0;
+}
+
+.mb .locmodal-sub {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--nt-teks-2);
+  margin: 0 0 18px;
+}
+
+/* --- kolom cari --- */
+
+.mb .locmodal-search { position: relative; margin-bottom: 18px; }
+
+.mb .locmodal-search .form-control {
+  /* Inilah yang membuatnya terlihat menciut sebelumnya. */
+  width: 100%;
+  height: 50px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1.5px solid var(--nt-garis-2);
+  background: #FFFFFF;
+  /* 16px: di bawah itu iOS ikut memperbesar seluruh halaman saat kolom
+     disentuh. */
+  font-size: 16px;
+}
+.mb .locmodal-search .form-control:focus {
+  border-color: var(--nt-bata);
+  box-shadow: 0 0 0 3px rgba(168, 68, 31, 0.15);
+}
+
+.mb .locmodal-hasil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 2;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(31, 42, 68, 0.15);
+}
+.mb .locmodal-hasil li {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.mb .locmodal-hasil li:hover,
+.mb .locmodal-hasil li.is-aktif { background: var(--ord-soft); }
+
+/* --- pemisah "atau pilih bertingkat" --- */
+
+.mb .locmodal-atau {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--nt-samar);
+}
+.mb .locmodal-atau::before,
+.mb .locmodal-atau::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--nt-garis);
+}
+.mb .locmodal-atau span { flex: 0 0 auto; }
+
+/* --- tiga dropdown bertingkat --- */
+
+.mb .locmodal-field { margin-bottom: 14px; }
+
+.mb .locmodal-field .form-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--nt-teks-2);
+  margin-bottom: 6px;
+}
+
+.mb .locmodal-field .form-control {
+  width: 100%;
+  height: 50px;
+  padding: 0 44px 0 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--nt-garis-2);
+  background: #FFFFFF;
+  font-size: 15px;
+  color: var(--nt-indigo);
+
+  /* Panah bawaan sistem diganti panah sendiri supaya bentuknya sama di
+     Android dan iOS - bawaan keduanya berbeda jauh. */
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235B6275' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+/* Dropdown yang belum bisa dipakai dibuat jelas berbeda - bukan sekadar
+   pudar, tapi juga tanpa latar putih, supaya tidak terlihat seperti kolom
+   aktif yang menunggu diisi. */
+.mb .locmodal-field .form-control:disabled {
+  background-color: var(--ord-soft);
+  color: var(--nt-samar);
+  border-color: var(--nt-garis);
+  opacity: 1;
+}
+
+.mb .locmodal-note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--nt-samar);
+  margin: 4px 0 0;
+  min-height: 18px;
+}
+
+/* --- tombol simpan --- */
+
+.mb .locmodal-box .btn-primary {
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.mb .locmodal-box .btn-primary:disabled { opacity: 0.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mb .locmodal-box { animation: none; }
+}
+
+
+/* ===================================================================== */
+/*  LEMBAR AKUN (dibuka dari tab bar)                                    */
+/* ===================================================================== */
+
+/* Tombol akun di tab bar berbentuk <button>, bukan <a> - samakan tampilannya. */
+.mb-tab button.mb-tab-item {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mb-tab-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
+}
+
+.mb-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(31, 42, 68, 0.45);
+}
+.mb-sheet-scrim[hidden] { display: none; }
+
+.mb-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Tepat di atas tab bar, supaya tab bar tetap terlihat dan pengguna tahu
+     dirinya masih di halaman yang sama. */
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 61;
+  max-height: 76vh;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 40px rgba(31, 42, 68, 0.22);
+  animation: mb-naik 0.2s ease;
+}
+.mb-sheet[hidden] { display: none; }
+
+.mb-sheet::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 10px auto 6px;
+  border-radius: 999px;
+  background: var(--nt-garis-2);
+}
+
+.mb-sheet-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--nt-garis);
+  color: var(--nt-indigo);
+}
+.mb-sheet-bar.is-toko { background: #FBF6EE; }
+
+.mb-sheet-foto {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--nt-indigo);
+  color: var(--nt-emas-muda);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--nt-serif);
+  font-size: 18px;
+  font-weight: 700;
+}
+.mb-sheet-foto img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Toko memakai sudut membulat, bukan lingkaran - sekilas terbedakan dari
+   foto orang. */
+.mb-sheet-foto.is-toko { border-radius: 14px; background: var(--nt-bata); color: var(--nt-krem); }
+.mb-sheet-foto.is-kosong {
+  border-radius: 14px;
+  background: transparent;
+  border: 1.5px dashed var(--nt-garis-2);
+  color: var(--nt-bata);
+  font-family: var(--nt-sans);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.mb-sheet-teks { flex: 1 1 auto; min-width: 0; }
+.mb-sheet-teks strong {
+  display: block;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mb-sheet-teks em {
+  display: block;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--nt-samar);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.mb-sheet-teks em.is-tunggu { color: #8A5A10; font-weight: 600; }
+
+.mb-sheet-ubah {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid var(--nt-garis);
+  color: var(--nt-samar);
+}
+
+.mb-sheet-menu { display: flex; flex-direction: column; padding: 6px 0; }
+.mb-sheet-menu a {
+  padding: 13px 18px;
+  font-size: 15px;
+  color: var(--nt-indigo);
+}
+.mb-sheet-menu a:active { background: var(--ord-soft); }
+
+.mb-sheet-sub {
+  padding: 12px 18px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nt-samar);
+}
+
+.mb-sheet-keluar { margin: 0; border-top: 1px solid var(--nt-garis); }
+.mb-sheet-keluar button {
+  width: 100%;
+  padding: 16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ord-red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-sheet { animation: none; }
+}
+
+
+/* ===================================================================== */
+/*  HALAMAN CADANGAN (markup desktop di dalam kerangka mobile)           */
+/*                                                                       */
+/*  Keranjang, checkout, lacak, masuk, dan halaman lain yang belum punya  */
+/*  versi HP. Tujuannya bukan mempercantik, tapi membuatnya nyaman        */
+/*  dipakai: lebar penuh, jarak tepi wajar, tombol cukup besar.           */
+/* ===================================================================== */
+
+.mb .container {
+  width: 100%;
+  max-width: none;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Bootstrap memberi setiap kolom padding 12px; di layar sempit itu
+   menumpuk dengan padding container dan isinya jadi terjepit. */
+.mb .row { margin-left: -8px; margin-right: -8px; }
+.mb [class*="col-"] { padding-left: 8px; padding-right: 8px; }
+
+/* Bagian halaman desktop berjarak sangat lebar - di HP itu berarti banyak
+   menggulir untuk melihat sedikit isi. */
+.mb .untree_co-section { padding: 22px 0; }
+.mb .before-footer-section { padding-bottom: 8px; }
+
+.mb .hero.hero-page { padding: 30px 0 26px; }
+.mb .hero .intro-excerpt h1 { font-size: 26px; }
+
+.mb .form-card {
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 14px;
+}
+.mb .form-card-title { font-size: 17px; }
+
+/* Tombol penuh selebar layar di halaman cadangan: di HP, tombol utama
+   yang menyempit mengikuti panjang teks jadi sasaran kecil di tengah
+   halaman. */
+.mb .untree_co-section .btn {
+  min-height: 48px;
+  padding: 12px 24px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mb .untree_co-section .btn + .btn { margin-top: 10px; }
+
+.mb .empty-state,
+.mb .untree_co-section .text-center > .btn { width: 100%; }
+
+.mb .form-control,
+.mb .form-select {
+  /* 16px mencegah iOS memperbesar seluruh halaman saat kolom disentuh. */
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.mb textarea.form-control { min-height: 84px; }
+
+/* Tabel rincian pesanan: dua kolom rapat sering terpotong di layar sempit. */
+.mb .detail-table td { display: block; width: auto; padding: 2px 0; }
+.mb .detail-table td:first-child {
+  font-size: 12px;
+  color: var(--nt-samar);
+  padding-top: 10px;
+}
+
+.mb .summary-item,
+.mb .summary-row { font-size: 14px; }
+
+/* Keranjang & ringkasan: kolom samping turun ke bawah, bukan menyempit. */
+.mb .cart-summary {
+  position: static;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+
+/* ===================================================================== */
+/*  WIDGET CHAT DI HP                                                    */
+/*                                                                       */
+/*  Tombol melayangnya dipasang di bawah kanan untuk desktop, dan di HP   */
+/*  posisinya menimpa tab bar - menutupi tab "Akun" persis.               */
+/* ===================================================================== */
+
+.mb .cw-tombol {
+  /* Tepat di atas tab bar, ikut menghormati area aman perangkat. */
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  right: 14px;
+  width: 52px;
+  height: 52px;
+  z-index: 44;   /* di bawah tab bar (50), supaya tab tetap bisa ditekan */
+}
+
+.mb .cw-panel {
+  right: 8px;
+  left: 8px;
+  bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+  width: auto;
+  max-height: calc(100vh - 220px);
+  z-index: 46;
+}
+
+.mb .cw-toast {
+  right: 8px;
+  left: 8px;
+  bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+  max-width: none;
+  z-index: 46;
+}
+
+/* Halaman produk punya bilah beli sendiri di atas tab bar - tombol chat
+   dinaikkan lagi supaya tidak bertumpuk dengan tombol "Beli sekarang". */
+.mb .mb-beli ~ .cw-tombol,
+.mb-isi:has(.mb-beli) ~ .cw-tombol {
+  bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+/* --- bilah beli: dua tombol berdampingan --- */
+
+.mb-beli-btn.is-garis {
+  flex: 0 0 auto;
+  width: 52px;
+  padding: 0;
+  background: transparent;
+  border: 1.5px solid var(--nt-bata);
+  color: var(--nt-bata);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Gelembung kotak masuk di HP: naik ke atas tab bar supaya tidak menutupi
+   tab "Akun", dan lapisannya di bawah tab bar supaya tab tetap bisa ditekan. */
+.mb .ib-tombol {
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  right: 14px;
+  width: 52px;
+  height: 52px;
+  z-index: 44;
+}
+.mb .ib-panel {
+  right: 8px;
+  left: 8px;
+  bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+  width: auto;
+  max-height: calc(100vh - 220px);
+  z-index: 46;
+}
+
+/* Halaman produk punya bilah beli sendiri di atas tab bar. */
+.mb-isi:has(.mb-beli) ~ .ib-tombol { bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+
+
+/* Tombol tanya di kartu toko (halaman produk HP) */
+.mb-detail-toko { justify-content: space-between; }
+.mb-detail-toko > a { flex: 1 1 auto; min-width: 0; }
+.mb-tanya { margin: 0; flex: 0 0 auto; }
+.mb-tanya button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--nt-bata);
+  background: transparent;
+  color: var(--nt-bata);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}

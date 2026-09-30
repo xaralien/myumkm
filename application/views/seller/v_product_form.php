@@ -215,10 +215,10 @@
 <button type="submit" class="btn btn-primary">Simpan</button>
 <?= form_close() ?>
 
-<script src="<?= base_url('assets/js/image-preview.js') ?>"></script>
-<script src="<?= base_url('assets/js/baris-dinamis.js') ?>"></script>
-<script src="<?= base_url('assets/js/format-rupiah.js') ?>"></script>
-<script src="<?= base_url('assets/js/baris-gambar.js') ?>"></script>
+<script src="<?= aset('assets/js/image-preview.js') ?>"></script>
+<script src="<?= aset('assets/js/baris-dinamis.js') ?>"></script>
+<script src="<?= aset('assets/js/format-rupiah.js') ?>"></script>
+<script src="<?= aset('assets/js/baris-gambar.js') ?>"></script>
 
 <?php if (!empty($ai_aktif)): ?>
   <script>
@@ -228,5 +228,5 @@
       hash: '<?= $this->security->get_csrf_hash() ?>'
     };
   </script>
-  <script src="<?= base_url('assets/js/ai-deskripsi.js') ?>"></script>
+  <script src="<?= aset('assets/js/ai-deskripsi.js') ?>"></script>
 <?php endif; ?>

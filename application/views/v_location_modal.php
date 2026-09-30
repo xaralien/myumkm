@@ -71,4 +71,4 @@
     hash: '<?= $this->security->get_csrf_hash() ?>'
   };
 </script>
-<script src="<?= base_url('assets/js/location.js') ?>"></script>
+<script src="<?= aset('assets/js/location.js') ?>"></script>

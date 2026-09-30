@@ -12,6 +12,20 @@
 <?php else: ?>
   <div class="chat-baris <?= $milik_saya ? 'is-saya' : '' ?>">
     <div class="chat-gelembung">
+      <?php if (! empty($m['product_id']) && ! empty($m['produk_nama'])): ?>
+        <!-- Kartu produk: rujukan, bukan salinan. Nama & harga dibaca dari
+             tabel produk saat ditampilkan, jadi kalau penjual mengubah
+             harganya, kartu di percakapan lama ikut menunjukkan yang
+             berlaku sekarang - bukan angka usang. -->
+        <a class="chat-produk" href="<?= site_url('produk/' . $m['produk_toko'] . '/' . $m['produk_slug']) ?>">
+          <img src="<?= base_url('upload/produk/' . $m['produk_gambar']) ?>" alt="" loading="lazy">
+          <span>
+            <strong><?= html_escape($m['produk_nama']) ?></strong>
+            <em><?= rupiah($m['produk_harga']) ?></em>
+          </span>
+        </a>
+      <?php endif; ?>
+
       <?php if ($m['image']): ?>
         <a href="<?= base_url('upload/produk/' . $m['image']) ?>" target="_blank" rel="noopener">
           <img src="<?= base_url('upload/produk/' . $m['image']) ?>" alt="Foto" class="chat-gambar" loading="lazy">

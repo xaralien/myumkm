@@ -119,4 +119,4 @@
     district: <?= $store ? (int) $store['district_id'] : 'null' ?>
   };
 </script>
-<script src="<?= base_url('assets/js/region-select.js') ?>"></script>
+<script src="<?= aset('assets/js/region-select.js') ?>"></script>
