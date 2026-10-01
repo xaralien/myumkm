@@ -53,7 +53,7 @@
 <?php if (! $products): ?>
   <p class="mb-kosong">
     Tidak ada produk yang cocok.<br>
-    <a href="<?= site_url('shop') ?>" style="color: var(--nt-bata); font-weight: 600;">Hapus semua filter</a>
+    <a href="<?= site_url('shop') ?>" style="color: var(--wn-biru); font-weight: 600;">Hapus semua filter</a>
   </p>
 <?php else: ?>
 

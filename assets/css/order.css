@@ -4035,7 +4035,23 @@ tr.is-menunggu-acc {
 .ib-tutup { font-size: 24px; line-height: 1; }
 .ib-balik[hidden] { display: none; }
 
-.ib-buka { flex: 0 0 auto; color: #fff; font-size: 12.5px; text-decoration: underline; }
+.ib-buka {
+  flex: 0 0 auto;
+  /* Disejajarkan tengah terhadap tombol tutup di sebelahnya. Tanpa ini ia
+     menempel ke garis dasar teks judul dan terlihat melayang di atas. */
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.ib-buka:hover { background: rgba(255, 255, 255, 0.26); color: #fff; }
 .ib-buka[hidden] { display: none; }
 
 /* --- daftar percakapan --- */
@@ -4434,3 +4450,485 @@ button.produk-toko-link { border: 0; background: transparent; font: inherit; cur
 .product-item .product-thumbnail { 
   /* object-fit: contain; */
   background: #FFFFFF; }
+
+
+/* --- Deskripsi produk dari editor teks ---------------------------------- */
+
+/* Isinya HTML dari Summernote (sudah disaring daftar izin). Tag di sini
+   diberi jarak sendiri karena reset Bootstrap menghapus margin bawaannya -
+   tanpa ini, paragraf dan daftar menempel jadi satu blok padat. */
+.produk-desk,
+.mb-deskripsi { line-height: 1.7; }
+
+.produk-desk p,
+.mb-deskripsi p { margin: 0 0 10px; }
+.produk-desk p:last-child,
+.mb-deskripsi p:last-child { margin-bottom: 0; }
+
+.produk-desk ul, .produk-desk ol,
+.mb-deskripsi ul, .mb-deskripsi ol { margin: 0 0 10px; padding-left: 20px; }
+
+.produk-desk li,
+.mb-deskripsi li { margin-bottom: 4px; }
+
+.produk-desk h4, .produk-desk h5,
+.mb-deskripsi h4, .mb-deskripsi h5 { font-size: 15px; font-weight: 700; margin: 14px 0 6px; }
+
+.produk-desk blockquote,
+.mb-deskripsi blockquote {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--ord-line);
+  color: var(--ord-muted);
+}
+
+.produk-desk a,
+.mb-deskripsi a { color: var(--ord-green); text-decoration: underline; }
+
+/* Kotak editor di formulir produk: disamakan dengan kolom isian lain. */
+.note-editor.note-frame {
+  border: 1px solid var(--ord-line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.note-editor.note-frame .note-editing-area .note-editable { font-size: 15px; line-height: 1.6; }
+.note-editor.note-frame .note-statusbar { background: var(--ord-soft); }
+
+
+/* ==========================================================================
+   ULASAN & RATING
+   ========================================================================== */
+
+.ul-sub { font-family: var(--wn-serif, inherit); font-size: 20px; font-weight: 700; margin: 0; }
+.ul-bagian { padding-top: 0; }
+.ul-bagian-kepala {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ul-semua { font-size: 14px; font-weight: 600; color: var(--ord-green); }
+.ul-balik { margin-bottom: 14px; }
+.ul-balik a { font-size: 14px; color: var(--ord-muted); }
+
+/* --- bintang --- */
+
+.ul-bintang { display: inline-flex; align-items: center; gap: 2px; }
+.ul-bintang svg.is-penuh,
+.ul-bintang svg.is-separuh { color: #E8A317; }
+/* Bintang kosong digambar abu-abu, bukan dihilangkan: lima bintang yang
+   selalu tampak membuat nilainya langsung terbaca sebagai "x dari 5". */
+.ul-bintang svg.is-kosong { color: #D9DEE3; }
+.ul-bintang b { margin-left: 6px; font-size: 14px; }
+
+/* --- ringkasan --- */
+
+.ul-ringkas {
+  display: grid;
+  grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: center;
+  padding: 26px 28px;
+  border-radius: 18px;
+  /* Tanpa garis tepi: blok ini sudah dibedakan oleh latarnya sendiri, dan
+     garis tambahan membuatnya terlihat seperti kotak peringatan. */
+  background: var(--ord-soft);
+  margin-bottom: 22px;
+}
+
+.ul-angka { display: flex; align-items: center; gap: 12px; }
+.ul-angka-ikon { color: #E8B23A; line-height: 0; flex: 0 0 auto; }
+
+.ul-angka strong {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ord-dark);
+}
+/* "/5" dibuat lebih kecil dan redup supaya yang pertama terbaca adalah
+   nilainya, bukan pembaginya. */
+.ul-angka strong span { font-size: 22px; font-weight: 600; color: var(--ord-muted); }
+
+.ul-puas { margin: 14px 0 6px; font-size: 15px; color: var(--ord-dark); }
+.ul-jumlah { margin: 0; font-size: 13.5px; color: var(--ord-muted); }
+
+/* Tiga kolom: lima baris bertumpuk membuat blok ini jadi tinggi dan
+   mendorong ulasan pertama keluar dari layar. */
+.ul-sebaran {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 22px;
+}
+
+.ul-sebaran-baris {
+  display: grid;
+  grid-template-columns: auto minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+}
+.ul-sebaran-baris:hover:not(.is-mati) .ul-sebaran-bar i { filter: brightness(1.08); }
+
+.ul-sebaran-bintang { display: inline-flex; align-items: center; gap: 5px; color: #E8B23A; line-height: 0; }
+.ul-sebaran-bintang b { font-size: 13px; font-weight: 600; color: var(--ord-dark); line-height: 1; }
+
+.ul-sebaran-bar {
+  height: 9px;
+  border-radius: 999px;
+  /* Jalur abu-abu tetap terlihat penuh, jadi porsi tiap bintang terbaca
+     sebagai bagian dari keseluruhan - bukan sekadar batang mengambang. */
+  background: #9AA7B2;
+  overflow: hidden;
+}
+.ul-sebaran-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #A07B16 0%, #E8B23A 60%, #FDD977 100%);
+}
+
+.ul-sebaran-n { color: var(--ord-dark); font-weight: 600; min-width: 28px; text-align: right; }
+
+@media (max-width: 1100px) {
+  .ul-sebaran { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* --- media ulasan: petak kotak --- */
+
+.ul-galeri {
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  /* Pembatas antara galeri gabungan dan ulasan di bawahnya. Tanpa ini
+     keduanya terbaca sebagai satu deretan panjang. */
+  border-bottom: 1px solid var(--ord-line);
+}
+
+.ul-media-baris {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ul-media-petak {
+  position: relative;
+  flex: 0 0 auto;
+  /* Kotak, bukan mengikuti bentuk asli gambar: deretan yang tingginya
+     berbeda-beda terlihat berantakan, dan yang melebar memakan ruang
+     jauh lebih banyak daripada isinya. */
+  width: 92px;
+  height: 92px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--ord-soft);
+  border: 1px solid var(--ord-line);
+  display: block;
+  cursor: zoom-in;
+}
+.ul-media-petak img,
+.ul-media-petak video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Media per ulasan sedikit lebih kecil - supaya ulasannya sendiri tetap
+   yang paling menonjol. */
+.ul-media-baris.is-kecil { margin-top: 10px; }
+.ul-media-baris.is-kecil .ul-media-petak { width: 74px; height: 74px; border-radius: 10px; }
+
+.ul-media-putar {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  background: rgba(20, 35, 50, 0.3);
+}
+
+.ul-media-lebih {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 35, 50, 0.62);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* --- tata letak halaman ulasan --- */
+
+.ul-isi-utama {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.ul-tab { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--ord-line); }
+.ul-tab a {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ord-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.ul-tab a.is-aktif { color: var(--ord-green); border-bottom-color: var(--ord-green); }
+
+.ul-kepala-produk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ul-kepala-produk img { width: 52px; height: 52px; border-radius: 10px; object-fit: contain; background: #fff; border: 1px solid var(--ord-line); }
+.ul-kepala-produk strong { display: block; font-size: 15px; }
+.ul-kepala-produk em { font-style: normal; font-size: 13px; color: var(--ord-muted); }
+
+.ul-filter {
+  border: 1px solid var(--ord-line);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--ord-bg);
+  /* Menempel saat digulir: daftar ulasan bisa sangat panjang, dan filter
+     yang ikut hilang ke atas memaksa pengguna menggulir balik. */
+  position: sticky;
+  top: 16px;
+}
+
+.ul-filter-judul {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ord-line);
+}
+
+.ul-filter-label {
+  margin: 14px 0 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ord-muted);
+}
+
+.ul-filter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: inherit;
+  text-decoration: none;
+}
+.ul-filter-item:hover { background: var(--ord-soft); color: inherit; }
+.ul-filter-item.is-aktif {
+  background: var(--ord-soft);
+  font-weight: 700;
+  box-shadow: inset 2px 0 0 var(--ord-green);
+}
+/* Yang belum punya ulasan tetap ditampilkan tapi diredupkan - menghilangkannya
+   membuat deretan bintang terlihat bolong dan membingungkan. */
+.ul-filter-item.is-kosong { opacity: .45; pointer-events: none; }
+
+.ul-filter-item b { font-size: 12.5px; font-weight: 600; color: var(--ord-muted); }
+.ul-filter-bintang { display: inline-flex; align-items: center; gap: 6px; color: #E8B23A; }
+.ul-filter-bintang svg { flex: 0 0 auto; }
+
+.ul-filter-hapus {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ord-green);
+  text-decoration: underline;
+}
+
+.ul-sub-kecil { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+
+.ul-daftar-kepala { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+
+/* --- daftar ulasan --- */
+
+.ul-daftar { list-style: none; margin: 0; padding: 0; }
+
+.ul-item { padding: 16px 0; border-bottom: 1px solid var(--ord-line); }
+.ul-item:last-child { border-bottom: 0; }
+
+.ul-item-kepala { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ul-avatar {
+  width: 36px; height: 36px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--ord-dark);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+.ul-nama { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; }
+.ul-nama em { font-style: normal; font-weight: 400; color: var(--ord-muted); margin-left: 8px; font-size: 12.5px; }
+
+.ul-produk { display: inline-block; font-size: 12.5px; color: var(--ord-green); margin-bottom: 4px; }
+.ul-varian { margin: 0 0 6px; font-size: 12.5px; color: var(--ord-muted); }
+.ul-isi { margin: 0; font-size: 14.5px; line-height: 1.65; }
+
+.ul-media { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.ul-media-item {
+  width: 78px; height: 78px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--ord-line);
+  background: var(--ord-soft);
+  display: block;
+}
+.ul-media-item img, video.ul-media-item { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ul-balasan {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ord-soft);
+  font-size: 13.5px;
+}
+.ul-balasan strong { display: block; font-size: 12.5px; color: var(--ord-green); margin-bottom: 3px; }
+.ul-balasan p { margin: 0; line-height: 1.6; }
+
+.ul-kosong { padding: 24px; text-align: center; color: var(--ord-muted); font-size: 14px; }
+
+.ul-halaman { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; font-size: 13.5px; color: var(--ord-muted); }
+.ul-halaman a { font-weight: 700; color: var(--ord-green); }
+
+/* --- formulir ulasan --- */
+
+.ul-tulis-produk { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.ul-tulis-produk img { width: 56px; height: 56px; border-radius: 10px; object-fit: contain; background: #fff; border: 1px solid var(--ord-line); }
+.ul-tulis-produk strong { display: block; font-size: 15px; }
+.ul-tulis-produk em { font-style: normal; font-size: 13px; color: var(--ord-muted); }
+
+.ul-pilih-bintang { border: 0; padding: 0; margin: 0 0 16px; }
+.ul-pilih-bintang legend { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+
+/* Urutan 5..1 di markup, lalu dibalik arah tampilannya. Dengan begitu
+   "bintang sebelumnya" bisa diwarnai lewat ~ tanpa JavaScript. */
+.ul-bintang-pilih { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.ul-bintang-pilih input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ul-bintang-pilih label { cursor: pointer; color: #D9DEE3; line-height: 0; }
+.ul-bintang-pilih input:checked ~ label,
+.ul-bintang-pilih label:hover,
+.ul-bintang-pilih label:hover ~ label { color: #E8A317; }
+.ul-bintang-pilih input:focus-visible + label { outline: 3px solid var(--ord-amber); outline-offset: 2px; border-radius: 4px; }
+
+@media (max-width: 860px) {
+  .ul-ringkas { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px; }
+  .ul-sebaran { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .ul-angka strong { font-size: 30px; }
+  .ul-isi-utama { grid-template-columns: minmax(0, 1fr); }
+  .ul-filter { position: static; }
+  .ul-filter-item { display: inline-flex; margin-right: 6px; }
+  .ul-galeri-item, .ul-galeri-sisa { width: 82px; height: 82px; }
+}
+
+
+/* ==========================================================================
+   PENAMPIL MEDIA LAYAR PENUH
+
+   Dibangun sendiri, bukan komponen modal Bootstrap: komponen itu membawa
+   pengelolaan fokus dan kelas pada <body> yang bentrok dengan panel lain
+   di halaman ini (lembar akun, gelembung chat).
+   ========================================================================== */
+
+.mp-lapisan {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 22, 34, 0.92);
+}
+.mp-lapisan[hidden] { display: none; }
+
+.mp-isi {
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mp-media {
+  max-width: min(1100px, 92vw);
+  /* Dibatasi tinggi layar juga: foto tegak yang hanya dibatasi lebar akan
+     melampaui layar dan tombol tutupnya ikut terdorong keluar. */
+  max-height: 86vh;
+  border-radius: 10px;
+  display: block;
+  object-fit: contain;
+}
+
+.mp-tutup {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.mp-tutup:hover { background: rgba(255, 255, 255, 0.24); }
+
+.mp-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.mp-nav:hover { background: rgba(255, 255, 255, 0.24); }
+.mp-nav[hidden] { display: none; }
+.mp-prev { left: 16px; }
+.mp-next { right: 16px; }
+
+.mp-hitung {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+}
+
+@media (max-width: 575.98px) {
+  .mp-lapisan { padding: 12px; }
+  .mp-nav { width: 40px; height: 40px; }
+  .mp-prev { left: 6px; }
+  .mp-next { right: 6px; }
+  .ul-media-petak { width: 80px; height: 80px; }
+  .ul-media-baris.is-kecil .ul-media-petak { width: 68px; height: 68px; }
+}

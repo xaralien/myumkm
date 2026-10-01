@@ -60,16 +60,15 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
   <div class="nt-wrap nt-nav-in">
 
     <a class="nt-logo" href="<?= base_url() ?>">
-      <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true">
-        <rect width="40" height="40" rx="10" fill="#A8441F"></rect>
-        <g fill="none" stroke="#F3D08A" stroke-width="1.8">
-          <ellipse cx="20" cy="11" rx="5" ry="8"></ellipse>
-          <ellipse cx="20" cy="29" rx="5" ry="8"></ellipse>
-          <ellipse cx="11" cy="20" rx="8" ry="5"></ellipse>
-          <ellipse cx="29" cy="20" rx="8" ry="5"></ellipse>
-        </g>
-      </svg>
-      <span><?= html_escape($brand) ?></span>
+      <!-- Logo sebagai berkas, bukan SVG sebaris: satu berkas dipakai
+           bersama semua halaman dan ikut disimpan cache browser, jadi
+           tidak diunduh ulang di tiap halaman. -->
+      <img src="<?= aset('assets/images/sapa_umkm_icon.svg') ?>"
+           alt="<?= html_escape($this->config->item('nama_brand') ?: 'Sapa UMKM') ?>"
+           class="nt-logo-img" width="103" height="52">
+      <!-- Nama brand sudah ada di dalam logonya sendiri, jadi teks ini
+           dimatikan supaya tidak tampil dobel. -->
+      <!-- <span><?= html_escape($brand) ?></span> -->
     </a>
 
     <nav class="nt-menu" id="ntMenu" aria-label="Menu utama">

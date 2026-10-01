@@ -1,9 +1,9 @@
 <!-- application/views/v_footer.php -->
 <?php
-  $brand  = $this->config->item('nama_brand') ?: 'Nama Brand';
-  $wa     = $this->config->item('wa_admin');
-  $alamat = $this->config->item('alamat');
-  $email  = $this->config->item('email');
+$brand  = $this->config->item('nama_brand') ?: 'Sapa UMKM';
+$wa     = $this->config->item('wa_admin');
+$alamat = $this->config->item('alamat');
+$email  = $this->config->item('email');
 ?>
 
 <footer class="nt-footer">
@@ -46,6 +46,7 @@
     </div>
 
     <div class="nt-footer-bawah">
+      <!-- <span>&copy; <?= date('Y') ?> <?= html_escape($brand) ?></span> -->
       <span>&copy; <?= date('Y') ?> <?= html_escape($brand) ?></span>
     </div>
 

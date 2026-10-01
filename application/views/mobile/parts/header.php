@@ -20,7 +20,7 @@ $seg      = $this->uri->segment(1);
   <!-- viewport-fit=cover: halaman digambar sampai tepi layar, lalu isinya
        dijauhkan dari poni & bilah bawah lewat env(safe-area-inset-*) di CSS. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1F2A44">
+  <meta name="theme-color" content="#22466C">
   <link rel="shortcut icon" href="<?= base_url('favicon.png') ?>">
   <title><?= html_escape($brand) ?></title>
 
@@ -46,7 +46,7 @@ $seg      = $this->uri->segment(1);
 
   <header class="mb-atas">
     <a href="<?= base_url() ?>" class="mb-logo" aria-label="<?= html_escape($brand) ?>">
-      <svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#A8441F"></rect><g fill="none" stroke="#F3D08A" stroke-width="2"><ellipse cx="20" cy="11" rx="5" ry="8"></ellipse><ellipse cx="20" cy="29" rx="5" ry="8"></ellipse><ellipse cx="11" cy="20" rx="8" ry="5"></ellipse><ellipse cx="29" cy="20" rx="8" ry="5"></ellipse></g></svg>
+      <img src="<?= aset('assets/images/sapa_umkm_icon.svg') ?>" alt="" width="103" height="52">
     </a>
 
     <button type="button" class="mb-lokasi" data-open-location data-cadangan="<?= site_url('shop') ?>">

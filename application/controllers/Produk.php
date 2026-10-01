@@ -108,11 +108,31 @@ class Produk extends CI_Controller
             // Dipakai di <title> dan meta description.
             'judul'     => $p['name'] . ' - ' . $p['store_name'],
             'meta_desc' => $this->ringkas(
-                $p['description'] ?: ($p['name'] . ' dari ' . $p['store_name']
+                html_teks($p['description']) ?: ($p['name'] . ' dari ' . $p['store_name']
                     . ', ' . $p['store_district']),
                 155
             ),
         );
+
+        /* Ulasan: ringkasan + 3 terbaru. Sisanya di halaman ulasan sendiri -
+           memuat semuanya di halaman produk membuat halaman berat padahal
+           kebanyakan pengunjung hanya melihat beberapa teratas. */
+        $this->load->model('review_model');
+
+        /* Filter dibaca dari alamat halaman, jadi hasil yang sedang disaring
+           bisa dibagikan dan tetap sama saat dibuka ulang. Nama parameternya
+           diawali 'u' supaya tidak bentrok dengan filter katalog. */
+        $f_ulasan = array(
+            'rating' => (int) $this->input->get('ub') ?: NULL,
+            'media'  => $this->input->get('umedia') === '1',
+            'limit'  => 5,
+        );
+
+        $data['ulasan_ringkas'] = $this->review_model->ringkasan('produk', $p['id']);
+        $data['ulasan_terbaru'] = $this->review_model->daftar('produk', $p['id'], $f_ulasan);
+        $data['ulasan_media']   = $this->review_model->media('produk', $p['id'], 6);
+        $data['ulasan_filter']  = $f_ulasan;
+        $data['ulasan_cocok']   = $this->review_model->hitung('produk', $p['id'], $f_ulasan);
 
         $data['pages'] = 'v_produk';
         $this->load->view('index', $data);

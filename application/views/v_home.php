@@ -148,46 +148,74 @@
     </div>
 
     <?php if ($products): ?>
-      <div class="nt-produk">
-        <?php foreach ($products as $p): ?>
-          <article class="nt-kartu">
-            <!-- Tautan dan tombol + dipisah. <button> di dalam <a> itu HTML
-                 tidak sah, dan browser bingung mana yang dijalankan. -->
-            <a class="nt-kartu-tautan" href="<?= $url_produk($p) ?>">
-              <div class="nt-kartu-foto">
-                <img src="<?= base_url('upload/produk/' . $p['image']) ?>"
-                     alt="<?= html_escape($p['name']) ?>" loading="lazy">
-              </div>
-              <div class="nt-kartu-isi">
-                <?php if (! empty($p['category_name'])): ?>
-                  <span class="nt-label"><?= html_escape($p['category_name']) ?></span>
-                <?php endif; ?>
-                <b><?= html_escape($p['name']) ?></b>
-                <span class="nt-meta">
-                  <?= html_escape($p['store_name']) ?><?php
-                    if (! empty($p['store_district'])) { echo ', ' . html_escape($p['store_district']); }
-                  ?>
-                </span>
-              </div>
-            </a>
+      <!-- Markup SAMA PERSIS dengan katalog (v_shop.php), termasuk kelas
+           .product-item, .product-meta, dan tombol .icon-cross.
 
-            <div class="nt-kartu-bawah">
-              <span class="nt-harga">
-                <?php if ((int) $p['variant_count'] > 1): ?>
-                  <small style="font-family: var(--nt-sans); font-size: 12px; font-weight: 500;">mulai</small>
+           Pembungkus .product-section WAJIB: 17 aturan di style.css -
+           rata tengah, animasi foto saat disentuh, dan posisi tombol + -
+           semuanya ditulis dengan awalan .product-section. Tanpa
+           pembungkus ini, kartu beranda hanya mendapat sebagian gayanya
+           dan terlihat jauh berbeda dari katalog.
+
+           Kelas 'is-sisip' menghapus jarak 7rem bawaannya, karena di sini
+           ia berada di dalam bagian yang sudah punya jarak sendiri. -->
+      <div class="product-section is-sisip">
+      <div class="row">
+        <?php foreach ($products as $p): ?>
+          <div class="col-6 col-md-4 col-lg-3 mb-4 mb-lg-5">
+            <div class="product-item">
+
+              <!-- Dua segmen: slug produk hanya unik di dalam satu toko, jadi
+                   satu segmen saja akan menampilkan produk toko yang salah. -->
+              <a class="product-item-link"
+                href="<?= site_url('produk/' . $p['store_slug'] . '/' . $p['slug']) ?>">
+                <img src="<?= base_url('upload/produk/' . $p['image']) ?>"
+                  alt="<?= html_escape($p['name']) ?>"
+                  class="img-fluid product-thumbnail" loading="lazy">
+                <h3 class="product-title"><?= html_escape($p['name']) ?></h3>
+                <strong class="product-price">
+                  <?php if ((int) $p['variant_count'] > 1): ?>
+                    <span class="price-prefix">Mulai</span>
+                  <?php endif; ?>
+                  <?= rupiah($p['price']) ?>
+                </strong>
+              </a>
+
+              <!-- Dikelompokkan supaya bisa didorong ke dasar kartu sekaligus.
+                   Kalau dibiarkan terpisah, nama toko yang panjangnya
+                   berbeda-beda membuat tiap kartu berakhir di tinggi
+                   yang tidak sama. -->
+              <div class="product-meta">
+                <?php if (!empty($p['category_name'])): ?>
+                  <p class="product-cat"><?= html_escape($p['category_name']) ?></p>
                 <?php endif; ?>
-                <?= rupiah($p['price']) ?>
-              </span>
-              <!-- .btn-add + data-id dipakai shop.js untuk membuka panel
-                   pilihan ukuran & tambahan. -->
-              <button type="button" class="nt-tambah btn-add"
-                      data-id="<?= (int) $p['id'] ?>"
-                      aria-label="Tambah <?= html_escape($p['name']) ?> ke keranjang">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+
+                <?php if (isset($p['jarak_km'])): ?>
+                  <p class="product-jarak"><?= number_format($p['jarak_km'], 1, ',', '.') ?> km dari kamu</p>
+                <?php endif; ?>
+
+                <p class="product-store">
+                  <?= html_escape($p['store_name']) ?>
+                  <?php if (!empty($p['store_district'])): ?>
+                    <em><?= html_escape($p['store_district']) ?><?php
+                      if (isset($p['proximity']) && (int) $p['proximity'] > 1) {
+                        echo ', ' . html_escape($p['store_regency']);
+                      }
+                    ?></em>
+                  <?php endif; ?>
+                </p>
+              </div>
+
+              <button type="button" class="icon-cross btn-add"
+                data-id="<?= (int) $p['id'] ?>"
+                aria-label="Tambah <?= html_escape($p['name']) ?> ke keranjang">
+                <img src="<?= base_url('assets/') ?>images/cross.svg" alt="" class="img-fluid">
               </button>
+
             </div>
-          </article>
+          </div>
         <?php endforeach; ?>
+      </div>
       </div>
     <?php else: ?>
       <div class="nt-kosong">

@@ -17,42 +17,69 @@
 /* ---------------------------------------------------------------- token --- */
 
 :root {
-  --nt-krem:       #FBF4E9;
-  --nt-krem-2:     #F3E6D0;
-  --nt-pasir:      #EAD9BF;
-  --nt-pasir-2:    #E4D3B4;
-  --nt-indigo:     #1F2A44;
-  --nt-indigo-2:   #16203A;
-  --nt-bata:       #A8441F;
-  --nt-bata-tua:   #7E2F12;
-  --nt-kunyit:     #D9A441;
-  --nt-emas-muda:  #F3D08A;
-  --nt-teks-2:     #4B5268;
-  --nt-samar:      #5B6275;
-  --nt-garis:      #EADFCC;
-  --nt-garis-2:    #E3D5BD;
+  /* ======================================================================
+     PALET
 
-  --nt-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --nt-sans:  'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+     Dua gradien jadi tulang punggungnya:
+       biru  #2F6A8A -> #22466C   (utama: kepala halaman, tombol, bilah)
+       emas  #A07B16 -> #FDD977   (penegas: harga, lencana, ajakan)
 
-  /* Motif kawung - pola batik Jawa: empat bentuk lonjong mengelilingi satu
-     titik. Disimpan sebagai variabel supaya hero, panel, dan CTA memakai
-     motif yang persis sama. */
-  --nt-kawung: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23D9A441' stroke-width='1.4'%3E%3Cellipse cx='36' cy='18' rx='10' ry='16'/%3E%3Cellipse cx='36' cy='54' rx='10' ry='16'/%3E%3Cellipse cx='18' cy='36' rx='16' ry='10'/%3E%3Cellipse cx='54' cy='36' rx='16' ry='10'/%3E%3Ccircle cx='36' cy='36' r='2.6' fill='%23D9A441'/%3E%3C/g%3E%3C/svg%3E");
+     Warna dasarnya putih. Permukaan kedua memakai biru yang sangat encer,
+     bukan abu-abu netral - supaya putihnya terasa sewarna dengan birunya,
+     bukan dua tema yang ditempel.
+     ====================================================================== */
+
+  --wn-dasar:      #FFFFFF;
+  --wn-dasar-2:    #F2F7FA;   /* panel, bagian berselang-seling */
+  --wn-abu:        #E4EEF4;   /* kotak foto sebelum gambar dimuat */
+  --wn-abu-2:      #D7E5EE;
+
+  --wn-tua:        #22466C;   /* teks utama & latar gelap */
+  --wn-tua-2:      #19344F;
+
+  --wn-biru:       #2F6A8A;   /* warna aksi */
+  --wn-biru-tua:   #22466C;
+
+  --wn-emas:       #A07B16;
+  --wn-emas-2:     #CBA02D;   /* titik tengah gradien emas pada logo */
+  --wn-emas-muda:  #FDD977;
+
+  --wn-teks-2:     #3E566B;
+  /* Digelapkan dari #6A8196: nada itu hanya mencapai rasio kontras 4.04
+     di atas putih, di bawah ambang 4.5 untuk teks berukuran biasa - nama
+     toko dan keterangan kecil jadi sulit dibaca di layar terang atau oleh
+     mata yang mulai berkurang ketajamannya. */
+  --wn-samar:      #5B7288;
+  --wn-garis:      #DCE7EE;
+  --wn-garis-2:    #C9DAE5;
+
+  /* Dua gradien disimpan sebagai variabel supaya arah dan titik hentinya
+     sama persis di semua tempat. Diulang manual di tiap aturan, cepat
+     muncul versi yang sudutnya sedikit berbeda. */
+  --wn-gradien:       linear-gradient(135deg, #2F6A8A 0%, #22466C 56.5%);
+  /* Tiga titik, bukan dua - mengikuti gradien pada logo. Dengan dua titik
+     saja, bagian tengahnya berubah jadi cokelat keruh. */
+  --wn-gradien-emas:  linear-gradient(135deg, #A07B16 0%, #CBA02D 45%, #FDD977 100%);
+
+  --wn-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --wn-sans:  'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Motif kawung diwarnai emas muda supaya terbaca di atas latar biru tua. */
+  --wn-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23FFD97B' stroke-width='1.4'%3E%3Cellipse cx='36' cy='18' rx='10' ry='16'/%3E%3Cellipse cx='36' cy='54' rx='10' ry='16'/%3E%3Cellipse cx='18' cy='36' rx='16' ry='10'/%3E%3Cellipse cx='54' cy='36' rx='16' ry='10'/%3E%3Ccircle cx='36' cy='36' r='2.6' fill='%23FFD97B'/%3E%3C/g%3E%3C/svg%3E");
 
   /* ---- Pemetaan ke variabel order.css ----------------------------------
      Satu blok ini yang mengubah keranjang, checkout, lacak pesanan, chat,
      dan panel penjual sekaligus. */
-  --ord-green: var(--nt-bata);
-  --ord-dark:  var(--nt-indigo);
-  --ord-muted: var(--nt-samar);
-  --ord-line:  var(--nt-garis);
+  --ord-green: var(--wn-biru);
+  --ord-dark:  var(--wn-tua);
+  --ord-muted: var(--wn-samar);
+  --ord-line:  var(--wn-garis);
   --ord-bg:    #FFFFFF;
-  --ord-soft:  #F6EEDF;
-  --ord-amber: var(--nt-kunyit);
+  --ord-soft:  var(--wn-dasar-2);
+  --ord-amber: var(--wn-emas);
   --ord-red:   #B3261E;
   /* Hijau dipertahankan untuk status berhasil - itu makna, bukan hiasan.
-     Kalau ikut jadi terakota, "Sudah dibayar" dan "Gagal" tampak sama. */
+     Kalau ikut jadi biru, "Sudah dibayar" dan tombol biasa tampak sama. */
   --ord-ok:    #2F6B4F;
 }
 
@@ -60,20 +87,20 @@
 /* ----------------------------------------------------------------- dasar --- */
 
 body {
-  font-family: var(--nt-sans);
-  background: var(--nt-krem);
-  color: var(--nt-indigo);
+  font-family: var(--wn-sans);
+  background: var(--wn-dasar);
+  color: var(--wn-tua);
 }
 
 h1, h2, .section-title, .form-card-title, .order-number, .panel-judul h1 {
-  font-family: var(--nt-serif);
-  color: var(--nt-indigo);
+  font-family: var(--wn-serif);
+  color: var(--wn-tua);
 }
 
-a { color: var(--nt-bata); }
-a:hover { color: var(--nt-bata-tua); }
+a { color: var(--wn-biru); }
+a:hover { color: var(--wn-biru-tua); }
 
-:focus-visible { outline: 3px solid var(--nt-kunyit); outline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--wn-emas); outline-offset: 3px; }
 
 .nt-wrap {
   max-width: 1280px;
@@ -87,7 +114,7 @@ a:hover { color: var(--nt-bata-tua); }
 /* Menata ulang tombol Furni yang dipakai di semua halaman. */
 
 .btn {
-  font-family: var(--nt-sans);
+  font-family: var(--wn-sans);
   font-weight: 600;
   border-radius: 999px;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -95,53 +122,53 @@ a:hover { color: var(--nt-bata-tua); }
 
 .btn.btn-primary,
 .btn.btn-primary:focus {
-  background: var(--nt-bata);
-  border-color: var(--nt-bata);
+  background: var(--wn-biru);
+  border-color: var(--wn-biru);
   color: #FFFFFF;
 }
 .btn.btn-primary:hover {
-  background: var(--nt-bata-tua);
-  border-color: var(--nt-bata-tua);
+  background: var(--wn-biru-tua);
+  border-color: var(--wn-biru-tua);
   color: #FFFFFF;
 }
 
 .btn.btn-black-hover-outline {
   background: transparent;
-  border: 1.5px solid var(--nt-indigo);
-  color: var(--nt-indigo);
+  border: 1.5px solid var(--wn-tua);
+  color: var(--wn-tua);
 }
 .btn.btn-black-hover-outline:hover {
-  background: var(--nt-indigo);
-  color: var(--nt-krem);
+  background: var(--wn-tua);
+  color: var(--wn-dasar);
 }
 
 .btn.btn-secondary {
-  background: var(--nt-kunyit);
-  border-color: var(--nt-kunyit);
-  color: var(--nt-indigo);
+  background: var(--wn-emas);
+  border-color: var(--wn-emas);
+  color: var(--wn-tua);
 }
 
-.btn:focus-visible { outline: 3px solid var(--nt-kunyit); outline-offset: 3px; }
+.btn:focus-visible { outline: 3px solid var(--wn-emas); outline-offset: 3px; }
 
 
 /* ------------------------------------------------------------ formulir --- */
 
 .form-control,
 .form-select {
-  border: 1px solid var(--nt-garis-2);
+  border: 1px solid var(--wn-garis-2);
   border-radius: 12px;
   background-color: #FFFFFF;
-  color: var(--nt-indigo);
-  font-family: var(--nt-sans);
+  color: var(--wn-tua);
+  font-family: var(--wn-sans);
 }
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--nt-bata);
+  border-color: var(--wn-biru);
   box-shadow: 0 0 0 3px rgba(168, 68, 31, 0.15);
 }
 
 .form-card {
-  border-color: var(--nt-garis);
+  border-color: var(--wn-garis);
   border-radius: 22px;
 }
 
@@ -152,14 +179,14 @@ a:hover { color: var(--nt-bata-tua); }
 .hero {
   position: relative;
   overflow: hidden;
-  background: var(--nt-indigo);
+  background: var(--wn-tua);
 }
 
 /* Dua kelas sekaligus supaya menang atas <style> di v_shop.php yang masih
    memasang foto latar bunga lama - itu cuma satu kelas. */
 .hero.hero-page {
   padding: 56px 0 48px;
-  background-color: var(--nt-indigo) !important;
+  background-color: var(--wn-tua) !important;
   background-image: none !important;
 }
 
@@ -167,7 +194,7 @@ a:hover { color: var(--nt-bata-tua); }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--nt-kawung);
+  background-image: var(--wn-motif);
   opacity: 0.3;
   pointer-events: none;
 }
@@ -175,10 +202,10 @@ a:hover { color: var(--nt-bata-tua); }
 .hero > .container { position: relative; }
 
 .hero .intro-excerpt h1 {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-weight: 700;
   font-size: clamp(32px, 4vw, 48px);
-  color: var(--nt-krem);
+  color: var(--wn-dasar);
   margin: 0;
 }
 
@@ -191,28 +218,28 @@ a:hover { color: var(--nt-bata-tua); }
 .product-section .product-item,
 .untree_co-section .product-item {
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   border-radius: 22px;
   padding: 12px 14px 60px;
 }
 
 .product-item .product-thumbnail {
   border-radius: 14px;
-  background: var(--nt-pasir);
+  background: var(--wn-abu);
 }
 
 .product-item .product-title {
-  font-family: var(--nt-sans);
+  font-family: var(--wn-sans);
   font-weight: 700;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
 }
 
 .product-item .product-price {
-  font-family: var(--nt-serif);
-  color: var(--nt-indigo);
+  font-family: var(--wn-serif);
+  color: var(--wn-tua);
 }
 
-.product-item .product-cat { color: var(--nt-bata); }
+.product-item .product-cat { color: var(--wn-biru); }
 
 /* Tombol + selalu terlihat. Versi Furni menyembunyikannya sampai kursor
    di atas kartu - di layar sentuh tidak ada kursor, jadi tombolnya tidak
@@ -224,9 +251,9 @@ a:hover { color: var(--nt-bata-tua); }
   margin-bottom: 0;
   opacity: 1;
   visibility: visible;
-  background: var(--nt-bata);
+  background: var(--wn-biru);
 }
-.product-item .icon-cross:hover { background: var(--nt-bata-tua); }
+.product-item .icon-cross:hover { background: var(--wn-biru-tua); }
 
 
 /* ===================================================================== */
@@ -234,8 +261,8 @@ a:hover { color: var(--nt-bata-tua); }
 /* ===================================================================== */
 
 .nt-strip {
-  background: var(--nt-indigo);
-  color: var(--nt-krem);
+  background: var(--wn-tua);
+  color: var(--wn-dasar);
   font-size: 13px;
 }
 
@@ -253,7 +280,7 @@ a:hover { color: var(--nt-bata-tua); }
   gap: 6px;
   border: 0;
   background: transparent;
-  color: var(--nt-emas-muda);
+  color: var(--wn-emas-muda);
   font: inherit;
   font-weight: 600;
   padding: 8px 0;
@@ -263,8 +290,8 @@ a:hover { color: var(--nt-bata-tua); }
 .nt-lokasi:hover { color: #FFFFFF; }
 
 .nt-nav {
-  background: var(--nt-krem);
-  border-bottom: 1px solid var(--nt-garis);
+  background: var(--wn-dasar);
+  border-bottom: 1px solid var(--wn-garis);
   position: sticky;
   top: 0;
   z-index: 1030;
@@ -281,13 +308,13 @@ a:hover { color: var(--nt-bata-tua); }
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
   flex: 0 0 auto;
 }
-.nt-logo:hover { color: var(--nt-indigo); }
+.nt-logo:hover { color: var(--wn-tua); }
 .nt-logo span {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 24px;
   font-weight: 700;
 }
@@ -299,15 +326,15 @@ a:hover { color: var(--nt-bata-tua); }
   font-weight: 500;
 }
 .nt-menu a {
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
   padding: 8px 0;
   border-bottom: 2px solid transparent;
 }
-.nt-menu a:hover { color: var(--nt-bata); }
+.nt-menu a:hover { color: var(--wn-biru); }
 .nt-menu a[aria-current="page"] {
-  color: var(--nt-bata);
-  border-bottom-color: var(--nt-bata);
+  color: var(--wn-biru);
+  border-bottom-color: var(--wn-biru);
 }
 
 .nt-cari {
@@ -323,12 +350,12 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 0 18px;
   margin: 0;
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis-2);
+  border: 1px solid var(--wn-garis-2);
   border-radius: 999px;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
 }
 .nt-cari label:focus-within {
-  border-color: var(--nt-bata);
+  border-color: var(--wn-biru);
   box-shadow: 0 0 0 3px rgba(168, 68, 31, 0.15);
 }
 .nt-cari input {
@@ -337,7 +364,7 @@ a:hover { color: var(--nt-bata-tua); }
   background: transparent;
   font: inherit;
   font-size: 14px;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   width: 100%;
   min-width: 0;
 }
@@ -351,10 +378,10 @@ a:hover { color: var(--nt-bata-tua); }
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--nt-indigo);
-  color: var(--nt-krem);
+  background: var(--wn-tua);
+  color: var(--wn-dasar);
 }
-.nt-keranjang:hover { background: var(--nt-bata); color: #FFFFFF; }
+.nt-keranjang:hover { background: var(--wn-biru); color: #FFFFFF; }
 
 /* .cart-badge dipertahankan - shop.js dan produk.js memperbarui angkanya
    lewat kelas ini. */
@@ -367,9 +394,9 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 0 5px;
   box-sizing: border-box;
   border-radius: 999px;
-  border: 2px solid var(--nt-krem);
-  background: var(--nt-kunyit);
-  color: var(--nt-indigo);
+  border: 2px solid var(--wn-dasar);
+  background: var(--wn-emas);
+  color: var(--wn-tua);
   font-size: 11px;
   font-weight: 700;
   line-height: 16px;
@@ -382,10 +409,10 @@ a:hover { color: var(--nt-bata-tua); }
   flex: 0 0 auto;
   width: 48px;
   height: 48px;
-  border: 1px solid var(--nt-garis-2);
+  border: 1px solid var(--wn-garis-2);
   border-radius: 999px;
   background: #FFFFFF;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -416,14 +443,14 @@ a:hover { color: var(--nt-bata-tua); }
     flex-direction: column;
     gap: 0;
     display: none;
-    border-top: 1px solid var(--nt-garis);
+    border-top: 1px solid var(--wn-garis);
   }
   .nt-menu.is-buka { display: flex; }
   .nt-menu a {
     padding: 14px 0;
-    border-bottom: 1px solid var(--nt-garis);
+    border-bottom: 1px solid var(--wn-garis);
   }
-  .nt-menu a[aria-current="page"] { border-bottom-color: var(--nt-garis); }
+  .nt-menu a[aria-current="page"] { border-bottom-color: var(--wn-garis); }
 }
 
 
@@ -450,18 +477,18 @@ a:hover { color: var(--nt-bata-tua); }
   box-sizing: border-box;
 }
 
-.nt-tombol { background: var(--nt-bata); color: #FFFFFF; }
-.nt-tombol:hover { background: var(--nt-bata-tua); color: #FFFFFF; }
+.nt-tombol { background: var(--wn-biru); color: #FFFFFF; }
+.nt-tombol:hover { background: var(--wn-biru-tua); color: #FFFFFF; }
 
 .nt-tombol-garis {
-  border: 1.5px solid var(--nt-indigo);
-  color: var(--nt-indigo);
+  border: 1.5px solid var(--wn-tua);
+  color: var(--wn-tua);
   font-weight: 600;
 }
-.nt-tombol-garis:hover { background: var(--nt-indigo); color: var(--nt-krem); }
+.nt-tombol-garis:hover { background: var(--wn-tua); color: var(--wn-dasar); }
 
-.nt-tombol-kunyit { background: var(--nt-kunyit); color: var(--nt-indigo); }
-.nt-tombol-kunyit:hover { background: var(--nt-emas-muda); color: var(--nt-indigo); }
+.nt-tombol-kunyit { background: var(--wn-emas); color: var(--wn-tua); }
+.nt-tombol-kunyit:hover { background: var(--wn-emas-muda); color: var(--wn-tua); }
 
 
 /* ---- hero ---- */
@@ -486,12 +513,12 @@ a:hover { color: var(--nt-bata-tua); }
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--nt-bata);
+  color: var(--wn-biru);
 }
 
 .nt-hero h1 {
   margin: 0;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: clamp(40px, 5.2vw, 66px);
   line-height: 1.04;
   font-weight: 700;
@@ -502,7 +529,7 @@ a:hover { color: var(--nt-bata-tua); }
   margin: 0;
   font-size: 19px;
   line-height: 1.6;
-  color: var(--nt-teks-2);
+  color: var(--wn-teks-2);
   max-width: 34em;
 }
 
@@ -516,24 +543,24 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 0;
   list-style: none;
   font-size: 14px;
-  color: var(--nt-teks-2);
+  color: var(--wn-teks-2);
 }
 .nt-janji li { display: flex; align-items: center; gap: 8px; }
-.nt-janji svg { color: var(--nt-bata); flex: 0 0 auto; }
+.nt-janji svg { color: var(--wn-biru); flex: 0 0 auto; }
 
 /* Panel kanan dengan motif kawung */
 .nt-panel {
   position: relative;
   height: 540px;
   border-radius: 32px;
-  background: var(--nt-indigo);
+  background: var(--wn-tua);
   overflow: hidden;
 }
 .nt-panel::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--nt-kawung);
+  background-image: var(--wn-motif);
   opacity: 0.55;
 }
 
@@ -545,7 +572,7 @@ a:hover { color: var(--nt-bata-tua); }
   height: 360px;
   border-radius: 24px;
   overflow: hidden;
-  background: var(--nt-pasir);
+  background: var(--wn-abu);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 .nt-panel-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -559,14 +586,14 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 18px;
   border-radius: 20px;
   background: #FFFFFF;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.nt-panel-kartu:hover { color: var(--nt-indigo); }
+.nt-panel-kartu:hover { color: var(--wn-tua); }
 .nt-panel-kartu b { font-size: 17px; }
 
 .nt-panel-lencana {
@@ -578,8 +605,8 @@ a:hover { color: var(--nt-bata-tua); }
   gap: 10px;
   padding: 12px 18px;
   border-radius: 999px;
-  background: var(--nt-kunyit);
-  color: var(--nt-indigo);
+  background: var(--wn-emas);
+  color: var(--wn-tua);
   font-size: 14px;
   font-weight: 700;
 }
@@ -601,12 +628,12 @@ a:hover { color: var(--nt-bata-tua); }
 .nt-judul-baris h2,
 .nt-h2 {
   margin: 0;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: clamp(28px, 3.2vw, 40px);
   font-weight: 700;
 }
 
-.nt-sub { margin: 8px 0 0; font-size: 16px; color: var(--nt-teks-2); }
+.nt-sub { margin: 8px 0 0; font-size: 16px; color: var(--wn-teks-2); }
 
 .nt-tautan { font-weight: 600; font-size: 15px; text-decoration: none; }
 
@@ -615,17 +642,17 @@ a:hover { color: var(--nt-bata-tua); }
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--nt-bata);
+  color: var(--wn-biru);
 }
 
 .nt-harga {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 22px;
   font-weight: 700;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
 }
 
-.nt-meta { font-size: 13px; color: var(--nt-samar); }
+.nt-meta { font-size: 13px; color: var(--wn-samar); }
 
 
 /* ---- kategori ---- */
@@ -643,26 +670,26 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 24px 20px;
   border-radius: 20px;
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis);
-  color: var(--nt-indigo);
+  border: 1px solid var(--wn-garis);
+  color: var(--wn-tua);
   text-decoration: none;
   transition: border-color 0.15s ease;
 }
-.nt-kat:hover { border-color: var(--nt-bata); color: var(--nt-indigo); }
+.nt-kat:hover { border-color: var(--wn-biru); color: var(--wn-tua); }
 
 .nt-kat-ikon {
   width: 56px;
   height: 56px;
   border-radius: 999px;
   background: #F6E7CF;
-  color: var(--nt-bata);
+  color: var(--wn-biru);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .nt-kat b { font-size: 16px; }
-.nt-kat small { font-size: 13px; color: var(--nt-samar); }
+.nt-kat small { font-size: 13px; color: var(--wn-samar); }
 
 
 /* ---- chip filter ---- */
@@ -675,14 +702,14 @@ a:hover { color: var(--nt-bata-tua); }
   height: 44px;
   padding: 0 20px;
   border-radius: 999px;
-  border: 1px solid var(--nt-garis-2);
-  color: var(--nt-indigo);
+  border: 1px solid var(--wn-garis-2);
+  color: var(--wn-tua);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
 }
-.nt-chip:hover { border-color: var(--nt-indigo); color: var(--nt-indigo); }
-.nt-chip.is-aktif { background: var(--nt-indigo); border-color: var(--nt-indigo); color: var(--nt-krem); }
+.nt-chip:hover { border-color: var(--wn-tua); color: var(--wn-tua); }
+.nt-chip.is-aktif { background: var(--wn-tua); border-color: var(--wn-tua); color: var(--wn-dasar); }
 
 
 /* ---- kartu produk ---- */
@@ -699,7 +726,7 @@ a:hover { color: var(--nt-bata-tua); }
   flex-direction: column;
   border-radius: 22px;
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   overflow: hidden;
   padding: 12px 14px 60px;
 }
@@ -708,14 +735,14 @@ a:hover { color: var(--nt-bata-tua); }
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
 }
-.nt-kartu-tautan:hover { color: var(--nt-indigo); }
+.nt-kartu-tautan:hover { color: var(--wn-tua); }
 
 .nt-kartu-foto {
   aspect-ratio: 1 / 1;
-  background: var(--nt-pasir);
+  background: var(--wn-abu);
 }
 .nt-kartu-foto img { 
     margin-bottom: 30px;
@@ -772,27 +799,27 @@ a:hover { color: var(--nt-bata-tua); }
   flex: 0 0 auto;
   border: 0;
   border-radius: 999px;
-  background: var(--nt-bata);
+  background: var(--wn-biru);
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
-.nt-tambah:hover { background: var(--nt-bata-tua); }
+.nt-tambah:hover { background: var(--wn-biru-tua); }
 
 .nt-kosong {
   padding: 48px 24px;
   border-radius: 22px;
-  border: 1px dashed var(--nt-garis-2);
+  border: 1px dashed var(--wn-garis-2);
   text-align: center;
-  color: var(--nt-teks-2);
+  color: var(--wn-teks-2);
 }
 
 
 /* ---- toko di sekitarmu ---- */
 
-.nt-pita { background: var(--nt-krem-2); padding: 80px 0; margin-bottom: 0; }
+.nt-pita { background: var(--wn-dasar-2); padding: 80px 0; margin-bottom: 0; }
 
 .nt-toko {
   display: grid;
@@ -820,14 +847,14 @@ a:hover { color: var(--nt-bata-tua); }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 22px;
   font-weight: 700;
 }
 .nt-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.nt-avatar-0 { background: var(--nt-indigo); color: var(--nt-emas-muda); }
-.nt-avatar-1 { background: var(--nt-bata); color: var(--nt-krem); }
-.nt-avatar-2 { background: var(--nt-kunyit); color: var(--nt-indigo); }
+.nt-avatar-0 { background: var(--wn-tua); color: var(--wn-emas-muda); }
+.nt-avatar-1 { background: var(--wn-biru); color: var(--wn-dasar); }
+.nt-avatar-2 { background: var(--wn-emas); color: var(--wn-tua); }
 
 .nt-toko-nama { display: flex; flex-direction: column; gap: 3px; flex: 1 1 auto; min-width: 0; }
 .nt-toko-nama b { font-size: 18px; }
@@ -837,7 +864,7 @@ a:hover { color: var(--nt-bata-tua); }
   padding: 6px 12px;
   border-radius: 999px;
   background: #F6E7CF;
-  color: var(--nt-bata-tua);
+  color: var(--wn-biru-tua);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -851,7 +878,7 @@ a:hover { color: var(--nt-bata-tua); }
 .nt-mini span {
   aspect-ratio: 1 / 1;
   border-radius: 12px;
-  background: var(--nt-pasir);
+  background: var(--wn-abu);
   overflow: hidden;
 }
 .nt-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -878,7 +905,7 @@ a:hover { color: var(--nt-bata-tua); }
   flex-direction: column;
   gap: 12px;
   padding: 32px;
-  border-top: 3px solid var(--nt-kunyit);
+  border-top: 3px solid var(--wn-emas);
   counter-increment: langkah;
 }
 
@@ -886,15 +913,15 @@ a:hover { color: var(--nt-bata-tua); }
    jadi nomornya membawa makna. */
 .nt-langkah li::before {
   content: counter(langkah);
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 48px;
   font-weight: 700;
   line-height: 1;
-  color: var(--nt-bata);
+  color: var(--wn-biru);
 }
 
 .nt-langkah b { font-size: 20px; }
-.nt-langkah span { font-size: 15px; line-height: 1.6; color: var(--nt-teks-2); }
+.nt-langkah span { font-size: 15px; line-height: 1.6; color: var(--wn-teks-2); }
 
 
 /* ---- ajakan untuk pelaku UMKM ---- */
@@ -905,8 +932,8 @@ a:hover { color: var(--nt-bata-tua); }
   position: relative;
   padding: 64px;
   border-radius: 32px;
-  background: var(--nt-indigo);
-  color: var(--nt-krem);
+  background: var(--wn-tua);
+  color: var(--wn-dasar);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -917,18 +944,18 @@ a:hover { color: var(--nt-bata-tua); }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--nt-kawung);
+  background-image: var(--wn-motif);
   opacity: 0.18;
 }
 .nt-cta > * { position: relative; }
 
 .nt-cta h2 {
   margin: 0 0 14px;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: clamp(30px, 3.6vw, 44px);
   font-weight: 700;
   line-height: 1.1;
-  color: var(--nt-krem);
+  color: var(--wn-dasar);
 }
 .nt-cta p { margin: 0; font-size: 17px; line-height: 1.6; color: #D8DCE6; max-width: 36em; }
 
@@ -938,7 +965,7 @@ a:hover { color: var(--nt-bata-tua); }
 /* ===================================================================== */
 
 .nt-footer {
-  background: var(--nt-indigo-2);
+  background: var(--wn-tua-2);
   color: #C9CEDB;
   padding: 64px 0 40px;
 }
@@ -951,17 +978,17 @@ a:hover { color: var(--nt-bata-tua); }
 }
 
 .nt-footer h2 {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 24px;
-  color: var(--nt-krem);
+  color: var(--wn-dasar);
   margin: 0 0 14px;
 }
 
 .nt-footer h3 {
-  font-family: var(--nt-sans);
+  font-family: var(--wn-sans);
   font-size: 14px;
   font-weight: 700;
-  color: var(--nt-krem);
+  color: var(--wn-dasar);
   margin: 0 0 14px;
 }
 
@@ -971,7 +998,7 @@ a:hover { color: var(--nt-bata-tua); }
 .nt-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 
 .nt-footer a { color: #C9CEDB; text-decoration: none; }
-.nt-footer a:hover { color: var(--nt-emas-muda); }
+.nt-footer a:hover { color: var(--wn-emas-muda); }
 
 .nt-footer-bawah {
   display: flex;
@@ -1051,21 +1078,21 @@ a:hover { color: var(--nt-bata-tua); }
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 1px solid var(--nt-garis-2);
+  border: 1px solid var(--wn-garis-2);
   border-radius: 999px;
   background: #FFFFFF;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   cursor: pointer;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 19px;
   font-weight: 700;
 }
 .nt-akun-tombol:hover,
-.nt-akun-tombol[aria-expanded="true"] { border-color: var(--nt-bata); }
+.nt-akun-tombol[aria-expanded="true"] { border-color: var(--wn-biru); }
 .nt-akun-tombol img { width: 100%; height: 100%; object-fit: cover; }
 
 .nt-akun-panel {
@@ -1075,7 +1102,7 @@ a:hover { color: var(--nt-bata-tua); }
   z-index: 1040;
   width: 340px;
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   border-radius: 20px;
   box-shadow: 0 18px 44px rgba(31, 42, 68, 0.16);
   overflow: hidden;
@@ -1089,14 +1116,14 @@ a:hover { color: var(--nt-bata-tua); }
   align-items: center;
   gap: 12px;
   padding: 16px 18px;
-  border-bottom: 1px solid var(--nt-garis);
-  color: var(--nt-indigo);
+  border-bottom: 1px solid var(--wn-garis);
+  color: var(--wn-tua);
   text-decoration: none;
 }
 
 .nt-akun-bar-toko,
 .nt-akun-buka { background: #FBF6EE; }
-a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
+a.nt-akun-buka:hover { background: var(--wn-dasar-2); color: var(--wn-tua); }
 
 .nt-akun-foto {
   width: 48px;
@@ -1104,12 +1131,12 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   flex: 0 0 auto;
   border-radius: 999px;
   overflow: hidden;
-  background: var(--nt-indigo);
-  color: var(--nt-emas-muda);
+  background: var(--wn-tua);
+  color: var(--wn-emas-muda);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 19px;
   font-weight: 700;
 }
@@ -1117,14 +1144,14 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 
 /* Toko memakai sudut membulat, bukan lingkaran - supaya sekilas terbedakan
    dari foto orang, persis seperti di sketsa. */
-.nt-akun-foto-toko { border-radius: 12px; background: var(--nt-bata); color: var(--nt-krem); }
+.nt-akun-foto-toko { border-radius: 12px; background: var(--wn-biru); color: var(--wn-dasar); }
 
 .nt-akun-foto-kosong {
   border-radius: 12px;
   background: transparent;
-  border: 1.5px dashed var(--nt-garis-2);
-  color: var(--nt-bata);
-  font-family: var(--nt-sans);
+  border: 1.5px dashed var(--wn-garis-2);
+  color: var(--wn-biru);
+  font-family: var(--wn-sans);
   font-size: 22px;
   font-weight: 500;
 }
@@ -1145,7 +1172,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 .nt-akun-teks em {
   font-style: normal;
   font-size: 12.5px;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1160,9 +1187,9 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
 }
-.nt-akun-ubah:hover { background: var(--nt-krem-2); color: var(--nt-bata); }
+.nt-akun-ubah:hover { background: var(--wn-dasar-2); color: var(--wn-biru); }
 
 /* ---- daftar menu ---- */
 
@@ -1171,10 +1198,10 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 .nt-akun-menu a {
   padding: 11px 20px;
   font-size: 14.5px;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
 }
-.nt-akun-menu a:hover { background: var(--nt-krem); color: var(--nt-bata); }
+.nt-akun-menu a:hover { background: var(--wn-dasar); color: var(--wn-biru); }
 
 .nt-akun-sub {
   padding: 12px 20px 4px;
@@ -1182,12 +1209,12 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
 }
 
 /* ---- keluar, paling bawah ---- */
 
-.nt-akun-keluar { margin: 0; border-top: 1px solid var(--nt-garis); }
+.nt-akun-keluar { margin: 0; border-top: 1px solid var(--wn-garis); }
 .nt-akun-keluar button {
   width: 100%;
   padding: 14px 20px;
@@ -1209,9 +1236,9 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   flex-direction: column;
   gap: 10px;
   padding: 20px;
-  border-bottom: 1px solid var(--nt-garis);
+  border-bottom: 1px solid var(--wn-garis);
 }
-.nt-akun-tamu p { margin: 0 0 4px; font-size: 14px; line-height: 1.55; color: var(--nt-teks-2); }
+.nt-akun-tamu p { margin: 0 0 4px; font-size: 14px; line-height: 1.55; color: var(--wn-teks-2); }
 .nt-akun-tamu .nt-tombol,
 .nt-akun-tamu .nt-tombol-garis { height: 46px; font-size: 15px; }
 
@@ -1222,8 +1249,8 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   margin-top: 16px;
   padding: 12px 16px;
   border-radius: 12px;
-  background: #F6EEDF;
-  border-left: 3px solid var(--nt-kunyit);
+  background: var(--wn-dasar-2);
+  border-left: 3px solid var(--wn-emas);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -1234,7 +1261,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 /*  HALAMAN AKUN                                                         */
 /* ===================================================================== */
 
-.akun-alih { margin: 18px 0 0; text-align: center; font-size: 14px; color: var(--nt-teks-2); }
+.akun-alih { margin: 18px 0 0; text-align: center; font-size: 14px; color: var(--wn-teks-2); }
 
 /* Jebakan bot di formulir daftar - di luar layar, bukan display:none.
    Sebagian bot sengaja melewati kolom yang display:none. */
@@ -1250,9 +1277,9 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--nt-indigo);
-  color: var(--nt-emas-muda);
-  font-family: var(--nt-serif);
+  background: var(--wn-tua);
+  color: var(--wn-emas-muda);
+  font-family: var(--wn-serif);
   font-size: 28px;
   font-weight: 700;
 }
@@ -1264,10 +1291,10 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   align-items: flex-start;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--nt-teks-2);
+  color: var(--wn-teks-2);
   cursor: pointer;
 }
-.akun-setuju input { margin-top: 4px; width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--nt-bata); }
+.akun-setuju input { margin-top: 4px; width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--wn-biru); }
 
 .akun-pesanan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 
@@ -1277,18 +1304,18 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   border-radius: 16px;
   background: #FFFFFF;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   text-decoration: none;
 }
-.akun-pesanan a:hover { border-color: var(--nt-bata); color: var(--nt-indigo); }
+.akun-pesanan a:hover { border-color: var(--wn-biru); color: var(--wn-tua); }
 
 .akun-pesanan-kiri,
 .akun-pesanan-kanan { display: flex; flex-direction: column; gap: 4px; }
 .akun-pesanan-kanan { align-items: flex-end; text-align: right; }
-.akun-pesanan em { font-style: normal; font-size: 13px; color: var(--nt-samar); }
+.akun-pesanan em { font-style: normal; font-size: 13px; color: var(--wn-samar); }
 
 
 /* ---- layar sempit ---- */
@@ -1329,13 +1356,13 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   background: var(--ord-soft);
   font-size: 13.5px;
   line-height: 1.55;
-  color: var(--nt-teks-2);
+  color: var(--wn-teks-2);
 }
 
 /* Angka + satuan dalam satu baris: [ 2 ] hari kerja */
 .input-satuan { display: flex; align-items: center; gap: 10px; }
 .input-satuan .form-control { width: 110px; flex: 0 0 auto; }
-.input-satuan span { font-size: 14px; color: var(--nt-teks-2); }
+.input-satuan span { font-size: 14px; color: var(--wn-teks-2); }
 
 /* Nomor resi - dibuat mudah disalin dan terlihat jelas. */
 .resi {
@@ -1360,7 +1387,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 .peta-blok {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid var(--nt-garis);
+  border-top: 1px solid var(--wn-garis);
 }
 
 .peta-aksi {
@@ -1374,7 +1401,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   margin: 8px 0 0;
   font-size: 13px;
   line-height: 1.55;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
   /* Ruangnya dipesan sejak awal supaya isian di bawah peta tidak melompat
      setiap kali pesan muncul dan hilang. */
   min-height: 20px;
@@ -1399,7 +1426,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   display: block;
   font-style: normal;
   font-size: 13px;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
   margin-top: 2px;
 }
 
@@ -1431,29 +1458,29 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   flex-direction: column;
   gap: 4px;
   padding: 20px;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   border-radius: 18px;
   background: #FFFFFF;
 }
 
 .adm-nilai {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
-  color: var(--nt-indigo);
+  color: var(--wn-tua);
   /* Angka selebar sama supaya kartu tidak bergeser saat nilainya berubah. */
   font-variant-numeric: tabular-nums;
 }
 
-.adm-label { font-size: 13.5px; color: var(--nt-teks-2); line-height: 1.45; }
-.adm-catatan { font-size: 12px; color: var(--nt-samar); margin-top: 2px; }
-.adm-catatan.is-warn { color: var(--nt-bata); font-weight: 600; }
+.adm-label { font-size: 13.5px; color: var(--wn-teks-2); line-height: 1.45; }
+.adm-catatan { font-size: 12px; color: var(--wn-samar); margin-top: 2px; }
+.adm-catatan.is-warn { color: var(--wn-biru); font-weight: 600; }
 
 .panel-bagian { margin-bottom: 36px; }
 
 .panel-sub {
-  font-family: var(--nt-serif);
+  font-family: var(--wn-serif);
   font-size: 22px;
   font-weight: 700;
   margin: 0 0 14px;
@@ -1474,7 +1501,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   gap: 16px;
   flex-wrap: wrap;
   padding: 16px 18px;
-  border: 1px solid var(--nt-garis);
+  border: 1px solid var(--wn-garis);
   border-radius: 14px;
   background: #FFFFFF;
 }
@@ -1488,7 +1515,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   display: block;
   font-style: normal;
   font-size: 13px;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
   margin-top: 3px;
   line-height: 1.5;
 }
@@ -1514,8 +1541,8 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 
 /* Tautan pindah tampilan di kerangka desktop - hanya muncul untuk
    pengunjung yang perangkatnya memang HP. */
-.tukar-tampilan { text-align: center; padding: 16px 0 24px; margin: 0; background: var(--nt-krem); }
-.tukar-tampilan a { font-size: 13px; color: var(--nt-samar); text-decoration: underline; }
+.tukar-tampilan { text-align: center; padding: 16px 0 24px; margin: 0; background: var(--wn-dasar); }
+.tukar-tampilan a { font-size: 13px; color: var(--wn-samar); text-decoration: underline; }
 
 
 /* --- Sakelar tampilan di menu akun -------------------------------------- */
@@ -1525,7 +1552,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   flex-direction: column;
   gap: 8px;
   padding: 14px 18px;
-  border-top: 1px solid var(--nt-garis);
+  border-top: 1px solid var(--wn-garis);
   background: var(--ord-soft);
 }
 
@@ -1534,7 +1561,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
 }
 
 /* Dua pilihan berdampingan dalam satu alur - bentuk sakelar geser, tapi
@@ -1546,7 +1573,7 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   padding: 3px;
   border-radius: 999px;
   background: #FFFFFF;
-  border: 1px solid var(--nt-garis-2);
+  border: 1px solid var(--wn-garis-2);
 }
 
 .tampilan-geser a {
@@ -1555,24 +1582,24 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: var(--nt-samar);
+  color: var(--wn-samar);
   text-decoration: none;
 }
-.tampilan-geser a:hover { color: var(--nt-indigo); }
-.tampilan-geser a.is-aktif { background: var(--nt-indigo); color: var(--nt-krem); }
+.tampilan-geser a:hover { color: var(--wn-tua); }
+.tampilan-geser a.is-aktif { background: var(--wn-tua); color: var(--wn-dasar); }
 
-.tampilan-ket { font-style: normal; font-size: 11.5px; color: var(--nt-samar); }
+.tampilan-ket { font-style: normal; font-size: 11.5px; color: var(--wn-samar); }
 
 .tampilan-auto {
   font-size: 12px;
   font-weight: 600;
-  color: var(--nt-bata);
+  color: var(--wn-biru);
   text-decoration: underline;
 }
 
 /* Tombol di lembar tamu versi HP */
-.mb-sheet-tamu { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--nt-garis); }
-.mb-sheet-tamu p { margin: 0 0 4px; font-size: 13.5px; line-height: 1.55; color: var(--nt-teks-2); }
+.mb-sheet-tamu { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--wn-garis); }
+.mb-sheet-tamu p { margin: 0 0 4px; font-size: 13.5px; line-height: 1.55; color: var(--wn-teks-2); }
 
 .mb-sheet-btn {
   display: flex;
@@ -1580,12 +1607,12 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
   justify-content: center;
   height: 46px;
   border-radius: 999px;
-  border: 1.5px solid var(--nt-indigo);
-  color: var(--nt-indigo);
+  border: 1.5px solid var(--wn-tua);
+  color: var(--wn-tua);
   font-weight: 600;
   font-size: 15px;
 }
-.mb-sheet-btn.is-utama { background: var(--nt-bata); border-color: var(--nt-bata); color: #FFFFFF; }
+.mb-sheet-btn.is-utama { background: var(--wn-biru); border-color: var(--wn-biru); color: #FFFFFF; }
 
 /* --- Kartu produk: tinggi seragam ---------------------------------------- */
 
@@ -1625,3 +1652,176 @@ a.nt-akun-buka:hover { background: #F6EEDF; color: var(--nt-indigo); }
 
 .nt-kartu-foto,
 .mb-kartu-foto { background: #FFFFFF; }
+
+
+/* --- Bagian produk yang disisipkan di dalam bagian lain ------------------ */
+
+/* .product-section bawaan Furni memberi jarak 7rem atas-bawah. Di beranda,
+   bagian ini berada di dalam .nt-bagian yang sudah punya jaraknya sendiri,
+   jadi jarak bawaannya dinolkan - kalau tidak, ada ruang kosong sangat
+   lebar di atas dan di bawah deretan produk. */
+.product-section.is-sisip { padding: 0; }
+
+
+/* =====================================================================
+   GRADIEN
+
+   Dipakai terbatas - hanya pada permukaan besar dan tombol utama. Kalau
+   dipasang di mana-mana, matanya tidak punya tempat beristirahat dan
+   justru terlihat ramai, bukan mewah.
+   ===================================================================== */
+
+/* Tombol utama. Sudut gradien dibuat lebih landai (120deg) daripada
+   permukaan lebar, karena tombol itu pendek - pada sudut 135deg
+   peralihannya hampir tidak terlihat. */
+.nt-tombol,
+.btn-primary,
+.mb-hero-aksi,
+.mb-beli-btn:not(.is-garis) {
+  background: linear-gradient(120deg, #2F6A8A 0%, #22466C 100%);
+  border-color: #2A5C78;
+  color: #FFFFFF;
+}
+
+.nt-tombol:hover,
+.btn-primary:hover {
+  background: linear-gradient(120deg, #35779B 0%, #2A5276 100%);
+  color: #FFFFFF;
+}
+
+/* Tombol penegas: emas, untuk ajakan yang berdiri di atas latar biru. */
+.nt-tombol-kunyit,
+.mb-sheet-btn.is-utama {
+  background: var(--wn-gradien-emas);
+  border-color: #A07B16;
+  color: #243B4F;
+  font-weight: 700;
+}
+.nt-tombol-kunyit:hover { filter: brightness(1.05); color: #243B4F; }
+
+/* Permukaan lebar bergradien. */
+.nt-hero,
+.nt-cta,
+.mb-hero,
+.mb-cta,
+.hero.hero-page {
+  background-image: var(--wn-gradien);
+  background-color: #22466C;
+  color: #FFFFFF;
+}
+
+/* Hero katalog memakai foto sebagai latar lewat style sebaris di view.
+   Gradien ditumpuk di atasnya supaya warnanya tetap sewarna tema, dan
+   tulisannya tetap terbaca di atas foto apa pun. */
+.hero.hero-page {
+  background-blend-mode: multiply;
+  background-size: cover;
+  background-position: center;
+}
+
+.nt-hero h1, .nt-cta h2, .mb-hero h1, .mb-cta h2,
+.hero.hero-page h1 { color: #FFFFFF; }
+
+.nt-hero .nt-lead, .nt-cta p, .mb-hero p, .mb-cta p { color: #D9E6EE; }
+.nt-kicker { color: var(--wn-emas-muda); }
+
+/* Motif batik di atas permukaan gelap. */
+.nt-hero::before, .nt-cta::before, .mb-hero::before {
+  background-image: var(--wn-motif);
+}
+
+/* Harga: emas tua. Cukup gelap untuk dibaca di atas putih - emas muda
+   hanya terbaca di atas latar gelap. */
+.nt-harga, .product-item .product-price, .mb-kartu-harga, .mb-detail-harga {
+  color: var(--wn-emas);
+}
+
+/* Lencana & penanda kecil. */
+.nt-kat-ikon { background: var(--wn-dasar-2); color: var(--wn-biru); }
+.nt-kat:hover .nt-kat-ikon { background: var(--wn-gradien); color: #FFFFFF; }
+
+.nt-jarak,
+.nt-panel-lencana {
+  background: var(--wn-gradien-emas);
+  color: #243B4F;
+  font-weight: 600;
+}
+
+/* Garis emas tipis di bawah kepala halaman - penghubung halus antara dua
+   warna tema tanpa menambah blok warna baru. */
+.nt-hero { border-bottom: 3px solid transparent; border-image: var(--wn-gradien-emas) 1; }
+
+body { background: #FFFFFF; }
+
+
+/* =====================================================================
+   TEKS DI ATAS LATAR GELAP
+
+   Hero dan CTA kini berlatar biru tua. Beberapa elemen di dalamnya masih
+   memakai warna teks untuk latar putih, jadi nyaris tidak terbaca -
+   daftar janji dan tombol bergaris sempat hilang sama sekali.
+
+   Diperbaiki dengan menyebut induknya, bukan mengubah warna dasar
+   elemennya: elemen yang sama masih dipakai di atas latar putih
+   (misalnya tombol bergaris di bagian "Belum ada produk").
+   ===================================================================== */
+
+.nt-hero .nt-janji,
+.nt-cta .nt-janji { color: #D7E4EE; }
+
+/* Centang diberi emas muda - menegaskan tanpa menambah warna baru. */
+.nt-hero .nt-janji svg { color: var(--wn-emas-muda); }
+
+.nt-hero .nt-tombol-garis,
+.nt-cta .nt-tombol-garis {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #FFFFFF;
+}
+.nt-hero .nt-tombol-garis:hover,
+.nt-cta .nt-tombol-garis:hover {
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  color: var(--wn-tua);
+}
+
+/* Panel foto di hero: sebelumnya biru tua di atas biru tua, jadi tepinya
+   tidak terlihat sama sekali. */
+.nt-hero .nt-panel {
+  background: var(--wn-tua-2);
+  box-shadow: 0 18px 50px rgba(10, 30, 50, 0.35);
+}
+
+/* Kartu produk unggulan di dalam panel tetap berlatar putih. */
+.nt-panel-kartu { background: #FFFFFF; color: var(--wn-tua); }
+.nt-panel-kartu .nt-meta { color: var(--wn-samar); }
+
+
+/* =====================================================================
+   JARAK ANTARBAGIAN
+
+   .nt-bagian sebelumnya hanya punya jarak bawah, jadi bagian pertama
+   sesudah hero menempel langsung ke tepinya - judul "Jelajahi kategori"
+   terasa menabrak garis emas di bawah hero.
+   ===================================================================== */
+
+.nt-bagian { padding: 72px 0 88px; }
+
+/* Bagian berlatar warna sudah punya jaraknya sendiri, jadi jangan ditambah
+   lagi - kalau ditumpuk, blok warnanya jadi melar dan kosong di dalam. */
+.nt-pita + .nt-bagian,
+.nt-langkah-bagian + .nt-bagian { padding-top: 0; }
+
+.nt-judul-baris { margin-bottom: 28px; }
+
+@media (max-width: 767.98px) {
+  .nt-bagian { padding: 44px 0 52px; }
+  .nt-judul-baris { margin-bottom: 20px; }
+}
+
+/* Logo */
+.nt-logo-img { height: 40px; width: auto; display: block; }
+.mb-logo img { height: 30px; width: auto; display: block; }
+
+@media (max-width: 575.98px) {
+  .nt-logo-img { height: 34px; }
+}

@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Home - beranda marketplace UMKM.
@@ -8,7 +8,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Kalau controller beranda kamu bernama lain (Welcome.php, dll), pindahkan
  * isi index() ke sana - atau set $route['default_controller'] = 'home'.
  */
-class Home extends CI_Controller {
+class Home extends CI_Controller
+{
 
     public function __construct()
     {
@@ -45,7 +46,7 @@ class Home extends CI_Controller {
             'categories' => $this->kategori_teratas(6),
             'toko_dekat' => $this->toko_dekat($lokasi, 3),
             'wa_admin'   => $this->config->item('wa_admin'),
-            'brand'      => $this->config->item('nama_brand') ?: 'Nama Brand',
+            'brand'      => $this->config->item('nama_brand') ?: 'Sapa UMKM',
         );
 
         $data['pages'] = 'v_home';
@@ -124,17 +125,17 @@ class Home extends CI_Controller {
             $reg = (int) $lokasi['regency_id'];
 
             $this->db->where('s.province_id', (int) $lokasi['province_id'])
-                     ->order_by("CASE WHEN s.district_id = {$dis} THEN 1
+                ->order_by("CASE WHEN s.district_id = {$dis} THEN 1
                                       WHEN s.regency_id  = {$reg} THEN 2
                                       ELSE 3 END", '', FALSE);
         }
 
         $toko = $this->db->order_by('jml_produk', 'DESC')
-                         ->limit((int) $n)
-                         ->get()->result_array();
+            ->limit((int) $n)
+            ->get()->result_array();
 
         foreach ($toko as &$t) {
-            if ( ! $lokasi) {
+            if (! $lokasi) {
                 $t['label_jarak'] = NULL;
             } elseif ((int) $t['district_id'] === (int) $lokasi['district_id']) {
                 $t['label_jarak'] = 'Kecamatanmu';
@@ -155,12 +156,12 @@ class Home extends CI_Controller {
         foreach ($toko as &$t) {
             $t['foto'] = array_column(
                 $this->db->select('image')
-                         ->where('store_id', (int) $t['id'])
-                         ->where('is_active', 1)
-                         ->where('image IS NOT NULL', NULL, FALSE)
-                         ->order_by('id', 'DESC')
-                         ->limit(3)
-                         ->get('products')->result_array(),
+                    ->where('store_id', (int) $t['id'])
+                    ->where('is_active', 1)
+                    ->where('image IS NOT NULL', NULL, FALSE)
+                    ->order_by('id', 'DESC')
+                    ->limit(3)
+                    ->get('products')->result_array(),
                 'image'
             );
         }

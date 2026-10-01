@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <!-- Tema sesudah order.css, sama seperti halaman publik. -->
   <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
+  <link rel="stylesheet" href="<?= aset('assets/css/summernote-bs5.css') ?>">
 </head>
 
 <body class="panel-body">

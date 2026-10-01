@@ -1,0 +1,381 @@
+<!-- application/views/v_produk.php -->
+<?php
+$harga_dasar = (int) $p['price'];
+$url_gambar = base_url('upload/produk/' . $p['image']);
+$link_toko = site_url('shop') . '?store=' . (int) $p['store_id'];
+
+// Pesan WhatsApp disiapkan lengkap supaya penjual langsung tahu
+// produk mana yang ditanyakan, tanpa pembeli perlu menjelaskan ulang.
+$pesan_wa = rawurlencode(
+    'Halo ' . $p['store_name'] . ', saya mau tanya produk "'
+        . $p['name'] . '" - ' . current_url()
+);
+
+$label_jarak = array(
+    1 => 'Toko di kecamatanmu',
+    2 => 'Toko di kotamu',
+    3 => 'Toko di provinsimu',
+);
+?>
+
+<div class="untree_co-section before-footer-section produk-detail">
+    <div class="container">
+
+        <!-- Jejak navigasi: pembeli sering mendarat di sini dari tautan yang
+         dibagikan, jadi perlu tahu sedang ada di mana. -->
+        <nav class="remah" aria-label="Jejak navigasi">
+            <a href="<?= site_url('shop') ?>">Katalog</a>
+            <?php if (!empty($p['category_slug'])): ?>
+                <span>/</span>
+                <a href="<?= site_url('shop') . '?category=' . html_escape($p['category_slug']) ?>">
+                    <?= html_escape($p['category_name']) ?>
+                </a>
+            <?php endif; ?>
+            <span>/</span>
+            <strong><?= html_escape($p['name']) ?></strong>
+        </nav>
+
+        <?php if ($jarak === 4): ?>
+            <div class="alert-box alert-warn mb-4">
+                Toko ini berada di <?= html_escape($p['store_province']) ?>, di luar provinsi
+                yang kamu pilih. Toko ini mungkin tidak melayani pengiriman ke wilayahmu &mdash;
+                ongkirnya akan terlihat saat checkout.
+            </div>
+        <?php endif; ?>
+
+        <div class="row">
+
+            <!-- ==================== FOTO ==================== -->
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="produk-foto">
+                    <img id="fotoUtama" src="<?= $url_gambar ?>"
+                        data-asal="<?= $url_gambar ?>"
+                        alt="<?= html_escape($p['name']) ?>" class="img-fluid">
+                </div>
+
+                <?php
+                /* Kumpulkan semua gambar yang ada: produk, lalu varian, lalu tambahan.
+   Duplikat dibuang - beberapa varian bisa memakai foto yang sama. */
+                $galeri = array(array('url' => $url_gambar, 'label' => 'Foto utama'));
+                $sudah = array($p['image']);
+
+                foreach ($variants as $v) {
+                    if (!empty($v['image']) && !in_array($v['image'], $sudah, TRUE)) {
+                        $sudah[] = $v['image'];
+                        $galeri[] = array(
+                            'url' => base_url('upload/produk/' . $v['image']),
+                            'label' => $v['name'],
+                        );
+                    }
+                }
+                foreach ($addons as $a) {
+                    if (!empty($a['image']) && !in_array($a['image'], $sudah, TRUE)) {
+                        $sudah[] = $a['image'];
+                        $galeri[] = array(
+                            'url' => base_url('upload/produk/' . $a['image']),
+                            'label' => $a['name'],
+                        );
+                    }
+                }
+                ?>
+
+                <?php if (count($galeri) > 1): ?>
+                    <!-- Deretan thumbnail. Tetap ditampilkan walau gambar juga berubah
+         otomatis saat memilih varian - pembeli sering ingin kembali
+         melihat foto utama tanpa mengubah pilihannya. -->
+                    <div class="produk-galeri" id="produkGaleri">
+                        <?php foreach ($galeri as $i => $g): ?>
+                            <button type="button" class="produk-thumb<?= $i === 0 ? ' is-aktif' : '' ?>"
+                                data-gambar="<?= html_escape($g['url']) ?>"
+                                aria-label="Lihat <?= html_escape($g['label']) ?>">
+                                <img src="<?= html_escape($g['url']) ?>" alt="" loading="lazy">
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- ==================== INFORMASI ==================== -->
+            <div class="col-lg-6">
+
+                <?php if (!empty($p['category_name'])): ?>
+                    <p class="produk-kategori"><?= html_escape($p['category_name']) ?></p>
+                <?php endif; ?>
+
+                <h1 class="produk-nama"><?= html_escape($p['name']) ?></h1>
+
+                <!-- Harga ikut berubah saat varian dan tambahan dipilih.
+             Nilainya hanya untuk ditampilkan - server menghitung ulang
+             semuanya saat produk masuk keranjang. -->
+                <p class="produk-harga">
+                    <span id="hargaTampil"><?= rupiah($harga_dasar) ?></span>
+                    <?php if (count($variants) > 1): ?>
+                        <em id="hargaKet">harga ukuran terkecil</em>
+                    <?php endif; ?>
+                </p>
+
+                <!-- ---------- TOKO ---------- -->
+                <div class="produk-toko">
+                    <div>
+                        <p class="produk-toko-nama"><?= html_escape($p['store_name']) ?></p>
+                        <p class="produk-toko-lokasi">
+                            <?= html_escape($p['store_district']) ?>,
+                            <?= html_escape($p['store_regency']) ?>
+                            <?php if ($jarak && isset($label_jarak[$jarak])): ?>
+                                <span class="badge-jarak"><?= $label_jarak[$jarak] ?></span>
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                    <div class="produk-toko-aksi">
+                        <a href="<?= html_escape($link_toko) ?>" class="produk-toko-link">Lihat toko</a>
+                        <!-- Membawa produk ini ke dalam percakapan, jadi penjual
+                             langsung tahu yang ditanyakan tanpa pembeli perlu
+                             menjelaskan ulang. -->
+                        <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'inline-form')) ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                        <button type="submit" class="produk-toko-link">Tanya ke toko</button>
+                        <?= form_close() ?>
+                    </div>
+                </div>
+
+                <!-- ---------- PILIHAN ---------- -->
+                <div class="produk-form"
+                    data-id="<?= (int) $p['id'] ?>"
+                    data-harga="<?= $harga_dasar ?>">
+
+                    <?php if ($variants): ?>
+                        <p class="produk-label">Ukuran</p>
+                        <div class="produk-opsi" role="radiogroup" aria-label="Ukuran">
+                            <?php foreach ($variants as $i => $v): ?>
+                                <label class="produk-opt">
+                                    <input type="radio" name="variant_id" value="<?= (int) $v['id'] ?>"
+                                        data-delta="<?= (int) $v['price_delta'] ?>"
+                                        data-gambar="<?= !empty($v['image']) ? base_url('upload/produk/' . $v['image']) : '' ?>"
+                                        <?= $i === 0 ? 'checked' : '' ?>>
+                                    <span>
+                                        <em><?= html_escape($v['name']) ?></em>
+                                        <b><?= rupiah($harga_dasar + (int) $v['price_delta']) ?></b>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($addons): ?>
+                        <p class="produk-label">Tambahan <span>(opsional)</span></p>
+                        <div class="produk-chips">
+                            <?php foreach ($addons as $a): ?>
+                                <label class="produk-chip">
+                                    <input type="checkbox" name="addons[]" value="<?= (int) $a['id'] ?>"
+                                        data-delta="<?= (int) $a['price_delta'] ?>"
+                                        data-gambar="<?= !empty($a['image']) ? base_url('upload/produk/' . $a['image']) : '' ?>">
+                                    <span>
+                                        <?= html_escape($a['name']) ?>
+                                        <em><?= (int) $a['price_delta'] ? '+' . rupiah($a['price_delta']) : 'gratis' ?></em>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- ---------- JUMLAH & TOTAL ---------- -->
+                    <div class="produk-bawah">
+                        <div>
+                            <p class="produk-total-label">Total</p>
+                            <p class="produk-total" id="totalTampil"><?= rupiah($harga_dasar) ?></p>
+                        </div>
+                        <div class="qty-box">
+                            <button type="button" class="qty-btn" data-qty="-1" aria-label="Kurangi">&minus;</button>
+                            <span class="qty-num" id="qtyTampil">1</span>
+                            <button type="button" class="qty-btn" data-qty="1" aria-label="Tambah">+</button>
+                        </div>
+                    </div>
+
+                    <div class="produk-aksi">
+                        <button type="button" class="btn btn-black-hover-outline" data-act="add">
+                            Tambah ke keranjang
+                        </button>
+                        <!-- Beli sekarang: lewat wadah terpisah, jadi isi
+                             keranjang yang sudah dikumpulkan tidak terganggu. -->
+                        <button type="button" class="btn btn-primary" data-act="buy">
+                            Beli sekarang
+                        </button>
+                    </div>
+
+                    <p class="produk-catatan" data-note></p>
+
+                    <!-- Tombol WhatsApp, bukan chat di dalam aplikasi. Penjual UMKM
+               memang hidup di WhatsApp dan akan membalas jauh lebih cepat
+               di sana. -->
+                    <!-- <a class="produk-wa" href="https://wa.me/<?= $wa_toko ?>?text=<?= $pesan_wa ?>"
+                        target="_blank" rel="noopener">
+                        Tanya penjual lewat WhatsApp
+                    </a> -->
+                </div>
+
+                <!-- ---------- PENGIRIMAN ---------- -->
+                <div class="produk-kirim">
+                    <p class="produk-label">Pengiriman</p>
+                    <p class="produk-kirim-ok">
+                        Dikirim dari <?= html_escape($p['store_district']) ?>,
+                        <?= html_escape($p['store_regency']) ?>
+                    </p>
+                    <p class="produk-kirim-slot">
+                        Diproses dalam <strong><?= (int) $proses ?> hari kerja</strong> setelah pembayaran diterima.
+                    </p>
+                    <p class="hint">Ongkos kirim dihitung dari alamatmu saat checkout.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==================== DESKRIPSI ==================== -->
+        <?php if (!empty($p['description'])): ?>
+            <hr>
+            <div class="row mt-5">
+                <div class="col-lg-8">
+                    <h2 class="produk-sub">Deskripsi</h2>
+                    <!-- Sudah disaring html_aman() saat disimpan, dan disaring lagi di sini
+                         sebagai lapis kedua: data lama yang masuk sebelum penyaring
+                         dipasang pun ikut aman. -->
+                    <div class="produk-desk"><?= html_aman($p['description']) ?></div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- ==================== ULASAN ==================== -->
+        <hr>
+        <div class="row mt-5">
+            <h2 class="produk-sub">Ulasan</h2>
+            <div class="produk-rating row">
+                <div class="col-lg-4">
+                    <div class="produk-rating-avg ">
+                        <div class="d-flex">
+                            <img src="<?= aset('assets/images/star_rating.svg') ?>" width="60">
+                            <h2 class="produk-rating-avg-num">4.3/5</h2>
+                        </div>
+                        <div class="produk-rating-avg-text-wrap">
+                            <p class="produk-rating-avg-text">86% Pembeli Puas Dengan Produk Ini </p>
+                            <p> 1000 Rating • 500 Ulasan</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="produk-rating-detail row">
+                        <div class="col-lg-4 produk-rating-detail-item">
+                            <div class="produk-rating-detail-item-left">
+                                <img src="<?= aset('assets/images/star_rating.svg') ?>" width="20">
+                                <p>5</p>
+                                <progress id="file" value="400" max="1000"> 40% </progress>
+                                <p>400</p>
+                            </div>
+                            <div class="produk-rating-detail-item-right">
+                                <div class="produk-rating-detail-item-right-bar" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 produk-rating-detail-item">
+                            <div class="produk-rating-detail-item-left">
+                                <img src="<?= aset('assets/images/star_rating.svg') ?>" width="20">
+                                <p>4</p>
+                                <progress id="file" value="300" max="1000"> 30% </progress>
+                                <p>300</p>
+                            </div>
+                            <div class="produk-rating-detail-item-right">
+                                <div class="produk-rating-detail-item-right-bar" style="width: 10%"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 produk-rating-detail-item">
+                            <div class="produk-rating-detail-item-left">
+                                <img src="<?= aset('assets/images/star_rating.svg') ?>" width="20">
+                                <p>3</p>
+                                <progress id="file" value="200" max="1000"> 20% </progress>
+                                <p>200</p>
+                            </div>
+                            <div class="produk-rating-detail-item-right">
+                                <div class="produk-rating-detail-item-right-bar" style="width: 5%"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 produk-rating-detail-item">
+                            <div class="produk-rating-detail-item-left">
+                                <img src="<?= aset('assets/images/star_rating.svg') ?>" width="20">
+                                <p>2</p>
+                                <progress id="file" value="100" max="1000"> 10% </progress>
+                                <p>100</p>
+                            </div>
+                            <div class="produk-rating-detail-item-right">
+                                <div class="produk-rating-detail-item-right-bar" style="width: 3%"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 produk-rating-detail-item">
+                            <div class="produk-rating-detail-item-left">
+                                <img src="<?= aset('assets/images/star_rating.svg') ?>" width="20">
+                                <p>1</p>
+                                <progress id="file" value="0" max="1000"> 0% </progress>
+                                <p>0</p>
+                            </div>
+                            <div class="produk-rating-detail-item-right">
+                                <div class="produk-rating-detail-item-right-bar" style="width: 2%"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="produk-rating-detail-list mt-1">
+                <div class="col-lg-4">
+                    <div class="produk-rating produk-rating-detail-list-item">
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="produk-rating-detail-list-content">
+                        <?= html_aman($p['description']) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PRODUK LAIN ==================== -->
+        <?php if ($lainnya): ?>
+            <div class="mt-5">
+                <h2 class="produk-sub">Produk lain dari <?= html_escape($p['store_name']) ?></h2>
+                <div class="row mt-3">
+                    <?php foreach ($lainnya as $l): ?>
+                        <div class="col-6 col-md-3 mb-4">
+                            <div class="product-item">
+                                <a class="product-item-link"
+                                    href="<?= site_url('produk/' . $p['store_slug'] . '/' . $l['slug']) ?>">
+                                    <img src="<?= base_url('upload/produk/' . $l['image']) ?>"
+                                        alt="<?= html_escape($l['name']) ?>"
+                                        class="img-fluid product-thumbnail" loading="lazy">
+                                    <h3 class="product-title"><?= html_escape($l['name']) ?></h3>
+                                    <strong class="product-price">
+                                        <?php if ((int) $l['variant_count'] > 1): ?>
+                                            <span class="price-prefix">Mulai</span>
+                                        <?php endif; ?>
+                                        <?= rupiah($l['price']) ?>
+                                    </strong>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+    </div>
+</div>
+
+<script>
+    window.PRODUK_URLS = {
+        add: '<?= site_url('cart/add') ?>',
+        langsung: '<?= site_url('cart/beli_langsung') ?>',
+        clear: '<?= site_url('cart/clear') ?>',
+        checkout: '<?= site_url('checkout') ?>'
+    };
+    window.CSRF = {
+        name: '<?= $this->security->get_csrf_token_name() ?>',
+        hash: '<?= $this->security->get_csrf_hash() ?>'
+    };
+</script>
+<script src="<?= aset('assets/js/produk.js') ?>"></script>
+<script src="<?= aset('assets/js/produk-galeri.js') ?>"></script>

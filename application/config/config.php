@@ -550,7 +550,7 @@ $config['proxy_ips'] = '';
    IDENTITAS SITUS - satu tempat untuk nama dan kontak.
    Dipakai navbar, footer, judul halaman, dan tombol "Daftarkan UMKM".
    ========================================================================== */
-$config['nama_brand'] = 'MyUMKM';
+$config['nama_brand'] = 'Sapa UMKM';
 $config['slogan']     = 'Belanja langsung dari pelaku UMKM di kotamu';
 
 // Format 62..., tanpa + dan spasi. Kosongkan untuk menyembunyikan tombol

@@ -177,7 +177,9 @@ class Seller extends Seller_Controller
         $this->form_validation->set_rules('name', 'Nama produk', 'required|trim|max_length[150]');
         $this->form_validation->set_rules('price', 'Harga', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('category_id', 'Kategori', 'required|integer');
-        $this->form_validation->set_rules('description', 'Deskripsi', 'trim|max_length[2000]');
+        /* Batas dinaikkan karena isinya kini HTML - tag pembungkus ikut
+           terhitung. Isi teksnya sendiri tetap dibatasi html_aman(). */
+        $this->form_validation->set_rules('description', 'Deskripsi', 'trim|max_length[8000]');
         $this->form_validation->set_message('greater_than', '{field} harus lebih dari 0.');
         $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
 
@@ -204,7 +206,12 @@ class Seller extends Seller_Controller
             'name' => $this->input->post('name', TRUE),
             'slug' => $this->slug_unik($this->input->post('name', TRUE), $id),
             'category_id' => (int) $this->input->post('category_id'),
-            'description' => $this->input->post('description', TRUE) ?: NULL,
+            /* Diambil MENTAH (FALSE), bukan lewat penyaring XSS bawaan CI:
+               penyaring itu merusak HTML yang sah - tanda kutip di atribut
+               dipotong dan sebagian tag diacak. Penyaringan dilakukan
+               html_aman(), yang hanya meloloskan tag & atribut dari daftar
+               izin dan membuang sisanya. */
+            'description' => html_aman($this->input->post('description', FALSE)) ?: NULL,
             'price' => (int) $this->input->post('price'),
             'image' => $gambar,
         );

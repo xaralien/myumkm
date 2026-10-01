@@ -8,7 +8,7 @@ $link_toko = site_url('shop') . '?store=' . (int) $p['store_id'];
 // produk mana yang ditanyakan, tanpa pembeli perlu menjelaskan ulang.
 $pesan_wa = rawurlencode(
     'Halo ' . $p['store_name'] . ', saya mau tanya produk "'
-        . $p['name'] . '" - ' . current_url()
+    . $p['name'] . '" - ' . current_url()
 );
 
 $label_jarak = array(
@@ -47,53 +47,53 @@ $label_jarak = array(
 
             <!-- ==================== FOTO ==================== -->
             <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="produk-foto">
-                    <img id="fotoUtama" src="<?= $url_gambar ?>"
-                        data-asal="<?= $url_gambar ?>"
-                        alt="<?= html_escape($p['name']) ?>" class="img-fluid">
-                </div>
+  <div class="produk-foto">
+    <img id="fotoUtama" src="<?= $url_gambar ?>"
+         data-asal="<?= $url_gambar ?>"
+         alt="<?= html_escape($p['name']) ?>" class="img-fluid">
+  </div>
 
-                <?php
-                /* Kumpulkan semua gambar yang ada: produk, lalu varian, lalu tambahan.
+  <?php
+/* Kumpulkan semua gambar yang ada: produk, lalu varian, lalu tambahan.
    Duplikat dibuang - beberapa varian bisa memakai foto yang sama. */
-                $galeri = array(array('url' => $url_gambar, 'label' => 'Foto utama'));
-                $sudah = array($p['image']);
+$galeri = array(array('url' => $url_gambar, 'label' => 'Foto utama'));
+$sudah = array($p['image']);
 
-                foreach ($variants as $v) {
-                    if (!empty($v['image']) && !in_array($v['image'], $sudah, TRUE)) {
-                        $sudah[] = $v['image'];
-                        $galeri[] = array(
-                            'url' => base_url('upload/produk/' . $v['image']),
-                            'label' => $v['name'],
-                        );
-                    }
-                }
-                foreach ($addons as $a) {
-                    if (!empty($a['image']) && !in_array($a['image'], $sudah, TRUE)) {
-                        $sudah[] = $a['image'];
-                        $galeri[] = array(
-                            'url' => base_url('upload/produk/' . $a['image']),
-                            'label' => $a['name'],
-                        );
-                    }
-                }
-                ?>
-
-                <?php if (count($galeri) > 1): ?>
-                    <!-- Deretan thumbnail. Tetap ditampilkan walau gambar juga berubah
+foreach ($variants as $v) {
+    if (!empty($v['image']) && !in_array($v['image'], $sudah, TRUE)) {
+        $sudah[] = $v['image'];
+        $galeri[] = array(
+            'url' => base_url('upload/produk/' . $v['image']),
+            'label' => $v['name'],
+        );
+    }
+}
+foreach ($addons as $a) {
+    if (!empty($a['image']) && !in_array($a['image'], $sudah, TRUE)) {
+        $sudah[] = $a['image'];
+        $galeri[] = array(
+            'url' => base_url('upload/produk/' . $a['image']),
+            'label' => $a['name'],
+        );
+    }
+}
+?>
+ 
+  <?php if (count($galeri) > 1): ?>
+    <!-- Deretan thumbnail. Tetap ditampilkan walau gambar juga berubah
          otomatis saat memilih varian - pembeli sering ingin kembali
          melihat foto utama tanpa mengubah pilihannya. -->
-                    <div class="produk-galeri" id="produkGaleri">
-                        <?php foreach ($galeri as $i => $g): ?>
-                            <button type="button" class="produk-thumb<?= $i === 0 ? ' is-aktif' : '' ?>"
-                                data-gambar="<?= html_escape($g['url']) ?>"
-                                aria-label="Lihat <?= html_escape($g['label']) ?>">
-                                <img src="<?= html_escape($g['url']) ?>" alt="" loading="lazy">
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+    <div class="produk-galeri" id="produkGaleri">
+      <?php foreach ($galeri as $i => $g): ?>
+        <button type="button" class="produk-thumb<?= $i === 0 ? ' is-aktif' : '' ?>"
+                data-gambar="<?= html_escape($g['url']) ?>"
+                aria-label="Lihat <?= html_escape($g['label']) ?>">
+          <img src="<?= html_escape($g['url']) ?>" alt="" loading="lazy">
+        </button>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
 
             <!-- ==================== INFORMASI ==================== -->
             <div class="col-lg-6">
@@ -132,8 +132,8 @@ $label_jarak = array(
                              langsung tahu yang ditanyakan tanpa pembeli perlu
                              menjelaskan ulang. -->
                         <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'inline-form')) ?>
-                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
-                        <button type="submit" class="produk-toko-link">Tanya ke toko</button>
+                            <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                            <button type="submit" class="produk-toko-link">Tanya ke toko</button>
                         <?= form_close() ?>
                     </div>
                 </div>
@@ -144,39 +144,39 @@ $label_jarak = array(
                     data-harga="<?= $harga_dasar ?>">
 
                     <?php if ($variants): ?>
-                        <p class="produk-label">Ukuran</p>
-                        <div class="produk-opsi" role="radiogroup" aria-label="Ukuran">
-                            <?php foreach ($variants as $i => $v): ?>
-                                <label class="produk-opt">
-                                    <input type="radio" name="variant_id" value="<?= (int) $v['id'] ?>"
-                                        data-delta="<?= (int) $v['price_delta'] ?>"
-                                        data-gambar="<?= !empty($v['image']) ? base_url('upload/produk/' . $v['image']) : '' ?>"
-                                        <?= $i === 0 ? 'checked' : '' ?>>
-                                    <span>
-                                        <em><?= html_escape($v['name']) ?></em>
-                                        <b><?= rupiah($harga_dasar + (int) $v['price_delta']) ?></b>
-                                    </span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
+    <p class="produk-label">Ukuran</p>
+    <div class="produk-opsi" role="radiogroup" aria-label="Ukuran">
+        <?php foreach ($variants as $i => $v): ?>
+            <label class="produk-opt">
+                <input type="radio" name="variant_id" value="<?= (int) $v['id'] ?>"
+                    data-delta="<?= (int) $v['price_delta'] ?>"
+                    data-gambar="<?= !empty($v['image']) ? base_url('upload/produk/' . $v['image']) : '' ?>"
+                    <?= $i === 0 ? 'checked' : '' ?>>
+                <span>
+                    <em><?= html_escape($v['name']) ?></em>
+                    <b><?= rupiah($harga_dasar + (int) $v['price_delta']) ?></b>
+                </span>
+            </label>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
 
                     <?php if ($addons): ?>
-                        <p class="produk-label">Tambahan <span>(opsional)</span></p>
-                        <div class="produk-chips">
-                            <?php foreach ($addons as $a): ?>
-                                <label class="produk-chip">
-                                    <input type="checkbox" name="addons[]" value="<?= (int) $a['id'] ?>"
-                                        data-delta="<?= (int) $a['price_delta'] ?>"
-                                        data-gambar="<?= !empty($a['image']) ? base_url('upload/produk/' . $a['image']) : '' ?>">
-                                    <span>
-                                        <?= html_escape($a['name']) ?>
-                                        <em><?= (int) $a['price_delta'] ? '+' . rupiah($a['price_delta']) : 'gratis' ?></em>
-                                    </span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
+    <p class="produk-label">Tambahan <span>(opsional)</span></p>
+    <div class="produk-chips">
+        <?php foreach ($addons as $a): ?>
+            <label class="produk-chip">
+                <input type="checkbox" name="addons[]" value="<?= (int) $a['id'] ?>"
+                    data-delta="<?= (int) $a['price_delta'] ?>"
+                    data-gambar="<?= !empty($a['image']) ? base_url('upload/produk/' . $a['image']) : '' ?>">
+                <span>
+                    <?= html_escape($a['name']) ?>
+                    <em><?= (int) $a['price_delta'] ? '+' . rupiah($a['price_delta']) : 'gratis' ?></em>
+                </span>
+            </label>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
 
                     <!-- ---------- JUMLAH & TOTAL ---------- -->
                     <div class="produk-bawah">
@@ -234,7 +234,10 @@ $label_jarak = array(
             <div class="row mt-5">
                 <div class="col-lg-8">
                     <h2 class="produk-sub">Deskripsi</h2>
-                    <p class="produk-desk"><?= nl2br(html_escape($p['description'])) ?></p>
+                    <!-- Sudah disaring html_aman() saat disimpan, dan disaring lagi di sini
+                         sebagai lapis kedua: data lama yang masuk sebelum penyaring
+                         dipasang pun ikut aman. -->
+                    <div class="produk-desk"><?= html_aman($p['description']) ?></div>
                 </div>
             </div>
         <?php endif; ?>
@@ -284,3 +287,92 @@ $label_jarak = array(
 </script>
 <script src="<?= aset('assets/js/produk.js') ?>"></script>
 <script src="<?= aset('assets/js/produk-galeri.js') ?>"></script>
+
+<!-- ============================ ULASAN ============================= -->
+<section class="untree_co-section ul-bagian" id="ulasan">
+  <div class="container">
+    <div class="ul-bagian-kepala">
+      <h2 class="ul-sub">Ulasan</h2>
+      <a href="<?= site_url('ulasan/produk/' . $p['store_slug'] . '/' . $p['slug']) ?>" class="ul-semua">
+        Lihat semua &rarr;
+      </a>
+    </div>
+
+    <?php if ((int) $ulasan_ringkas['total'] === 0): ?>
+      <p class="ul-kosong">
+        Belum ada ulasan untuk produk ini. Jadilah yang pertama setelah pesananmu sampai.
+      </p>
+    <?php else: ?>
+
+      <?php
+        /* Alamat halaman ini dengan filter diganti. Filter bekerja langsung
+           di sini - pembeli tidak perlu pindah halaman hanya untuk melihat
+           ulasan berbintang 5 atau yang ada fotonya. */
+        $dasar_u = site_url('produk/' . $p['store_slug'] . '/' . $p['slug']);
+
+        $url_u = function (array $ganti = array()) use ($dasar_u, $ulasan_filter) {
+          $q = array_filter(array(
+            'ub'     => $ulasan_filter['rating'] ?: NULL,
+            'umedia' => $ulasan_filter['media'] ? '1' : NULL,
+          ));
+          foreach ($ganti as $k => $v) {
+            $k = ($k === 'bintang') ? 'ub' : (($k === 'media') ? 'umedia' : $k);
+            if ($v === NULL) { unset($q[$k]); } else { $q[$k] = $v; }
+          }
+          // #ulasan: halaman kembali ke bagian ini setelah filter ditekan,
+          // bukan melompat ke puncak halaman.
+          return $dasar_u . ($q ? '?' . http_build_query($q) : '') . '#ulasan';
+        };
+      ?>
+
+      <?php $this->load->view('parts/ulasan_ringkas', array(
+          'ringkasan' => $ulasan_ringkas,
+          'tautan_filter' => function ($b) use ($url_u) { return $url_u(array('bintang' => $b)); },
+      )); ?>
+
+      <div class="ul-isi-utama">
+        <?php $this->load->view('parts/ulasan_filter', array(
+            'ringkasan' => $ulasan_ringkas,
+            'filter'    => $ulasan_filter,
+            'url'       => $url_u,
+        )); ?>
+
+        <div class="ul-daftar-wrap">
+          <?php if ($ulasan_media && ! $ulasan_filter['rating'] && ! $ulasan_filter['media']): ?>
+            <!-- Galeri gabungan semua ulasan. Diberi pembatas di bawahnya
+                 supaya jelas terpisah dari media milik tiap ulasan - tanpa
+                 itu keduanya terbaca sebagai satu deretan panjang. -->
+            <section class="ul-galeri">
+              <h3 class="ul-sub-kecil">Foto &amp; video pembeli</h3>
+              <?php $this->load->view('parts/ulasan_media', array('media' => $ulasan_media)); ?>
+            </section>
+          <?php endif; ?>
+
+          <div class="ul-daftar-kepala">
+            <h3 class="ul-sub-kecil">Ulasan pembeli</h3>
+            <span class="hint">
+              <?php if ($ulasan_filter['rating'] || $ulasan_filter['media']): ?>
+                <?= (int) $ulasan_cocok ?> ulasan cocok dengan filter
+              <?php else: ?>
+                <?= count($ulasan_terbaru) ?> dari <?= (int) $ulasan_ringkas['total'] ?> ulasan
+              <?php endif; ?>
+            </span>
+          </div>
+
+          <?php $this->load->view('parts/ulasan_daftar', array('ulasan' => $ulasan_terbaru)); ?>
+
+          <?php if ($ulasan_cocok > count($ulasan_terbaru)): ?>
+            <p class="text-center mt-3">
+              <a href="<?= site_url('ulasan/produk/' . $p['store_slug'] . '/' . $p['slug']) ?>"
+                 class="btn btn-black-hover-outline">
+                Lihat semua <?= (int) $ulasan_ringkas['total'] ?> ulasan
+              </a>
+            </p>
+          <?php endif; ?>
+        </div>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<script src="<?= aset('assets/js/media-penuh.js') ?>"></script>

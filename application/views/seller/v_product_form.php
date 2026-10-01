@@ -107,7 +107,11 @@
           <?php endif; ?>
         </div>
 
-        <textarea id="description" name="description" class="form-control" rows="4"><?= set_value('description', $product ? $product['description'] : '') ?></textarea>
+        <textarea id="description" name="description" class="form-control" rows="6"><?= set_value('description', $product ? $product['description'] : '') ?></textarea>
+        <p class="hint">
+          Boleh pakai tebal, miring, dan daftar berpoin. Tautan gambar dan
+          video tidak disimpan &mdash; foto produk diunggah lewat kolom di atas.
+        </p>
         <p class="ai-info" id="aiInfo"></p>
       </div>
     </div>
@@ -230,3 +234,42 @@
   </script>
   <script src="<?= aset('assets/js/ai-deskripsi.js') ?>"></script>
 <?php endif; ?>
+
+<!-- Summernote: editor teks untuk deskripsi produk. Butuh jQuery; versi
+     'lite' dipakai supaya tidak bergantung pada Bootstrap versi tertentu -
+     situs ini memakai Bootstrap 5 sedangkan Summernote bawaan menyasar 4. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+<script>
+  jQuery(function ($) {
+    $('#description').summernote({
+      lang: 'id-ID',
+      placeholder: 'Ceritakan bahan, ukuran, dan cocok untuk acara apa...',
+      height: 200,
+      disableDragAndDrop: true,
+
+      /* Hanya alat yang hasilnya memang disimpan server. Menampilkan tombol
+         gambar atau video akan menyesatkan: penjual menyisipkannya, lalu
+         hilang tanpa penjelasan begitu disimpan karena tag itu tidak ada
+         di daftar izin penyaring. */
+      toolbar: [
+        ['gaya', ['bold', 'italic', 'underline', 'clear']],
+        ['paragraf', ['ul', 'ol']],
+        ['tautan', ['link']],
+        ['lain', ['undo', 'redo']]
+      ],
+
+      callbacks: {
+        // Tempelan dari Word/web dibersihkan jadi teks biasa - kalau tidak,
+        // gaya bawaannya ikut terbawa lalu dibuang server, dan hasilnya
+        // berbeda dari yang terlihat saat mengetik.
+        onPaste: function (e) {
+          var teks = (e.originalEvent || e).clipboardData.getData('text/plain');
+          e.preventDefault();
+          document.execCommand('insertText', false, teks);
+        }
+      }
+    });
+  });
+</script>

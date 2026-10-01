@@ -178,7 +178,12 @@
     pesanInfo('');
     clearTimeout(timerPesan);
     ambilPesan();
-    if (teks) { teks.focus(); }
+    if (teks) {
+      teks.focus();
+      // Diukur ulang sesaat setelah fokus: papan ketik baru muncul
+      // beberapa saat sesudahnya, bukan seketika.
+      setTimeout(ukurPanel, 300);
+    }
   }
 
   function tutupRuang() {
@@ -298,11 +303,14 @@
 
     clearTimeout(timerDaftar);
     if (ya) {
+      ukurPanel();
       elDaftar.innerHTML = '<p class="ib-memuat">Memuat percakapan...</p>';
       if (elSambut) { elSambut.hidden = ! modeLebar(); }
       ambilDaftar();
     } else {
       tutupRuang();
+      panel.style.maxHeight = '';
+      panel.style.bottom = '';
     }
   }
 
@@ -332,6 +340,39 @@
 
   if (lebar.addEventListener) { lebar.addEventListener('change', ubahMode); }
   else if (lebar.addListener) { lebar.addListener(ubahMode); }
+
+  /* ---------------------------------------------------- papan ketik HP */
+
+  /* Saat papan ketik muncul, tinggi layar yang benar-benar terlihat
+     menyusut - tapi CSS tetap menghitung dari tinggi jendela penuh, jadi
+     bagian atas panel terdorong keluar layar dan percakapannya terpotong.
+
+     visualViewport melaporkan tinggi yang SUNGGUH terlihat, termasuk saat
+     papan ketik terbuka. Nilainya dipakai membatasi tinggi panel. */
+  var vv = window.visualViewport;
+
+  function ukurPanel() {
+    if (!vv || panel.hidden) { return; }
+
+    // Hanya di layar sempit; di desktop panelnya sudah pas.
+    if (window.innerWidth >= 900) {
+      panel.style.maxHeight = '';
+      panel.style.bottom = '';
+      return;
+    }
+
+    var tertutup = window.innerHeight - vv.height - vv.offsetTop;
+
+    // Panel diangkat setinggi papan ketik, lalu tingginya dipangkas supaya
+    // tetap muat di sisa ruang.
+    panel.style.bottom = (tertutup > 60 ? tertutup + 8 : 136) + 'px';
+    panel.style.maxHeight = Math.max(240, vv.height - 96) + 'px';
+  }
+
+  if (vv) {
+    vv.addEventListener('resize', ukurPanel);
+    vv.addEventListener('scroll', ukurPanel);
+  }
 
   // Hitungan lencana tetap berjalan walau panelnya tertutup.
   ambilDaftar();

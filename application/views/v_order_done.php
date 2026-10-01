@@ -62,6 +62,10 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
               <?= form_close() ?>
             <?php else: ?>
               <p>Pesanan selesai. Terima kasih sudah belanja dari UMKM lokal!</p>
+              <!-- Ajakan mengulas muncul tepat saat pesanan selesai - saat
+                   ingatan pembeli tentang barangnya masih segar. -->
+              <a href="<?= site_url('ulasan/tulis/' . $order['order_number'] . '/' . $order['access_token']) ?>"
+                 class="btn btn-primary mt-2">Beri ulasan</a>
             <?php endif; ?>
 
             <!-- Pintasan ke halaman lacak: nomor pesanan dan nomor HP sudah

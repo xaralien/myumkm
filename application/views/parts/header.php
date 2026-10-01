@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="<?= base_url('favicon.png') ?>">
   <meta name="description" content="<?= html_escape($this->config->item('slogan') ?: '') ?>">
-  <title><?= html_escape($this->config->item('nama_brand') ?: 'Nama Brand') ?></title>
+  <title><?= html_escape($this->config->item('nama_brand') ?: 'Sapa UMKM') ?></title>
 
   <link href="<?= aset('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/tiny-slider.css') ?>" rel="stylesheet">

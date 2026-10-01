@@ -103,11 +103,13 @@
 
   <?php if (! empty($p['description'])): ?>
     <p class="mb-detail-label">Deskripsi</p>
-    <p class="mb-deskripsi"><?= nl2br(html_escape($p['description'])) ?></p>
+    <div class="mb-deskripsi"><?= html_aman($p['description']) ?></div>
   <?php endif; ?>
 
   <p class="produk-catatan" data-note></p>
 </div>
+
+<?php $this->load->view('mobile/parts/ulasan'); ?>
 
 <?php if ($lainnya): ?>
   <section class="mb-bagian">
@@ -159,6 +161,8 @@
   };
 </script>
 <script src="<?= aset('assets/js/produk.js') ?>"></script>
+<script src="<?= aset('assets/js/media-penuh.js') ?>"></script>
+<script src="<?= aset('assets/js/ulasan-potong.js') ?>"></script>
 <script>
   (function () {
     var geser = document.getElementById('fotoGeser');
