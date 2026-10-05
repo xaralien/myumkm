@@ -37,10 +37,26 @@
   function bubble(m) {
     if (m.pengirim === 'sistem') { return '<div class="chat-sistem">' + esc(m.isi) + '</div>'; }
     var h = '<div class="chat-baris' + (m.pengirim === C.sisi ? ' is-saya' : '') + '"><div class="chat-gelembung">';
+    /* Markup HARUS sama persis dengan v_chat_bubble.php. Kalau berbeda,
+       pesan yang baru dikirim tampil dengan bentuk lain daripada pesan yang
+       sama setelah halaman dimuat ulang - dan itu terlihat seperti kerusakan
+       walau datanya benar. */
     if (m.produk_nama) {
-      h += '<span class="chat-produk">'
-         + '<img src="' + C.gambar + esc(m.produk_gambar) + '" alt="">'
-         + '<span><strong>' + esc(m.produk_nama) + '</strong></span></span>';
+      h += '<div class="chat-produk">'
+         + '<a class="chat-produk-isi" href="' + (m.produk_url || '#') + '">'
+         +   '<img src="' + C.gambar + esc(m.produk_gambar) + '" alt="" loading="lazy">'
+         +   '<span><strong>' + esc(m.produk_nama) + '</strong>'
+         +   '<em>' + esc(m.produk_harga_teks || '') + '</em></span>'
+         + '</a>';
+
+      // Tombol hanya di sisi pembeli - sama seperti aturan di view.
+      if (C.sisi === 'customer' && m.product_id) {
+        h += '<div class="chat-produk-aksi">'
+           +   '<button type="button" class="chat-produk-btn btn-add" data-id="' + m.product_id + '">+ Keranjang</button>'
+           +   '<a class="chat-produk-btn is-utama" href="' + (m.produk_url || '#') + '">Beli</a>'
+           + '</div>';
+      }
+      h += '</div>';
     }
     if (m.image) {
       var g = C.gambar + m.image;
@@ -92,6 +108,13 @@
 
       var b = new FormData();
       b.append('isi', t);
+
+      /* Produk lampiran ikut sekali, menyatu dengan pesan ini. Setelah
+         terkirim lampirannya dilepas - pertanyaan berikutnya di percakapan
+         yang sama tidak perlu mengulang kartu yang sama. */
+      var lampiran = document.getElementById('chatLampiran');
+      if (lampiran) { b.append('product_id', lampiran.dataset.produk); }
+
       if (window.CSRF) { b.append(window.CSRF.name, window.CSRF.hash); }
 
       fetch(url('kirim'), { method: 'POST', body: b, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -99,9 +122,31 @@
         .then(function (j) {
           if (window.CSRF && j.csrf_hash) { window.CSRF.name = j.csrf_name; window.CSRF.hash = j.csrf_hash; }
           if (!j.ok) { isi.value = t; return pesan(j.pesan || 'Gagal mengirim.', 'error'); }
+
+          var l = document.getElementById('chatLampiran');
+          if (l) { l.remove(); }
+
+          /* '?produk=' dibuang dari alamat. Tanpa ini, memuat ulang halaman
+             memunculkan lampiran yang sama lagi - padahal produknya sudah
+             terkirim, dan pembeli akan mengirimnya dua kali tanpa sadar. */
+          if (window.history && history.replaceState && location.search.indexOf('produk=') !== -1) {
+            history.replaceState(null, '', location.pathname);
+          }
+
           jeda = JEDA_MIN; clearTimeout(timer); timer = setTimeout(ambil, 300);
         })
         .catch(function () { isi.value = t; pesan('Koneksi bermasalah.', 'error'); });
+    });
+  }
+
+  /* Batalkan lampiran. Pembeli yang hanya ingin bertanya hal lain tidak
+     terpaksa mengirim kartu produknya. */
+  var batal = document.getElementById('chatLampiranBatal');
+  if (batal) {
+    batal.addEventListener('click', function () {
+      var l = document.getElementById('chatLampiran');
+      if (l) { l.remove(); }
+      if (isi) { isi.focus(); }
     });
   }
 

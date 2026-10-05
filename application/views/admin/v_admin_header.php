@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <!-- Tema sesudah order.css, sama seperti halaman publik. -->
   <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
-  <link rel="stylesheet" href="<?= aset('assets/css/summernote-bs5.css') ?>">
 </head>
 
 <body class="panel-body">
@@ -33,10 +32,23 @@
           <a href="<?= site_url('admin/stores') ?>">Toko</a>
           <a href="<?= site_url('admin/categories') ?>">Kategori</a>
           <a href="<?= site_url('admin/users') ?>">Akun</a>
+          <a href="<?= site_url('admin/keuangan') ?>">Keuangan</a>
         <?php else: ?>
           <a href="<?= site_url('seller') ?>">Produk</a>
-          <a href="<?= site_url('seller/orders') ?>">Pesanan</a>
-          <a href="<?= site_url('seller/pesan') ?>">Pesan</a>
+          <a href="<?= site_url('seller/orders') ?>" class="panel-link-notif">
+            Pesanan
+            <!-- Lencana diisi panel-notif.js, berjalan di semua halaman
+                 panel. Disembunyikan sampai ada isinya supaya tidak ada
+                 titik kosong di menu. -->
+            <span class="panel-lencana" data-notif="pesanan" hidden>0</span>
+          </a>
+          <a href="<?= site_url('seller/pesan') ?>" class="panel-link-notif">
+            Pesan
+            <span class="panel-lencana" data-notif="pesan" hidden>0</span>
+          </a>
+          <a href="<?= site_url('seller/ulasan') ?>">Ulasan</a>
+          <a href="<?= site_url('seller/pendapatan') ?>">Pendapatan</a>
+          <a href="<?= site_url('seller/refund') ?>">Refund</a>
           <a href="<?= site_url('seller/profile') ?>">Profil Toko</a>
         <?php endif; ?>
         <a href="<?= site_url('shop') ?>">Lihat katalog</a>

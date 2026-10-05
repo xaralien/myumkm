@@ -232,7 +232,7 @@ class Chat_model extends CI_Model
 
     public function pesan_conv($conv_id, $sejak_id = 0)
     {
-        return $this->db
+        $baris = $this->db
             ->select('m.*, p.name AS produk_nama, p.slug AS produk_slug, p.price AS produk_harga,
                       p.image AS produk_gambar, s2.slug AS produk_toko', FALSE)
             ->from('order_messages m')
@@ -242,6 +242,22 @@ class Chat_model extends CI_Model
             ->where('m.id >', (int) $sejak_id)
             ->order_by('m.id', 'ASC')
             ->get()->result_array();
+
+        /* Harga diformat dan alamat produk disusun DI SINI, bukan di
+           JavaScript: aturan penulisan rupiah dan susunan alamat produk
+           sudah ada di PHP, dan menyalinnya ke browser berarti dua tempat
+           yang harus diubah bersamaan setiap kali salah satunya berubah. */
+        $this->load->helper(array('money', 'url'));
+
+        foreach ($baris as &$m) {
+            if (empty($m['product_id']) || empty($m['produk_nama'])) {
+                continue;
+            }
+            $m['produk_harga_teks'] = rupiah($m['produk_harga']);
+            $m['produk_url'] = site_url('produk/' . $m['produk_toko'] . '/' . $m['produk_slug']);
+        }
+
+        return $baris;
     }
 
     public function kirim_conv($conv_id, $pengirim, $tipe, $isi = NULL,

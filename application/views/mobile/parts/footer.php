@@ -37,6 +37,7 @@
         : array('track', 'Lacak', 'M5 4h14v16l-7-4-7 4z', array('track')),
     );
   ?>
+  <?php if (! ($seg === 'chat' && $this->uri->segment(2))): ?>
   <nav class="mb-tab" aria-label="Menu utama">
     <?php foreach ($tab as $t): ?>
       <?php $aktif = in_array((string) $seg, $t[3], TRUE) && ! ($t[0] === 'akun/pesanan' && $seg === 'track'); ?>
@@ -65,6 +66,10 @@
           <?php else: ?>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
           <?php endif; ?>
+          <!-- Titik merah tanpa angka: di ikon sekecil ini angka tidak
+               terbaca, dan yang perlu diketahui cuma "ada yang menunggu".
+               Rinciannya ada di dalam lembar akun. -->
+          <span class="mb-tab-titik" data-akun-notif="titik" hidden></span>
         </span>
         Akun
       </button>
@@ -80,6 +85,7 @@
       </button>
     <?php endif; ?>
   </nav>
+  <?php endif; ?>
 
   <div class="mb-sheet-scrim" id="mbAkunScrim" hidden></div>
 
@@ -146,16 +152,28 @@
       <?php endif; ?>
 
       <nav class="mb-sheet-menu" aria-label="Menu akun">
-        <a href="<?= site_url('akun/pesanan') ?>">Pesanan saya</a>
-        <a href="<?= site_url('akun/pesan') ?>">Pesan</a>
+        <a href="<?= site_url('akun/pesanan') ?>">
+          Pesanan saya
+          <span class="mb-sheet-angka" data-akun-notif="pesanan_saya" hidden></span>
+        </a>
+        <a href="<?= site_url('akun/pesan') ?>">
+          Pesan
+          <span class="mb-sheet-angka is-merah" data-akun-notif="pesan_saya" hidden></span>
+        </a>
         <a href="<?= site_url('akun/profil') ?>">Ubah profil</a>
         <a href="<?= site_url('track') ?>">Lacak pesanan</a>
 
         <?php if ($toko): ?>
           <span class="mb-sheet-sub">Toko</span>
           <a href="<?= site_url('seller') ?>">Produk</a>
-          <a href="<?= site_url('seller/orders') ?>">Pesanan masuk</a>
-          <a href="<?= site_url('seller/pesan') ?>">Pesan pembeli</a>
+          <a href="<?= site_url('seller/orders') ?>">
+            Pesanan masuk
+            <span class="mb-sheet-angka is-merah" data-akun-notif="toko_pesanan" hidden></span>
+          </a>
+          <a href="<?= site_url('seller/pesan') ?>">
+            Pesan pembeli
+            <span class="mb-sheet-angka is-merah" data-akun-notif="toko_pesan" hidden></span>
+          </a>
           <a href="<?= site_url('seller/profile') ?>">Pengaturan toko</a>
         <?php endif; ?>
 
@@ -178,6 +196,13 @@
   <?php endif; ?>
 
   <?php $this->load->view('parts/chat_inbox'); ?>
+
+  <?php if ($akun): ?>
+    <script>
+      window.AKUN_NOTIF = { url: '<?= site_url('akun/notif') ?>' };
+    </script>
+    <script src="<?= aset('assets/js/akun-notif.js') ?>"></script>
+  <?php endif; ?>
 
   <script>
     window.TAMPILAN = {

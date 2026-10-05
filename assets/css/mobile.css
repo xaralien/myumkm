@@ -666,24 +666,80 @@
   border-top: 1px solid var(--wn-garis);
 }
 
-.mb-beli-total { flex: 0 0 auto; line-height: 1.2; }
-.mb-beli-total span { display: block; font-size: 10.5px; color: var(--wn-samar); }
-.mb-beli-total strong { font-family: var(--wn-serif); font-size: 17px; }
+.mb-beli-total {
+  /* Boleh menyusut kalau ruang sempit, tapi tidak sampai hilang - harganya
+     tetap harus terbaca saat menekan tombol beli. */
+  flex: 0 1 auto;
+  min-width: 0;
+  line-height: 1.2;
+}
+.mb-beli-total span { display: block; font-size: 10px; color: var(--wn-samar); }
+.mb-beli-total strong {
+  font-family: var(--wn-serif);
+  font-size: 16px;
+  white-space: nowrap;
+}
 
 .mb-qty { flex: 0 0 auto; }
 
 .mb-beli-btn {
   flex: 1 1 auto;
   height: 46px;
+  padding: 0 14px;
   border: 0;
   border-radius: 999px;
   background: var(--wn-biru);
   color: #FFFFFF;
+  /* Tanpa ini tulisan "Beli sekarang" pecah jadi dua baris di layar sempit
+     dan tingginya melar melewati bilahnya. */
+  white-space: nowrap;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 .mb-beli-btn:disabled { opacity: 0.6; }
+
+/* Label pendek hanya dipakai di layar sempit. */
+.mb-teks-pendek { display: none; }
+
+/* Bilah beli di layar HP. Ukuran bawaannya tidak muat: harga, tombol
+   jumlah, tombol keranjang, dan "Beli sekarang" bersama-sama butuh
+   sekitar 445px sedangkan HP umumnya 360-430px - itu sebabnya tombolnya
+   menimpa tetangganya. Semua bagian dirampingkan di sini. */
+@media (max-width: 479.98px) {
+  .mb-beli { gap: 8px; padding: 10px 12px; }
+
+  .mb-beli-total strong { font-size: 15px; }
+
+  /* Tombol jumlah dirampingkan - angkanya tetap terbaca. */
+  .mb-qty .qty-btn { width: 28px; height: 28px; }
+  .mb-qty .qty-num { min-width: 20px; font-size: 14px; }
+
+  .mb-beli-btn.is-garis { width: 44px; }
+  .mb-beli-btn { font-size: 13.5px; padding: 0 12px; }
+
+}
+
+/* Label pendek hanya di bawah 390px. Dengan ukuran ramping di atas,
+   "Beli sekarang" perlu sekitar 387px - jadi muat di 390px ke atas
+   (iPhone 12-16, Galaxy S, dan sebagian besar HP sekarang), dan hanya
+   HP kecil yang mendapat label "Beli".
+
+   Labelnya ditukar, bukan huruf dikecilkan terus: di bawah 13px, tombol
+   utama mulai sulit dibaca sambil berjalan. */
+@media (max-width: 389.98px) {
+  .mb-teks-panjang { display: none; }
+  .mb-teks-pendek { display: inline; }
+}
+
+/* Jaring pengaman: kalau isinya masih lebih lebar dari layar, tombolnya
+   turun ke baris kedua selebar penuh - jauh lebih baik daripada saling
+   menimpa seperti sebelumnya. */
+@media (max-width: 339.98px) {
+  .mb-beli { flex-wrap: wrap; }
+  .mb-beli-btn { flex: 1 1 100%; }
+  .mb-beli-btn.is-garis { flex: 0 0 44px; }
+}
 
 /* Halaman produk butuh ruang ekstra: tab bar DAN bilah beli. */
 .mb-isi:has(.mb-beli) { padding-bottom: 60px; }
@@ -1500,3 +1556,287 @@
 }
 .mb-ul-halaman a { font-weight: 700; color: var(--wn-biru); }
 .mb-ul-halaman em { font-style: normal; color: var(--wn-samar); }
+
+
+/* --- Penanda pemberitahuan di menu akun --------------------------------- */
+
+.mb-tab-titik {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #D93025;
+  /* Garis putih tipis supaya titiknya tetap terbaca di atas ikon gelap
+     maupun foto profil. */
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
+.mb-tab-titik[hidden] { display: none; }
+
+/* Baris menu di lembar akun jadi dua sisi: nama di kiri, angka di kanan. */
+.mb-sheet-menu a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mb-sheet-angka {
+  flex: 0 0 auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--wn-dasar-2);
+  color: var(--wn-teks-2);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+/* Merah hanya untuk yang menunggu DIKERJAKAN. Pesanan sendiri yang sedang
+   dikirim bukan tugas, jadi angkanya netral - kalau semuanya merah,
+   warnanya berhenti berarti apa-apa. */
+.mb-sheet-angka.is-merah { background: #D93025; color: #FFFFFF; }
+.mb-sheet-angka[hidden] { display: none; }
+
+
+/* ===================================================================== */
+/*  PERCAKAPAN LAYAR PENUH (HP)                                          */
+/*                                                                       */
+/*  Halaman ini mengisi seluruh layar: bilah atas, daftar pesan yang      */
+/*  bisa digulir, lalu kolom tulis menempel di bawah - seperti aplikasi   */
+/*  chat pada umumnya. Sebelumnya ia memakai tata letak halaman biasa     */
+/*  sehingga kolom tulisnya ikut tergulir dan harus dicari.               */
+/* ===================================================================== */
+
+.mb-chat {
+  display: flex;
+  flex-direction: column;
+  /* dvh: tinggi yang benar-benar terlihat, ikut menyusut saat bilah alamat
+     browser muncul. Tab bar tidak digambar di halaman ini, jadi tidak ada
+     yang perlu dikurangi selain area aman perangkat. */
+  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  background: var(--wn-dasar-2);
+}
+
+/* Halaman percakapan: ruang untuk tab bar dihapus, karena tab barnya
+   memang tidak ada. Tanpa ini ada pita kosong di bawah kolom tulis. */
+.mb.is-chat { padding-bottom: 0; }
+.mb.is-chat .mb-isi { padding-bottom: 0; }
+
+.mb-chat-atas {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--mb-tepi);
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--wn-garis);
+}
+
+.mb-chat-balik,
+.mb-chat-toko {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--wn-tua);
+}
+.mb-chat-toko { border: 1px solid var(--wn-garis); }
+
+.mb-chat-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--wn-gradien);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+.mb-chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.mb-chat-judul { flex: 1 1 auto; min-width: 0; }
+.mb-chat-judul strong { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb-chat-judul em { display: block; font-style: normal; font-size: 11.5px; color: var(--wn-samar); }
+
+.mb-chat-isi {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px var(--mb-tepi);
+  -webkit-overflow-scrolling: touch;
+}
+
+.mb-chat-kosong {
+  margin: 28px auto 0;
+  max-width: 280px;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--wn-samar);
+}
+
+.mb-chat-form {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 10px var(--mb-tepi);
+  background: #FFFFFF;
+  border-top: 1px solid var(--wn-garis);
+}
+.mb-chat-form input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--wn-garis-2);
+  border-radius: 999px;
+  /* 16px mencegah iOS memperbesar seluruh halaman saat kolom disentuh. */
+  font-size: 16px;
+  outline: none;
+}
+.mb-chat-form input:focus { border-color: var(--wn-biru); }
+.mb-chat-form button {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wn-gradien);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mb-chat-info { margin: 0; padding: 0 var(--mb-tepi) 6px; font-size: 12px; color: var(--wn-samar); background: #FFFFFF; min-height: 14px; }
+.mb-chat-info.is-error { color: var(--ord-red); }
+
+/* Gelembung chat di halaman ini tidak perlu jarak halaman tambahan. */
+.mb-chat .chat-produk { width: 100%; max-width: 250px; }
+
+/* Gelembung chat melayang disembunyikan di halaman percakapan - isinya
+   sama persis dengan yang sedang dibuka. */
+.mb-chat ~ .ib-tombol, .mb-chat ~ .ib-panel { display: none; }
+
+
+/* ===================================================================== */
+/*  HALAMAN TOKO (HP)                                                    */
+/* ===================================================================== */
+
+.mb-tk-kepala {
+  position: relative;
+  padding: 16px var(--mb-tepi) 18px;
+  background-image: var(--wn-gradien);
+  background-color: var(--wn-tua);
+  color: #FFFFFF;
+  overflow: hidden;
+}
+.mb-tk-kepala::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wn-motif);
+  background-size: 84px 84px;
+  opacity: 0.14;
+}
+.mb-tk-kepala > * { position: relative; }
+
+.mb-tk-atas { display: flex; align-items: center; gap: 12px; }
+
+.mb-tk-avatar {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #FFFFFF;
+  color: var(--wn-biru);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--wn-serif);
+  font-size: 24px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(253, 217, 119, 0.5);
+}
+.mb-tk-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.mb-tk-nama { min-width: 0; }
+.mb-tk-nama h1 { font-size: 19px; font-weight: 700; color: #FFFFFF; margin: 0 0 3px; line-height: 1.25; }
+.mb-tk-nama p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 12.5px;
+  color: #CFE0EC;
+}
+.mb-tk-nama svg { color: var(--wn-emas-muda); flex: 0 0 auto; }
+
+/* Tiga angka satu baris. Ditumpuk ke bawah, daftar produknya terdorong
+   keluar layar sebelum sempat terlihat. */
+.mb-tk-angka {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.mb-tk-angka > div {
+  padding: 9px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+.mb-tk-angka strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--wn-serif);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.mb-tk-angka span { display: block; margin-top: 2px; font-size: 10.5px; color: #CFE0EC; }
+.mb-tk-angka .is-rating strong { color: var(--wn-emas-muda); }
+
+.mb-tk-chat { margin: 12px 0 0; }
+.mb-tk-chat button {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wn-gradien-emas);
+  color: #243B4F;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Rating kecil di kartu produk versi HP */
+.mb-kartu-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--wn-teks-2);
+}
+.mb-kartu-rating svg { color: #E8B23A; flex: 0 0 auto; }
+.mb-kartu-rating em { font-style: normal; font-weight: 400; color: var(--wn-samar); }

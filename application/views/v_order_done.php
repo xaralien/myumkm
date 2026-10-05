@@ -68,6 +68,43 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
                  class="btn btn-primary mt-2">Beri ulasan</a>
             <?php endif; ?>
 
+            <?php if (! empty($refund)): ?>
+              <?php
+                $label_refund = array(
+                  'diminta'   => array('Pengembalian dana sedang ditinjau penjual.', 'is-wait'),
+                  'disetujui' => array('Pengembalian disetujui. Dana ditransfer admin dalam beberapa hari kerja.', 'is-ok'),
+                  'ditolak'   => array('Pengembalian ditolak penjual.', 'is-error'),
+                  'selesai'   => array('Dana sudah dikembalikan.', 'is-ok'),
+                );
+                $r = $label_refund[$refund['status']];
+              ?>
+              <p class="refund-status <?= $r[1] ?>">
+                <?= html_escape($r[0]) ?>
+                <?php if ($refund['catatan_penjual']): ?>
+                  <em><?= html_escape($refund['catatan_penjual']) ?></em>
+                <?php endif; ?>
+              </p>
+
+            <?php elseif (! empty($bisa_refund)): ?>
+              <!-- Hanya muncul untuk pesanan yang sudah dibayar dan belum
+                   selesai. Setelah barang diterima, keluhan diselesaikan
+                   lewat chat dulu - bukan langsung menuntut uang kembali. -->
+              <details class="refund-ajukan">
+                <summary>Ajukan pengembalian dana</summary>
+                <?= form_open('checkout/refund/' . $order['order_number'] . '/' . $order['access_token']) ?>
+                  <label class="form-label" for="alasanRefund">Ceritakan masalahnya</label>
+                  <textarea id="alasanRefund" name="alasan" class="form-control" rows="3"
+                            minlength="10" maxlength="500" required
+                            placeholder="Contoh: barang tidak sesuai pesanan, atau penjual tidak bisa dihubungi selama 3 hari."></textarea>
+                  <p class="hint">
+                    Penjual yang meninjau permintaan ini. Kalau disetujui, dana
+                    dikembalikan admin lewat transfer.
+                  </p>
+                  <button type="submit" class="btn btn-black-hover-outline btn-sm">Kirim permintaan</button>
+                <?= form_close() ?>
+              </details>
+            <?php endif; ?>
+
             <!-- Pintasan ke halaman lacak: nomor pesanan dan nomor HP sudah
                  terisi, jadi pembeli tidak perlu mengetik ulang. -->
             <?= form_open('track/cari') ?>
@@ -87,6 +124,16 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
                    karena itulah keranjang dulu terpaksa tidak dikosongkan.
                    Payment::pay membuat ulang invoice-nya sendiri. -->
               <a href="<?= $url_bayar ?>" class="btn btn-primary mt-2">Bayar sekarang</a>
+
+              <!-- Membatalkan hanya mungkin sebelum dibayar. Sesudahnya ada
+                   uang yang harus dikembalikan, dan itu lewat penjual. -->
+              <?= form_open('checkout/batal/' . $order['order_number'] . '/' . $order['access_token'],
+                            array('class' => 'batal-form')) ?>
+                <button type="submit" class="link-btn"
+                        onclick="return confirm('Batalkan pesanan ini? Tindakan ini tidak bisa dibatalkan.');">
+                  Batalkan pesanan
+                </button>
+              <?= form_close() ?>
             <?php endif; ?>
           <?php endif; ?>
         </div>

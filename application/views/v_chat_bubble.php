@@ -16,14 +16,32 @@
         <!-- Kartu produk: rujukan, bukan salinan. Nama & harga dibaca dari
              tabel produk saat ditampilkan, jadi kalau penjual mengubah
              harganya, kartu di percakapan lama ikut menunjukkan yang
-             berlaku sekarang - bukan angka usang. -->
-        <a class="chat-produk" href="<?= site_url('produk/' . $m['produk_toko'] . '/' . $m['produk_slug']) ?>">
-          <img src="<?= base_url('upload/produk/' . $m['produk_gambar']) ?>" alt="" loading="lazy">
-          <span>
-            <strong><?= html_escape($m['produk_nama']) ?></strong>
-            <em><?= rupiah($m['produk_harga']) ?></em>
-          </span>
-        </a>
+             berlaku sekarang - bukan angka usang yang bisa jadi sumber
+             salah paham. -->
+        <div class="chat-produk">
+          <a class="chat-produk-isi" href="<?= site_url('produk/' . $m['produk_toko'] . '/' . $m['produk_slug']) ?>">
+            <img src="<?= base_url('upload/produk/' . $m['produk_gambar']) ?>" alt="" loading="lazy">
+            <span>
+              <strong><?= html_escape($m['produk_nama']) ?></strong>
+              <em><?= rupiah($m['produk_harga']) ?></em>
+            </span>
+          </a>
+
+          <?php if (empty($sisi) || $sisi === 'customer'): ?>
+            <!-- Tombol hanya untuk sisi pembeli. Penjual tidak membeli
+                 produknya sendiri, dan tombol yang tidak berguna di sana
+                 hanya menambah ramai. -->
+            <div class="chat-produk-aksi">
+              <button type="button" class="chat-produk-btn btn-add" data-id="<?= (int) $m['product_id'] ?>">
+                + Keranjang
+              </button>
+              <a class="chat-produk-btn is-utama"
+                 href="<?= site_url('produk/' . $m['produk_toko'] . '/' . $m['produk_slug']) ?>">
+                Beli
+              </a>
+            </div>
+          <?php endif; ?>
+        </div>
       <?php endif; ?>
 
       <?php if ($m['image']): ?>

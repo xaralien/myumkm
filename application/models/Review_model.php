@@ -319,4 +319,44 @@ class Review_model extends CI_Model {
 
         return $baris;
     }
+
+    /* ---------------------------------------------- untuk panel penjual --- */
+
+    protected function filter_penjual($store_id, $saring)
+    {
+        $this->db->from('reviews r')
+                 ->join('products p', 'p.id = r.product_id', 'left')
+                 ->where('r.store_id', (int) $store_id);
+
+        if ($saring === 'belum') {
+            $this->db->where('r.balasan IS NULL', NULL, FALSE);
+        } elseif ($saring === 'rendah') {
+            // 1-3 bintang: yang paling perlu ditanggapi penjual.
+            $this->db->where('r.rating <=', 3);
+        }
+        return $this;
+    }
+
+    public function daftar_toko_penjual($store_id, $saring = NULL, array $opsi = array())
+    {
+        $baris = $this->filter_penjual($store_id, $saring)->db
+            ->select('r.*, p.name AS produk_nama, p.slug AS produk_slug', FALSE)
+            ->order_by('r.created_at', 'DESC')
+            ->limit((int) ($opsi['limit'] ?? 10), (int) ($opsi['offset'] ?? 0))
+            ->get()->result_array();
+
+        return $this->lampirkan_media($baris);
+    }
+
+    public function hitung_toko_penjual($store_id, $saring = NULL)
+    {
+        return (int) $this->filter_penjual($store_id, $saring)->db->count_all_results();
+    }
+
+    public function belum_dibalas($store_id)
+    {
+        return (int) $this->db->where('store_id', (int) $store_id)
+                              ->where('balasan IS NULL', NULL, FALSE)
+                              ->count_all_results('reviews');
+    }
 }

@@ -2,7 +2,7 @@
 <?php
 $harga_dasar = (int) $p['price'];
 $url_gambar = base_url('upload/produk/' . $p['image']);
-$link_toko = site_url('shop') . '?store=' . (int) $p['store_id'];
+$link_toko = site_url('toko/' . $p['store_slug']);
 
 // Pesan WhatsApp disiapkan lengkap supaya penjual langsung tahu
 // produk mana yang ditanyakan, tanpa pembeli perlu menjelaskan ulang.
@@ -116,26 +116,30 @@ foreach ($addons as $a) {
 
                 <!-- ---------- TOKO ---------- -->
                 <div class="produk-toko">
-                    <div>
-                        <p class="produk-toko-nama"><?= html_escape($p['store_name']) ?></p>
-                        <p class="produk-toko-lokasi">
+                    <!-- Seluruh bagian kiri jadi satu tautan ke halaman toko:
+                         nama toko yang terlihat seperti judul tapi tidak bisa
+                         diklik membuat orang mengira tokonya tidak punya
+                         halaman sendiri. -->
+                    <a class="produk-toko-info" href="<?= html_escape($link_toko) ?>">
+                        <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
+                        <span class="produk-toko-lokasi">
                             <?= html_escape($p['store_district']) ?>,
                             <?= html_escape($p['store_regency']) ?>
                             <?php if ($jarak && isset($label_jarak[$jarak])): ?>
                                 <span class="badge-jarak"><?= $label_jarak[$jarak] ?></span>
                             <?php endif; ?>
-                        </p>
-                    </div>
-                    <div class="produk-toko-aksi">
-                        <a href="<?= html_escape($link_toko) ?>" class="produk-toko-link">Lihat toko</a>
-                        <!-- Membawa produk ini ke dalam percakapan, jadi penjual
-                             langsung tahu yang ditanyakan tanpa pembeli perlu
-                             menjelaskan ulang. -->
-                        <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'inline-form')) ?>
-                            <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
-                            <button type="submit" class="produk-toko-link">Tanya ke toko</button>
-                        <?= form_close() ?>
-                    </div>
+                        </span>
+                    </a>
+
+                    <!-- Tombol Tanya berdiri sendiri - inilah satu-satunya
+                         jalan yang membawa produk ini ke dalam percakapan. -->
+                    <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'produk-toko-tanya')) ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                        <button type="submit">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                            Tanya
+                        </button>
+                    <?= form_close() ?>
                 </div>
 
                 <!-- ---------- PILIHAN ---------- -->

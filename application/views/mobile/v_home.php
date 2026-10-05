@@ -81,7 +81,7 @@
     </div>
     <div class="mb-geser">
       <?php foreach ($toko_dekat as $t): ?>
-        <a href="<?= site_url('shop') . '?store=' . (int) $t['id'] ?>" class="mb-toko">
+        <a href="<?= site_url('toko/' . $t['slug']) ?>" class="mb-toko">
           <span class="mb-toko-avatar">
             <?php if (! empty($t['avatar'])): ?>
               <img src="<?= base_url('upload/avatar/' . $t['avatar']) ?>" alt="">

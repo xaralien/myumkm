@@ -22,6 +22,10 @@ class Product_model extends CI_Model
             ->join('stores s', 's.id = p.store_id')
             ->where('p.id', (int) $id)
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1)
             ->get()
             ->row_array();
@@ -48,6 +52,10 @@ class Product_model extends CI_Model
             ->join('stores s', 's.id = p.store_id')
             ->where_in('p.id', $ids)
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1)
             ->get()
             ->result_array();
@@ -153,6 +161,10 @@ class Product_model extends CI_Model
             ->from('products p')
             ->join('stores s', 's.id = p.store_id')
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1);
 
         $dekat = $this->mode_dekat($f);
@@ -414,6 +426,10 @@ class Product_model extends CI_Model
             ->from('products p')
             ->join('stores s', 's.id = p.store_id')
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1);
 
         if (!empty($province_id)) {
@@ -458,6 +474,10 @@ class Product_model extends CI_Model
             ->where('s.slug', $store_slug)
             ->where('p.slug', $product_slug)
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1)
             ->get()
             ->row_array();
@@ -481,6 +501,10 @@ class Product_model extends CI_Model
             ->join('stores s', 's.id = p.store_id')
             ->where('p.slug', $product_slug)
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->where('s.is_active', 1)
             ->get()
             ->result_array();
@@ -501,6 +525,10 @@ class Product_model extends CI_Model
             ->where('p.store_id', (int) $store_id)
             ->where('p.id !=', (int) $kecuali_id)
             ->where('p.is_active', 1)
+            /* Produk yang stoknya habis disembunyikan dari katalog. NULL
+               (tidak dibatasi) tetap tampil - itu bawaan untuk barang yang
+               dibuat sesuai pesanan. */
+            ->group_start()->where('p.stock IS NULL', NULL, FALSE)->or_where('p.stock >', 0)->group_end()
             ->order_by('p.id', 'DESC')
             ->limit((int) $limit)
             ->get()

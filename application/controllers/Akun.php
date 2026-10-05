@@ -80,7 +80,79 @@ class Akun extends Member_Controller
         $this->load->view('index', $data);
     }
 
-    /** Daftar percakapan untuk gelembung chat.  GET akun/inbox_json [AJAX] */
+    /**
+     * Angka untuk titik merah & hitungan di menu akun.  GET akun/notif [AJAX]
+     *
+     * Satu endpoint untuk kedua peran: pembeli (pesanan sendiri yang belum
+     * selesai, pesan belum dibaca) dan penjual (pesanan masuk yang belum
+     * dikirim, pesan dari pembeli). Dipisah dua permintaan hanya menambah
+     * beban tanpa menambah apa pun - keduanya dibutuhkan bersamaan.
+     */
+    public function notif()
+    {
+        $this->load->model('chat_model');
+
+        /* Pesanan pembeli yang masih berjalan: sudah dibayar tapi belum
+           diterima. Yang belum dibayar tidak dihitung - itu belum tentu
+           jadi, dan menandainya penting hanya membuat titik merahnya
+           menyala terus. */
+        $pesanan_saya = (int) $this->db
+            ->where('user_id', (int) $this->me['id'])
+            ->where('payment_status', 'paid')
+            ->where_in('order_status', array('pending', 'confirmed', 'preparing', 'delivering'))
+            ->count_all_results('orders');
+
+        $pesan_saya = 0;
+        foreach ($this->chat_model->inbox_user_conv($this->me['id'], 60) as $d) {
+            $pesan_saya += (int) $d['belum'];
+        }
+
+        $data = array(
+            'ok'            => TRUE,
+            'pesanan_saya'  => $pesanan_saya,
+            'pesan_saya'    => $pesan_saya,
+            'toko_pesanan'  => 0,
+            'toko_pesan'    => 0,
+        );
+
+        $toko = $this->auth_lib->store();
+
+        if ($toko) {
+            $data['toko_pesanan'] = (int) $this->db
+                ->where('store_id', (int) $toko['id'])
+                ->where('payment_status', 'paid')
+                ->where_in('order_status', array('pending', 'confirmed', 'preparing'))
+                ->count_all_results('orders');
+
+            foreach ($this->chat_model->inbox_toko_conv($toko['id'], 60) as $d) {
+                $data['toko_pesan'] += (int) $d['belum'];
+            }
+        }
+
+        /* Titik merah di tab Akun hanya untuk yang BENAR-BENAR perlu
+           ditindaklanjuti: pesan belum dibaca dan pesanan masuk yang
+           menunggu dikirim. Pesanan pembeli sendiri sengaja tidak dihitung -
+           menunggu kiriman bukan hal yang perlu dia kerjakan, dan titik
+           merah yang menyala berhari-hari akan diabaikan. */
+        $data['penting'] = $data['pesan_saya'] + $data['toko_pesanan'] + $data['toko_pesan'];
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
+    }
+
+    /**
+     * Daftar percakapan untuk gelembung chat.  GET akun/inbox_json [AJAX]
+     *
+     * Berisi KEDUA sisi sekaligus untuk pengguna yang punya toko: percakapan
+     * belanjanya sendiri DAN percakapan tokonya. Sebelumnya sisi ditentukan
+     * dari alamat halaman, jadi penjual yang sedang berada di situs publik
+     * tidak melihat percakapan tokonya sama sekali - padahal justru itu yang
+     * perlu dibalas cepat.
+     *
+     * Tiap baris membawa penanda 'sisi' supaya tampilan bisa menyaringnya
+     * dan tahu gelembung mana yang "milik saya" di dalam percakapan.
+     */
     public function inbox_json()
     {
         $this->load->model('chat_model');
@@ -88,186 +160,70 @@ class Akun extends Member_Controller
         $daftar = array();
         $total  = 0;
 
-        foreach ($this->chat_model->inbox_user($this->me['id'], 30) as $d) {
+        // --- percakapan belanja ---
+        foreach ($this->chat_model->inbox_user_conv($this->me['id'], 30) as $d) {
             $total += (int) $d['belum'];
-
-            $jalur = rawurlencode($d['order_number']) . '/' . rawurlencode($d['access_token']);
 
             $daftar[] = array(
                 'id'      => (int) $d['id'],
-                'nomor'   => $d['order_number'],
+                'sisi'    => 'customer',
+                'nomor'   => $d['order_number'] ?: 'Tanya sebelum beli',
                 'lawan'   => $d['lawan'] ?: 'Toko',
                 'status'  => $d['order_status'],
-                // Teks status dibuat di server, bukan dipetakan ulang di
-                // JavaScript: dua daftar label untuk hal yang sama cepat
-                // berbeda begitu salah satunya diubah.
-                'status_teks' => label_status($d['order_status']),
+                'status_teks' => $d['order_id'] ? label_status($d['order_status']) : 'Belum memesan',
                 'cuplik'  => $d['pesan_akhir'] ?: ($d['gambar_akhir'] ? 'Mengirim foto' : ''),
                 'waktu'   => $d['waktu_akhir'] ?: $d['created_at'],
                 'belum'   => (int) $d['belum'],
-                'url_baru'  => site_url('chat/baru/' . $jalur),
-                'url_kirim' => site_url('chat/kirim/' . $jalur),
-                'url_buka'  => site_url('akun/pesan/' . rawurlencode($d['order_number'])),
+                'url_baru'  => site_url('chat/conv_baru/' . (int) $d['id']),
+                'url_kirim' => site_url('chat/conv_kirim/' . (int) $d['id']),
+                'url_buka'  => site_url('chat/conv/' . (int) $d['id']),
             );
+        }
+
+        // --- percakapan toko, kalau punya ---
+        $toko = $this->auth_lib->store();
+
+        if ($toko) {
+            foreach ($this->chat_model->inbox_toko_conv($toko['id'], 30) as $d) {
+                $total += (int) $d['belum'];
+
+                $daftar[] = array(
+                    'id'      => (int) $d['id'],
+                    'sisi'    => 'seller',
+                    'nomor'   => $d['order_number'] ?: 'Tanya sebelum beli',
+                    'lawan'   => $d['lawan'] ?: 'Pembeli',
+                    'status'  => $d['order_status'],
+                    'status_teks' => $d['order_id'] ? label_status($d['order_status']) : 'Belum memesan',
+                    'cuplik'  => $d['pesan_akhir'] ?: ($d['gambar_akhir'] ? 'Mengirim foto' : ''),
+                    'waktu'   => $d['waktu_akhir'] ?: $d['created_at'],
+                    'belum'   => (int) $d['belum'],
+                    'url_baru'  => site_url('seller/conv_baru/' . (int) $d['id']),
+                    'url_kirim' => site_url('seller/conv_kirim/' . (int) $d['id']),
+                    'url_buka'  => site_url('seller/pesan/' . (int) $d['id']),
+                );
+            }
+
+            /* Digabung lalu diurutkan ulang: yang ada pesan barunya di atas,
+               sisanya menurut waktu. Tanpa ini, semua percakapan belanja
+               akan menumpuk di atas semua percakapan toko hanya karena
+               urutan pengambilannya. */
+            usort($daftar, function ($a, $b) {
+                if (($a['belum'] > 0) !== ($b['belum'] > 0)) {
+                    return $a['belum'] > 0 ? -1 : 1;
+                }
+                return strcmp($b['waktu'], $a['waktu']);
+            });
         }
 
         return $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode(array(
                 'ok' => TRUE, 'total' => $total, 'daftar' => $daftar,
+                'punya_toko' => (bool) $toko,
                 'csrf_name' => $this->security->get_csrf_token_name(),
                 'csrf_hash' => $this->security->get_csrf_hash(),
             )));
     }
-
-    /* --------------------------------------------------------------- profil */
-
-    public function profil()
-    {
-        if ($this->input->method() === 'post') {
-            $this->form_validation->set_rules('name',        'Nama',           'required|trim|min_length[2]|max_length[100]');
-            $this->form_validation->set_rules('phone',       'Nomor WhatsApp', 'required|trim|callback_valid_phone');
-            $this->form_validation->set_rules('address',     'Alamat',         'trim|max_length[255]');
-            $this->form_validation->set_rules('district_id', 'Kecamatan',      'trim|integer');
-
-            if ($this->input->post('password', FALSE)) {
-                $this->form_validation->set_rules('password_lama', 'Password sekarang', 'required');
-                $this->form_validation->set_rules('password',      'Password baru',     'min_length[8]');
-                $this->form_validation->set_rules('password2',     'Ulangi password',   'matches[password]');
-            }
-
-            $this->form_validation->set_message('required',   '{field} wajib diisi.');
-            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
-            $this->form_validation->set_message('matches',    'Password baru tidak sama.');
-            $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
-
-            if ($this->form_validation->run()) {
-                return $this->simpan_profil();
-            }
-        }
-
-        $data = array(
-            'akun'      => $this->akun,
-            'provinces' => $this->region_model->provinces(),
-        );
-        $data['pages'] = 'akun/v_profil';
-        $this->load->view('index', $data);
-    }
-
-    protected function simpan_profil()
-    {
-        $u = array(
-            'name'    => trim($this->input->post('name', TRUE)),
-            'phone'   => $this->normalize_phone($this->input->post('phone', TRUE)),
-            'address' => trim((string) $this->input->post('address', TRUE)) ?: NULL,
-        );
-
-        // Wilayah opsional, tapi kalau diisi harus kecamatan yang benar-benar ada.
-        $dis = (int) $this->input->post('district_id');
-        if ($dis) {
-            $w = $this->region_model->district_full($dis);
-            if (! $w) {
-                $this->session->set_flashdata('error', 'Kecamatan tidak valid.');
-                return redirect('akun/profil');
-            }
-            $u['province_id'] = (int) $w['province_id'];
-            $u['regency_id']  = (int) $w['regency_id'];
-            $u['district_id'] = (int) $w['district_id'];
-        }
-
-        // Ganti password: password lama WAJIB benar. Tanpa ini, siapa pun
-        // yang sempat memakai perangkat pemilik akun bisa mengambil alihnya.
-        if ($this->input->post('password', FALSE)) {
-            if (! password_verify((string) $this->input->post('password_lama', FALSE), $this->akun['password_hash'])) {
-                $this->session->set_flashdata('error', 'Password sekarang salah.');
-                return redirect('akun/profil');
-            }
-            $u['password_hash'] = password_hash((string) $this->input->post('password', FALSE), PASSWORD_DEFAULT);
-        }
-
-        $avatar = $this->unggah_avatar('avatar', $this->akun['avatar']);
-        if ($avatar === FALSE) {
-            return redirect('akun/profil');
-        }
-        $u['avatar'] = $avatar;
-
-        $this->db->where('id', (int) $this->me['id'])->update('users', $u);
-
-        // Nama di menu dibaca dari sesi - diperbarui supaya langsung berubah.
-        $this->auth_lib->segarkan();
-
-        $this->session->set_flashdata('sukses', 'Profil tersimpan.');
-        return redirect('akun/profil');
-    }
-
-    /* ------------------------------------------------------------ buka toko */
-
-    public function buka_toko()
-    {
-        // 1 akun 1 toko. Yang sudah punya diarahkan ke pengaturan tokonya.
-        if ($this->auth_lib->store()) {
-            return redirect('seller/profile');
-        }
-
-        if ($this->input->method() === 'post') {
-            $this->form_validation->set_rules('store_name',  'Nama toko',   'required|trim|min_length[3]|max_length[120]|callback_nama_toko_unik');
-            $this->form_validation->set_rules('phone',       'WhatsApp toko', 'required|trim|callback_valid_phone');
-            $this->form_validation->set_rules('address',     'Alamat toko', 'required|trim|max_length[255]');
-            $this->form_validation->set_rules('district_id', 'Kecamatan',   'required|integer');
-            $this->form_validation->set_rules('description', 'Deskripsi',   'trim|max_length[1000]');
-            $this->form_validation->set_rules('setuju',      'Persetujuan', 'required');
-
-            $this->form_validation->set_message('required',   '{field} wajib diisi.');
-            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
-            $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
-
-            if ($this->form_validation->run()) {
-                $w = $this->region_model->district_full((int) $this->input->post('district_id'));
-
-                if (! $w) {
-                    $this->session->set_flashdata('error', 'Kecamatan tidak valid.');
-                    return redirect('akun/buka_toko');
-                }
-
-                $id = $this->toko_model->buat($this->me['id'], array(
-                    'name'        => $this->input->post('store_name', TRUE),
-                    'phone'       => $this->normalize_phone($this->input->post('phone', TRUE)),
-                    'address'     => trim($this->input->post('address', TRUE)),
-                    'description' => trim((string) $this->input->post('description', TRUE)) ?: NULL,
-                    'province_id' => (int) $w['province_id'],
-                    'regency_id'  => (int) $w['regency_id'],
-                    'district_id' => (int) $w['district_id'],
-                ));
-
-                if (! $id) {
-                    /* Lolos pengecekan tapi ditolak database: nama baru saja
-                       diambil orang lain, atau tombol ditekan dua kali. */
-                    $this->session->set_flashdata(
-                        'error',
-                        'Nama toko itu baru saja dipakai. Coba nama lain.'
-                    );
-                    return redirect('akun/buka_toko');
-                }
-
-                $this->session->set_flashdata(
-                    'sukses',
-                    'Toko dibuat dan menunggu persetujuan admin. Sambil menunggu, '
-                        . 'kamu sudah bisa menambahkan produk - produknya tampil di '
-                        . 'katalog begitu toko disetujui.'
-                );
-                return redirect('seller');
-            }
-        }
-
-        $data = array(
-            'akun'      => $this->akun,
-            'provinces' => $this->region_model->provinces(),
-        );
-        $data['pages'] = 'akun/v_buka_toko';
-        $this->load->view('index', $data);
-    }
-
-    /* ------------------------------------------------------ callback validasi */
 
     /** WAJIB public - dipanggil form_validation dari luar kelas. */
     public function nama_toko_unik($str)

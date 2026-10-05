@@ -125,6 +125,7 @@ class Produk extends CI_Controller
         $f_ulasan = array(
             'rating' => (int) $this->input->get('ub') ?: NULL,
             'media'  => $this->input->get('umedia') === '1',
+            // 5 untuk desktop; tampilan HP memotongnya lagi jadi 2.
             'limit'  => 5,
         );
 

@@ -172,7 +172,87 @@ class Order_model extends CI_Model
             'status'   => 'confirmed',
             'note'     => 'Pembayaran diterima',
         ));
+
+        $this->buka_percakapan($order);
+        $this->potong_stok($order);
+
+        /* Bagian toko dihitung dan disimpan di sini, sekali. Persentase
+           komisi bisa berubah tahun depan; pesanan lama harus tetap memakai
+           angka yang berlaku saat pesanan ini dibayar. */
+        $this->load->library('pendapatan_lib');
+        $this->pendapatan_lib->catat($order);
+
         return TRUE;
+    }
+
+    /**
+     * Buat percakapan pesanan dan isi pesan pembuka begitu pembayaran masuk.
+     *
+     * Dipanggil dari mark_paid() yang sudah punya pengaman balapan, jadi
+     * pesan ini dijamin hanya dibuat SEKALI - callback Duitku bisa datang
+     * dua kali untuk pembayaran yang sama.
+     *
+     * Kenapa lewat chat, bukan sistem pemberitahuan tersendiri: pesanan
+     * baru langsung naik ke atas kotak masuk penjual dengan lencana merah,
+     * dan gelembung chat sudah ada di semua halaman panel. Penjual
+     * melihatnya tanpa perlu membuka halaman pesanan.
+     */
+    /**
+     * Kurangi stok, dan beri tahu penjual kalau ternyata tidak cukup.
+     *
+     * Pesanan TIDAK dibatalkan saat stok kurang: uangnya sudah masuk, dan
+     * membatalkan sepihak jauh lebih merugikan pembeli daripada penjual
+     * yang kelebihan satu pesanan. Penjual yang memutuskan - dia bisa
+     * membuat satu lagi, atau membatalkan dan merefund.
+     */
+    protected function potong_stok(array $order)
+    {
+        $this->load->library('stok_lib');
+
+        $hasil = $this->stok_lib->kurangi($order['id']);
+
+        if ($hasil['ok']) {
+            return;
+        }
+
+        $this->load->model('chat_model');
+        $conv = $this->chat_model->conv($order['store_id'], $order['user_id'], $order['id']);
+
+        if ($conv) {
+            $this->chat_model->sistem_conv($conv,
+                'Perhatian: stok tidak mencukupi untuk ' . implode(', ', $hasil['gagal'])
+                . '. Pesanan tetap masuk karena sudah dibayar. '
+                . 'Hubungi pembeli kalau barangnya tidak bisa disiapkan.');
+        }
+    }
+
+    protected function buka_percakapan(array $order)
+    {
+        $this->load->model('chat_model');
+        $this->load->helper('money');
+
+        $conv = $this->chat_model->conv($order['store_id'], $order['user_id'], $order['id']);
+        if ( ! $conv) {
+            return;
+        }
+
+        $item = $this->db->select('product_name, qty')
+                         ->where('order_id', $order['id'])
+                         ->get('order_items')->result_array();
+
+        $baris = array();
+        foreach ($item as $i) {
+            $baris[] = $i['qty'] . 'x ' . $i['product_name'];
+        }
+
+        /* Isi pesanan ikut ditulis di pesannya. Penjual yang membalas dari
+           gelembung chat jadi tahu apa yang dipesan tanpa pindah halaman. */
+        $isi = 'Pesanan baru masuk dan sudah dibayar.' . "\n"
+             . $order['order_number'] . "\n"
+             . implode("\n", $baris) . "\n"
+             . 'Total ' . rupiah($order['total']);
+
+        $this->chat_model->sistem_conv($conv, $isi);
     }
 
     public function mark_failed($order_number, $status = 'failed', $note = NULL)
@@ -226,6 +306,85 @@ class Order_model extends CI_Model
             ->order_by('created_at', 'ASC')
             ->limit((int) $limit)
             ->get('orders')->result_array();
+    }
+
+    /**
+     * Batalkan pesanan.
+     *
+     * @param  string $oleh    'customer', 'seller', atau 'system'
+     * @param  string $alasan
+     * @return array  ['ok' => bool, 'pesan' => string]
+     */
+    public function batalkan(array $order, $oleh = 'customer', $alasan = NULL)
+    {
+        if ($order['order_status'] === 'cancelled') {
+            return array('ok' => FALSE, 'pesan' => 'Pesanan ini sudah dibatalkan.');
+        }
+
+        if (in_array($order['order_status'], array('delivering', 'delivered'), TRUE)) {
+            return array('ok' => FALSE, 'pesan' => 'Pesanan sudah dikirim dan tidak bisa dibatalkan.');
+        }
+
+        /* Pembeli hanya boleh membatalkan SEBELUM membayar. Setelah uangnya
+           masuk, membatalkan berarti ada uang yang harus dikembalikan - dan
+           itu keputusan penjual, lewat alur refund, bukan satu tombol di
+           halaman pesanan. */
+        if ($oleh === 'customer' && $order['payment_status'] === 'paid') {
+            return array(
+                'ok' => FALSE,
+                'pesan' => 'Pesanan sudah dibayar. Hubungi penjual lewat chat untuk pembatalan dan pengembalian dana.',
+            );
+        }
+
+        $this->db->where('id', $order['id'])
+                 ->where('order_status !=', 'cancelled')   // penjaga balapan
+                 ->update('orders', array(
+                     'order_status'  => 'cancelled',
+                     'cancelled_by'  => $oleh,
+                     'cancel_reason' => $alasan ? mb_substr($alasan, 0, 255) : NULL,
+                     'cancelled_at'  => date('Y-m-d H:i:s'),
+                 ));
+
+        if ($this->db->affected_rows() < 1) {
+            return array('ok' => FALSE, 'pesan' => 'Pesanan ini sudah dibatalkan.');
+        }
+
+        // Stok hanya dikurangi saat pembayaran diterima, jadi hanya pesanan
+        // lunas yang perlu dikembalikan stoknya.
+        if ($order['payment_status'] === 'paid') {
+            $this->load->library('stok_lib');
+            $this->stok_lib->kembalikan($order['id']);
+        }
+
+        $this->db->insert('order_logs', array(
+            'order_id' => $order['id'],
+            'status'   => 'cancelled',
+            'note'     => 'Dibatalkan oleh ' . $oleh . ($alasan ? ': ' . $alasan : ''),
+        ));
+
+        $this->catat_pembatalan($order, $oleh, $alasan);
+
+        return array('ok' => TRUE, 'pesan' => 'Pesanan dibatalkan.');
+    }
+
+    /** Pesan sistem di percakapan pesanan, supaya kedua pihak tahu. */
+    protected function catat_pembatalan(array $order, $oleh, $alasan)
+    {
+        $this->load->model('chat_model');
+
+        $conv = $this->chat_model->conv($order['store_id'], $order['user_id'], $order['id']);
+        if ( ! $conv) {
+            return;
+        }
+
+        $siapa = array(
+            'customer' => 'Pembeli membatalkan pesanan ini.',
+            'seller'   => 'Penjual membatalkan pesanan ini.',
+            'system'   => 'Pesanan dibatalkan otomatis karena pembayaran tidak diterima tepat waktu.',
+        );
+
+        $this->chat_model->sistem_conv($conv,
+            ($siapa[$oleh] ?? $siapa['system']) . ($alasan ? ' Alasan: ' . $alasan : ''));
     }
 
     /**

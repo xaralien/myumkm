@@ -1825,3 +1825,229 @@ body { background: #FFFFFF; }
 @media (max-width: 575.98px) {
   .nt-logo-img { height: 34px; }
 }
+
+
+/* =====================================================================
+   HALAMAN TOKO
+   ===================================================================== */
+
+.tk-kepala {
+  background-image: var(--wn-gradien);
+  background-color: var(--wn-tua);
+  color: #FFFFFF;
+  padding: 36px 0 32px;
+  position: relative;
+  overflow: hidden;
+}
+.tk-kepala::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wn-motif);
+  background-size: 96px 96px;
+  opacity: 0.14;
+}
+.tk-kepala > * { position: relative; }
+
+.tk-kepala-in {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+}
+
+.tk-avatar {
+  width: 92px;
+  height: 92px;
+  flex: 0 0 auto;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #FFFFFF;
+  color: var(--wn-biru);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--wn-serif);
+  font-size: 36px;
+  font-weight: 700;
+  /* Bingkai emas tipis: avatar toko adalah hal pertama yang dicari mata
+     di halaman ini. */
+  box-shadow: 0 0 0 3px rgba(253, 217, 119, 0.55);
+}
+.tk-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.tk-info h1 { font-size: 30px; font-weight: 700; color: #FFFFFF; margin: 0 0 6px; }
+
+.tk-lokasi {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #CFE0EC;
+}
+.tk-lokasi svg { color: var(--wn-emas-muda); }
+
+.tk-deskripsi {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #D7E4EE;
+  max-width: 54ch;
+}
+
+.tk-aksi { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tk-form { margin: 0; }
+
+.tk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: transparent;
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.tk-btn:hover { background: rgba(255, 255, 255, 0.14); color: #FFFFFF; }
+
+.tk-btn.is-utama {
+  background: var(--wn-gradien-emas);
+  border-color: transparent;
+  color: #243B4F;
+  font-weight: 700;
+}
+.tk-btn.is-utama:hover { filter: brightness(1.05); color: #243B4F; }
+
+/* --- angka --- */
+
+.tk-angka {
+  display: flex;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.tk-angka-item {
+  min-width: 108px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+.tk-angka-item strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--wn-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.tk-angka-item span { display: block; margin-top: 4px; font-size: 11.5px; color: #CFE0EC; }
+.tk-angka-item.is-rating strong { color: var(--wn-emas-muda); }
+
+/* --- tab --- */
+
+.tk-tab { background: #FFFFFF; border-bottom: 1px solid var(--wn-garis); }
+.tk-tab .container { display: flex; gap: 6px; }
+
+.tk-tab a {
+  padding: 14px 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--wn-samar);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+.tk-tab a em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--wn-samar);
+  margin-left: 4px;
+}
+.tk-tab a.is-aktif { color: var(--wn-biru); border-bottom-color: var(--wn-biru); }
+.tk-tab a.is-aktif em { color: var(--wn-biru); }
+
+.tk-isi { padding-top: 26px; }
+
+/* --- saringan --- */
+
+.tk-saring {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tk-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; }
+
+.tk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 999px;
+  border: 1px solid var(--wn-garis-2);
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wn-teks-2);
+}
+.tk-chip em { font-style: normal; font-size: 11.5px; color: var(--wn-samar); }
+.tk-chip.is-aktif { background: var(--wn-gradien); border-color: transparent; color: #FFFFFF; }
+.tk-chip.is-aktif em { color: var(--wn-emas-muda); }
+
+.tk-urut select {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--wn-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wn-tua);
+}
+
+/* Rating kecil di kartu produk */
+.product-item .product-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wn-teks-2);
+}
+.product-item .product-rating svg { color: #E8B23A; }
+.product-item .product-rating span { font-weight: 400; color: var(--wn-samar); }
+
+@media (max-width: 991.98px) {
+  .tk-kepala-in { grid-template-columns: auto minmax(0, 1fr); }
+  .tk-angka { grid-column: 1 / -1; }
+  .tk-angka-item { flex: 1 1 0; min-width: 0; }
+}
+
+@media (max-width: 575.98px) {
+  .tk-kepala { padding: 22px 0; }
+  .tk-avatar { width: 68px; height: 68px; border-radius: 18px; font-size: 26px; }
+  .tk-info h1 { font-size: 22px; }
+  .tk-deskripsi { display: none; }
+  .tk-aksi .tk-btn { flex: 1 1 0; justify-content: center; }
+  .tk-tab a { flex: 1 1 0; text-align: center; padding: 12px 8px; }
+  .tk-saring { flex-direction: column; align-items: stretch; }
+  .tk-chips { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding-bottom: 4px; }
+  .tk-chips::-webkit-scrollbar { display: none; }
+  .tk-chip { flex: 0 0 auto; }
+}

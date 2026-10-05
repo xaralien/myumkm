@@ -283,6 +283,15 @@ class Checkout extends CI_Controller
             'toko'     => $toko,
             'whatsapp' => $toko ? $toko['phone'] : '',
         );
+        /* Status refund untuk ditampilkan, dan apakah tombolnya perlu
+           muncul. Hanya pesanan yang sudah dibayar dan belum selesai -
+           setelah barang diterima, keluhan diselesaikan lewat chat dulu. */
+        $this->load->model('refund_model');
+
+        $data['refund'] = $this->refund_model->terakhir($order['id']);
+        $data['bisa_refund'] = ($order['payment_status'] === 'paid')
+            && in_array($order['order_status'], array('pending', 'confirmed', 'preparing', 'delivering'), TRUE);
+
         $data['pages'] = 'v_order_done';
         $this->load->view('index', $data);
     }
@@ -293,6 +302,68 @@ class Checkout extends CI_Controller
      * Inilah yang menutup transaksi di marketplace - penjual tidak bisa
      * mengklaim "sudah sampai" sepihak tanpa ada yang mengonfirmasi.
      */
+    /**
+     * Pembeli mengajukan pengembalian dana.
+     * POST checkout/refund/{nomor}/{token}
+     */
+    public function refund($order_number = NULL, $token = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $order = $this->order_model->get_by_number($order_number);
+
+        if ( ! $order || ! hash_equals((string) $order['access_token'], (string) $token)) {
+            show_404();
+        }
+
+        $this->load->model('refund_model');
+        $this->load->library('auth_lib');
+
+        $hasil = $this->refund_model->ajukan(
+            $order,
+            $this->input->post('alasan', TRUE),
+            $this->auth_lib->id()
+        );
+
+        $this->session->set_flashdata($hasil['ok'] ? 'sukses' : 'error', $hasil['pesan']);
+
+        return redirect('checkout/done/' . $order_number . '/' . $token);
+    }
+
+    /**
+     * Pembeli membatalkan pesanannya sendiri.
+     * POST checkout/batal/{nomor}/{token}
+     *
+     * POST, bukan tautan: tautan pembatalan bisa terpicu pratinjau tautan
+     * di aplikasi chat, dan pesanan orang batal tanpa dia menyentuh apa pun.
+     */
+    public function batal($order_number = NULL, $token = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $order = $this->order_model->get_by_number($order_number);
+
+        /* Token dibandingkan dengan hash_equals, bukan '==': perbandingan
+           biasa berhenti di karakter pertama yang berbeda, dan selisih
+           waktunya bisa dipakai menebak token huruf demi huruf. */
+        if ( ! $order || ! hash_equals((string) $order['access_token'], (string) $token)) {
+            show_404();
+        }
+
+        $hasil = $this->order_model->batalkan(
+            $order, 'customer',
+            trim((string) $this->input->post('alasan', TRUE))
+        );
+
+        $this->session->set_flashdata($hasil['ok'] ? 'sukses' : 'error', $hasil['pesan']);
+
+        return redirect('checkout/done/' . $order_number . '/' . $token);
+    }
+
     public function terima($order_number = NULL, $token = NULL)
     {
         if ($this->input->method() !== 'post') {

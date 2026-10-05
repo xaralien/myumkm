@@ -47,7 +47,9 @@
   </p>
 
   <div class="mb-detail-toko">
-    <a href="<?= site_url('shop') . '?store=' . (int) $p['store_id'] ?>">
+    <!-- Seluruh bagian ini tautan ke halaman toko; panah di ujung menandai
+         bahwa ia bisa ditekan. -->
+    <a href="<?= site_url('toko/' . $p['store_slug']) ?>">
       <b><?= html_escape($p['store_name']) ?></b>
       <em><?= html_escape($p['store_district']) ?>, <?= html_escape($p['store_regency']) ?></em>
     </a>
@@ -145,7 +147,13 @@
   <button type="button" class="mb-beli-btn is-garis" data-act="add" aria-label="Tambah ke keranjang">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-8H6.2"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
   </button>
-  <button type="button" class="mb-beli-btn" data-act="buy">Beli sekarang</button>
+  <button type="button" class="mb-beli-btn" data-act="buy">
+    <!-- Dua label, dipilih CSS menurut lebar layar. Di layar sempit,
+         "Beli sekarang" tidak muat bersama harga dan tombol jumlah -
+         empat bagian itu butuh ~445px, sedangkan HP kecil hanya 360px. -->
+    <span class="mb-teks-panjang">Beli sekarang</span>
+    <span class="mb-teks-pendek">Beli</span>
+  </button>
 </div>
 
 <script>

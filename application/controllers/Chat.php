@@ -144,20 +144,24 @@ class Chat extends CI_Controller
 
         $conv = $this->chat_model->conv($toko['id'], $this->auth_lib->id());
 
-        // Kartu produk hanya dikirim sekali, saat percakapan dimulai dari
-        // halaman produk - bukan tiap kali ruangnya dibuka lagi.
+        /* Produk TIDAK langsung dikirim sebagai pesan. Dulu begitu, dan
+           akibatnya: menekan "Tanya" lalu batal bertanya tetap meninggalkan
+           pesan di chat penjual, dan menekannya berkali-kali mengirim kartu
+           berulang-ulang.
+
+           Sekarang produknya dibawa sebagai LAMPIRAN lewat alamat halaman,
+           lalu ikut terkirim bersama pesan pertama yang benar-benar
+           ditulis pembeli. */
         $pid = (int) $this->input->post('product_id');
+
         if ($pid) {
             $p = $this->db->select('id')->where('id', $pid)
                           ->where('store_id', (int) $toko['id'])
                           ->where('is_active', 1)
                           ->get('products')->row_array();
+
             if ($p) {
-                $this->chat_model->kirim_conv(
-                    $conv, 'customer', 'teks',
-                    trim((string) $this->input->post('isi', TRUE)) ?: NULL,
-                    NULL, $this->auth_lib->id(), $p['id']
-                );
+                return redirect('chat/conv/' . $conv . '?produk=' . (int) $p['id']);
             }
         }
 
@@ -171,9 +175,36 @@ class Chat extends CI_Controller
 
         $this->chat_model->tandai_dibaca_conv($c['id'], 'customer');
 
+        /* Lampiran produk, kalau pembeli datang dari tombol "Tanya" di
+           halaman produk. Dicocokkan ke toko percakapan ini - tanpa itu,
+           mengganti angka di alamat bisa melampirkan produk toko lain. */
+        $lampiran = NULL;
+        $pid = (int) $this->input->get('produk');
+
+        /* Produk yang sama BOLEH dilampirkan lagi - pembeli sering kembali
+           menanyakan barang yang sama beberapa hari kemudian, dan kartunya
+           justru memperjelas yang mana.
+
+           Yang dicegah bukan itu, melainkan kartu terkirim TANPA pembeli
+           menulis apa pun: karena itu lampiran hanya ikut bersama pesan
+           yang benar-benar dikirim, dan '?produk=' dibuang dari alamat
+           setelah terkirim supaya memuat ulang halaman tidak mengirimnya
+           dua kali. */
+        if ($pid) {
+            $lampiran = $this->db
+                ->select('p.id, p.name, p.slug, p.price, p.image, s.slug AS toko_slug', FALSE)
+                ->from('products p')
+                ->join('stores s', 's.id = p.store_id')
+                ->where('p.id', $pid)
+                ->where('p.store_id', (int) $c['store_id'])
+                ->where('p.is_active', 1)
+                ->get()->row_array();
+        }
+
         $data = array(
-            'conv'  => $c,
-            'pesan' => $this->chat_model->pesan_conv($c['id']),
+            'conv'     => $c,
+            'pesan'    => $this->chat_model->pesan_conv($c['id']),
+            'lampiran' => $lampiran,
         );
         $data['pages'] = 'v_chat_conv';
         $this->load->view('index', $data);
@@ -208,9 +239,22 @@ class Chat extends CI_Controller
             return $this->json(array('ok' => FALSE, 'pesan' => 'Pesan kosong.'), 422);
         }
 
+        /* Produk lampiran ikut disimpan pada pesan ini - jadi satu
+           gelembung berisi kartu produk DAN pertanyaannya, bukan dua pesan
+           terpisah. */
+        $pid = (int) $this->input->post('product_id');
+
+        if ($pid) {
+            $p = $this->db->select('id')->where('id', $pid)
+                          ->where('store_id', (int) $c['store_id'])
+                          ->where('is_active', 1)
+                          ->get('products')->row_array();
+            $pid = $p ? (int) $p['id'] : NULL;
+        }
+
         $this->chat_model->kirim_conv(
             $c['id'], 'customer', 'teks', mb_substr($isi, 0, 1000),
-            NULL, $this->auth_lib->id()
+            NULL, $this->auth_lib->id(), $pid ?: NULL
         );
         return $this->json(array('ok' => TRUE));
     }

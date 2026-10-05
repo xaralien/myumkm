@@ -64,6 +64,20 @@
       </div>
 
       <div class="mb-3">
+        <label class="form-label" for="stock">Stok <span class="hint">(opsional)</span></label>
+        <input type="number" id="stock" name="stock" class="form-control" min="0" max="99999"
+               placeholder="Kosongkan kalau dibuat sesuai pesanan"
+               value="<?= set_value('stock', $product && $product['stock'] !== NULL ? (int) $product['stock'] : '') ?>">
+        <p class="hint">
+          Dikosongkan berarti <strong>tidak dibatasi</strong> &mdash; cocok untuk barang
+          yang dibuat sesuai pesanan seperti bunga papan atau kue. Kalau diisi,
+          stok berkurang sendiri saat pembayaran masuk, dan produknya hilang
+          dari katalog begitu habis.
+        </p>
+        <?= form_error('stock') ?>
+      </div>
+
+      <div class="mb-3">
         <span class="form-label">Kategori *</span>
 
         <?php

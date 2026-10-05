@@ -22,8 +22,11 @@ class Dashboard extends Admin_Controller {
             // Pesanan yang sudah dibayar tapi belum disentuh penjual - ini
             // yang paling perlu diperhatikan admin, karena pembelinya
             // sudah mengeluarkan uang dan sedang menunggu.
+            /* Termasuk 'confirmed': mark_paid() menaikkan status ke sana
+               begitu pembayaran masuk, jadi memeriksa 'pending' saja
+               membuat angka ini selalu nol. */
             'perlu_diproses' => $this->db->where('payment_status', 'paid')
-                                         ->where('order_status', 'pending')
+                                         ->where_in('order_status', array('pending', 'confirmed', 'preparing'))
                                          ->count_all_results('orders'),
 
             'pesanan_hari_ini' => $this->db->where('DATE(created_at)', $hari_ini)

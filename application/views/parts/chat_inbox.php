@@ -22,7 +22,9 @@ if ( ! $akun) {
 /* Tidak ditampilkan di halaman Pesan itu sendiri: isinya sama persis, dan
    di layar HP gelembungnya justru menutupi kolom balasan. */
 $halaman_pesan = ($CI->uri->segment(1) === 'seller' && $CI->uri->segment(2) === 'pesan')
-    || ($CI->uri->segment(1) === 'akun' && $CI->uri->segment(2) === 'pesan');
+    || ($CI->uri->segment(1) === 'akun' && $CI->uri->segment(2) === 'pesan')
+    // Halaman percakapan itu sendiri: gelembungnya akan menutupi kolom tulis.
+    || ($CI->uri->segment(1) === 'chat');
 
 if ($halaman_pesan) {
     return;
@@ -60,9 +62,16 @@ $url_daftar = ($sisi === 'seller') ? site_url('seller/inbox_json') : site_url('a
     <button type="button" class="ib-tutup" id="ibTutup" aria-label="Tutup">&times;</button>
   </div>
 
-  <!-- Dua lapis dalam satu panel: daftar, lalu ruang percakapan. Di layar
-       lebar pun tetap satu lapis - gelembung ini untuk membalas cepat;
-       tampilan dua panel ada di halaman Pesan. -->
+  <!-- Filter sisi. Hanya tampil untuk pengguna yang punya toko: yang lain
+       cuma punya satu jenis percakapan, dan tab yang isinya selalu sama
+       hanya menambah langkah. Disembunyikan sampai server memastikan. -->
+  <div class="ib-filter" id="ibFilter" hidden>
+    <button type="button" class="is-aktif" data-sisi="">Semua</button>
+    <button type="button" data-sisi="seller">Toko</button>
+    <button type="button" data-sisi="customer">Belanja</button>
+  </div>
+
+  <!-- Dua lapis dalam satu panel: daftar, lalu ruang percakapan. -->
   <div class="ib-daftar" id="ibDaftar">
     <p class="ib-memuat">Memuat percakapan...</p>
   </div>

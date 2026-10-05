@@ -56,3 +56,7 @@ $route['translate_uri_dashes'] = FALSE;
 /* 'admin' sendirian mencari controller bawaan di folder admin/ - yang tidak
    ada, jadi admin mendarat di 404 setelah login. Diarahkan ke ringkasan. */
 $route['admin'] = 'admin/dashboard';
+
+/* Halaman toko: toko/{slug}. Tanpa rute ini, CodeIgniter menganggap slug
+   sebagai nama method dan mengembalikan 404. */
+$route['toko/(:any)'] = 'toko/index/$1';

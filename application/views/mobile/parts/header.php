@@ -42,8 +42,15 @@ $seg      = $this->uri->segment(1);
   <link rel="stylesheet" href="<?= aset('assets/css/mobile.css') ?>">
 </head>
 
-<body class="mb">
+<?php
+  /* Halaman percakapan tampil penuh: tanpa bilah atas situs dan tanpa tab
+     bar. Keduanya memakan ruang yang justru paling dibutuhkan di sini, dan
+     membuat tinggi isinya naik-turun saat papan ketik muncul. */
+  $halaman_chat = ($seg === 'chat' && $this->uri->segment(2));
+?>
+<body class="mb <?= $halaman_chat ? 'is-chat' : '' ?>">
 
+  <?php if (! $halaman_chat): ?>
   <header class="mb-atas">
     <a href="<?= base_url() ?>" class="mb-logo" aria-label="<?= html_escape($brand) ?>">
       <img src="<?= aset('assets/images/sapa_umkm_icon.svg') ?>" alt="" width="103" height="52">
@@ -59,6 +66,7 @@ $seg      = $this->uri->segment(1);
       <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
     </a>
   </header>
+  <?php endif; ?>
 
   <?php if ($this->session->flashdata('sukses') || $this->session->flashdata('info')): ?>
     <div class="mb-kabar is-ok" role="status">

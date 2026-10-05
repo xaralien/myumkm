@@ -94,7 +94,34 @@ $tampil = function ($peta, $kode) {
       <span role="columnheader">Aksi</span>
     </div>
 
+    <?php
+      $judul_kelompok = array(
+        1 => array('Perlu diproses', 'Sudah dibayar, belum dikirim. Yang paling lama menunggu di atas.'),
+        2 => array('Sedang dikirim', 'Menunggu pembeli menandai pesanan diterima.'),
+        3 => array('Menunggu pembayaran', 'Belum tentu jadi - belum perlu disiapkan.'),
+        4 => array('Selesai', ''),
+        5 => array('Dibatalkan', ''),
+      );
+      $kelompok_lalu = NULL;
+    ?>
+
     <?php foreach ($orders as $o): ?>
+      <?php
+        /* Kepala kelompok muncul tiap kali prioritasnya berganti. Urutannya
+           sudah dijamin query, jadi di sini cukup membandingkan dengan baris
+           sebelumnya - tidak perlu mengelompokkan ulang. */
+        $k = (int) $o['prioritas'];
+      ?>
+      <?php if ($k !== $kelompok_lalu): ?>
+        <?php $kelompok_lalu = $k; ?>
+        <div class="gt__kelompok" role="row">
+          <strong><?= html_escape($judul_kelompok[$k][0]) ?></strong>
+          <?php if ($judul_kelompok[$k][1]): ?>
+            <em><?= html_escape($judul_kelompok[$k][1]) ?></em>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
       <div class="gt__row" role="row" data-order-row="<?= (int) $o['id'] ?>">
 
         <span class="gt__cell gt__cell--nomor" role="cell">

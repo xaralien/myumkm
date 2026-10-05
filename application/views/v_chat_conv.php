@@ -14,7 +14,7 @@
           <p class="hint mb-1">Percakapan dengan toko</p>
           <p class="order-number mb-0"><?= html_escape($conv['store_name']) ?></p>
         </div>
-        <a href="<?= site_url('shop') ?>?store=<?= (int) $conv['store_id'] ?>"
+        <a href="<?= site_url('toko/' . $conv['store_slug']) ?>"
            class="btn btn-black-hover-outline btn-sm">Lihat toko</a>
       </div>
     </div>
@@ -27,6 +27,8 @@
         <p class="hint text-center" id="chatKosong">Tanyakan apa saja tentang produk toko ini.</p>
       <?php endif; ?>
     </div>
+
+    <?php $this->load->view('parts/chat_lampiran'); ?>
 
     <form class="chat-form" id="chatForm">
       <input type="text" class="form-control" id="chatIsi" maxlength="1000"

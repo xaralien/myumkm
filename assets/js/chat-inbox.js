@@ -31,6 +31,8 @@
   if (!tombol || !panel) { return; }
 
   var terbuka = false;
+  var saring = '';          // '', 'seller', atau 'customer'
+  var barisTerakhir = [];   // daftar terakhir dari server, untuk disaring
   var aktif   = null;      // percakapan yang sedang dibuka
   var sejak   = 0;
   var timerDaftar = null;
@@ -108,9 +110,17 @@
         csrf(j);
         setLencana(parseInt(j.total, 10) || 0);
 
+        barisTerakhir = j.daftar || [];
+
+        /* Filter hanya berguna kalau pengguna punya dua jenis percakapan.
+           Server yang memastikan, bukan ditebak dari isi daftar - daftar
+           bisa kebetulan kosong di salah satu sisi. */
+        var filter = document.getElementById('ibFilter');
+        if (filter) { filter.hidden = !j.punya_toko; }
+
         // Daftar hanya digambar ulang saat terlihat - menimpanya di balik
         // ruang percakapan tidak ada gunanya dan membuat posisi gulir hilang.
-        if (terbuka && !aktif) { gambarDaftar(j.daftar || []); }
+        if (terbuka && !aktif) { gambarDaftar(barisTerakhir); }
 
         jadwalDaftar();
       })
@@ -122,10 +132,16 @@
     timerDaftar = setTimeout(ambilDaftar, terbuka ? JEDA_BUKA : JEDA_TUTUP);
   }
 
-  function gambarDaftar(rows) {
+  function gambarDaftar(semua) {
+    var rows = saring
+      ? semua.filter(function (r) { return r.sisi === saring; })
+      : semua;
+
     if (!rows.length) {
-      elDaftar.innerHTML = '<p class="ib-kosong">Belum ada percakapan.<br>'
-        + 'Percakapan muncul di sini untuk tiap pesanan yang sudah dibayar.</p>';
+      elDaftar.innerHTML = saring
+        ? '<p class="ib-kosong">Tidak ada percakapan di bagian ini.</p>'
+        : '<p class="ib-kosong">Belum ada percakapan.<br>'
+          + 'Percakapan muncul di sini untuk tiap pesanan yang sudah dibayar.</p>';
       return;
     }
 
@@ -208,8 +224,23 @@
       return '<div class="ib-sistem">' + esc(m.isi) + '</div>';
     }
 
-    var milik = (m.pengirim === C.sisi);
+    /* Sisi diambil dari percakapan yang sedang dibuka, bukan dari halaman:
+       satu panel kini memuat percakapan belanja DAN percakapan toko, jadi
+       sisinya berbeda-beda antarbaris. Tanpa ini, pesan sendiri bisa
+       tampil di posisi lawan bicara. */
+    var sisiAktif = (aktif && aktif.sisi) ? aktif.sisi : C.sisi;
+    var milik = (m.pengirim === sisiAktif);
     var h = '<div class="ib-baris-pesan' + (milik ? ' is-saya' : '') + '"><div class="ib-gelembung">';
+
+    /* Kartu produk. Sebelumnya tidak digambar sama sekali di sini, jadi
+       pesan yang isinya HANYA kartu produk tampil sebagai gelembung kosong
+       berisi jam - penjual tidak bisa tahu produk mana yang ditanyakan. */
+    if (m.produk_nama) {
+      h += '<a class="ib-produk" href="' + (m.produk_url || '#') + '">'
+         + '<img src="' + C.gambar + esc(m.produk_gambar) + '" alt="">'
+         + '<span><strong>' + esc(m.produk_nama) + '</strong>'
+         + '<em>' + esc(m.produk_harga_teks || '') + '</em></span></a>';
+    }
 
     if (m.image) {
       var g = C.gambar + m.image;
@@ -312,6 +343,24 @@
       panel.style.maxHeight = '';
       panel.style.bottom = '';
     }
+  }
+
+  var elFilter = document.getElementById('ibFilter');
+  if (elFilter) {
+    elFilter.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) { return; }
+
+      saring = b.dataset.sisi || '';
+
+      Array.prototype.forEach.call(elFilter.querySelectorAll('button'), function (x) {
+        x.classList.toggle('is-aktif', x === b);
+      });
+
+      // Digambar ulang dari daftar yang sudah ada - tidak perlu meminta
+      // ulang ke server hanya untuk menyaring.
+      gambarDaftar(barisTerakhir);
+    });
   }
 
   tombol.addEventListener('click', function () { setPanel(panel.hidden); });

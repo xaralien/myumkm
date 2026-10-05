@@ -180,6 +180,7 @@ class Seller extends Seller_Controller
         /* Batas dinaikkan karena isinya kini HTML - tag pembungkus ikut
            terhitung. Isi teksnya sendiri tetap dibatasi html_aman(). */
         $this->form_validation->set_rules('description', 'Deskripsi', 'trim|max_length[8000]');
+        $this->form_validation->set_rules('stock', 'Stok', 'trim|integer|greater_than_equal_to[0]|less_than_equal_to[99999]');
         $this->form_validation->set_message('greater_than', '{field} harus lebih dari 0.');
         $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
 
@@ -212,6 +213,12 @@ class Seller extends Seller_Controller
                html_aman(), yang hanya meloloskan tag & atribut dari daftar
                izin dan membuang sisanya. */
             'description' => html_aman($this->input->post('description', FALSE)) ?: NULL,
+
+            /* Kosong = NULL = tidak dibatasi. Dibedakan dari 0, yang berarti
+               stoknya memang habis - '' dan '0' terlihat mirip di formulir
+               tapi artinya berlawanan. */
+            'stock'       => ($this->input->post('stock') === '' || $this->input->post('stock') === NULL)
+                                ? NULL : (int) $this->input->post('stock'),
             'price' => (int) $this->input->post('price'),
             'image' => $gambar,
         );
@@ -1233,8 +1240,37 @@ class Seller extends Seller_Controller
                 ->group_end();
         }
 
+        /* Urutan berdasarkan APA YANG PERLU DIKERJAKAN, bukan tanggal saja.
+           Diurut tanggal saja, pesanan selesai berselang-seling dengan yang
+           masih menunggu, dan penjual harus memindai satu per satu untuk
+           tahu mana yang perlu disentuh.
+
+             1 Perlu diproses  - sudah dibayar, belum dikirim
+             2 Dikirim         - menunggu pembeli menerima
+             3 Menunggu bayar  - belum tentu jadi, tapi masih hidup
+             4 Selesai
+             5 Dibatalkan
+
+           Angka kelompoknya ikut dikirim ke tampilan supaya bisa diberi
+           kepala kelompok tanpa menghitung ulang di sana. */
+        $prioritas = "CASE
+            WHEN payment_status = 'paid' AND order_status IN ('pending','confirmed','preparing') THEN 1
+            WHEN order_status = 'delivering' THEN 2
+            WHEN order_status = 'cancelled' THEN 5
+            WHEN order_status = 'delivered' THEN 4
+            ELSE 3
+        END";
+
         $orders = $this
             ->db
+            ->select('*, (' . $prioritas . ') AS prioritas', FALSE)
+            ->order_by($prioritas, '', FALSE)
+
+            /* Dua kelompok teratas diurut dari yang PALING LAMA menunggu -
+               pesanan yang tertahan tiga hari harus muncul di atas yang
+               baru masuk tadi pagi. Kelompok lain tetap terbaru dulu,
+               karena itu cuma riwayat. */
+            ->order_by('CASE WHEN (' . $prioritas . ') <= 2 THEN created_at END', 'ASC', FALSE)
             ->order_by('created_at', 'DESC')
             ->limit(100)
             ->get()
@@ -1725,6 +1761,135 @@ class Seller extends Seller_Controller
         return $c;
     }
 
+    /**
+     * Ulasan produk toko ini, dengan kolom balasan.
+     * GET  seller/ulasan
+     * POST seller/balas/{id}
+     */
+    /* =====================================================================
+       REFUND & PENDAPATAN
+       ===================================================================== */
+
+    /** Permintaan pengembalian dana untuk toko ini. GET seller/refund */
+    public function refund()
+    {
+        $this->load->model('refund_model');
+
+        $this->render('seller/v_refund', array(
+            'daftar' => $this->refund_model->daftar_toko($this->store['id']),
+            'baru'   => count($this->refund_model->daftar_toko($this->store['id'], 'diminta')),
+        ));
+    }
+
+    /** POST seller/refund_putus/{id} */
+    public function refund_putus($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->load->model('refund_model');
+
+        $hasil = $this->refund_model->putuskan(
+            $id, $this->store['id'],
+            $this->input->post('setuju') === '1',
+            $this->input->post('catatan', TRUE)
+        );
+
+        $this->session->set_flashdata($hasil['ok'] ? 'sukses' : 'error', $hasil['pesan']);
+        return redirect('seller/refund');
+    }
+
+    /** Pendapatan toko dan riwayat pencairan. GET seller/pendapatan */
+    public function pendapatan()
+    {
+        $this->load->library('pendapatan_lib');
+
+        $data = array(
+            'siap'      => $this->pendapatan_lib->siap_cair($this->store['id']),
+            'tertahan'  => $this->pendapatan_lib->tertahan($this->store['id']),
+            'sudah'     => $this->pendapatan_lib->sudah_cair($this->store['id']),
+            'komisi'    => $this->pendapatan_lib->komisi_persen(),
+            'toko'      => $this->store,
+
+            'pesanan'   => $this->db
+                ->select('order_number, created_at, order_status, subtotal, shipping_fee,
+                          total, fee_platform, net_store, payout_id', FALSE)
+                ->where('store_id', (int) $this->store['id'])
+                ->where('payment_status', 'paid')
+                ->order_by('created_at', 'DESC')
+                ->limit(40)
+                ->get('orders')->result_array(),
+
+            'payout'    => $this->db->where('store_id', (int) $this->store['id'])
+                                    ->order_by('created_at', 'DESC')
+                                    ->limit(20)
+                                    ->get('payouts')->result_array(),
+        );
+
+        $this->render('seller/v_pendapatan', $data);
+    }
+
+    /** Simpan rekening untuk pencairan. POST seller/rekening */
+    public function rekening()
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->db->where('id', (int) $this->store['id'])->update('stores', array(
+            'bank_nama'      => trim((string) $this->input->post('bank_nama', TRUE)) ?: NULL,
+            'bank_nomor'     => trim((string) $this->input->post('bank_nomor', TRUE)) ?: NULL,
+            'bank_atas_nama' => trim((string) $this->input->post('bank_atas_nama', TRUE)) ?: NULL,
+        ));
+
+        $this->session->set_flashdata('sukses', 'Rekening disimpan.');
+        return redirect('seller/pendapatan');
+    }
+
+    public function ulasan()
+    {
+        $this->load->model('review_model');
+
+        $hal    = max(1, (int) $this->input->get('page'));
+        $saring = $this->input->get('saring');
+
+        $opsi = array('limit' => 10, 'offset' => ($hal - 1) * 10);
+
+        /* "Belum dibalas" jadi saringan tersendiri, bukan sekadar diurutkan
+           ke atas: penjual yang membuka halaman ini biasanya memang mau
+           membalas, dan daftar campur membuatnya memindai satu per satu. */
+        $data = array(
+            'toko_slug' => $this->store['slug'],
+            'ringkasan' => $this->review_model->ringkasan('toko', $this->store['id']),
+            'ulasan'    => $this->review_model->daftar_toko_penjual($this->store['id'], $saring, $opsi),
+            'belum'     => $this->review_model->belum_dibalas($this->store['id']),
+            'saring'    => $saring,
+            'hal'       => $hal,
+            'hal_total' => max(1, (int) ceil(
+                $this->review_model->hitung_toko_penjual($this->store['id'], $saring) / 10)),
+        );
+
+        $this->render('seller/v_ulasan', $data);
+    }
+
+    public function balas($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->load->model('review_model');
+
+        $ok = $this->review_model->balas($id, $this->store['id'],
+                                         $this->input->post('balasan', TRUE));
+
+        $this->session->set_flashdata($ok ? 'sukses' : 'error',
+            $ok ? 'Balasan terkirim.' : 'Balasan gagal disimpan.');
+
+        return redirect('seller/ulasan');
+    }
+
     public function pesan($id = NULL)
     {
         $data = array(
@@ -1962,13 +2127,27 @@ class Seller extends Seller_Controller
         $belum = $this->chat_model->belum_dibaca_toko($this->store['id']);
 
         /* Pesanan yang butuh tindakan penjual: sudah dibayar tapi belum
-           diproses. Dipakai memberi tanda di daftar walau tidak ada pesan
-           baru - pembeli yang sudah membayar sedang menunggu. */
+           dikirim. Termasuk status 'confirmed' - mark_paid() langsung
+           menaikkan status ke sana begitu pembayaran masuk, jadi memeriksa
+           'pending' saja membuat lencana ini tidak pernah muncul sama
+           sekali. Pembelinya sudah membayar dan sedang menunggu. */
         $menunggu = $this->db->select('id')
             ->where('store_id', (int) $this->store['id'])
             ->where('payment_status', 'paid')
-            ->where('order_status', 'pending')
+            ->where_in('order_status', array('pending', 'confirmed', 'preparing'))
             ->get('orders')->result_array();
+
+        /* Pesanan terbaru yang sudah dibayar. Nomornya dikirim supaya
+           JavaScript bisa membedakan "ada pesanan baru SEJAK pemeriksaan
+           terakhir" dari "masih ada pesanan lama yang belum diproses" -
+           tanpa itu, nadanya akan berbunyi terus setiap 15 detik selama
+           ada satu pesanan yang belum disentuh. */
+        $terbaru = $this->db->select('order_number')
+            ->where('store_id', (int) $this->store['id'])
+            ->where('payment_status', 'paid')
+            ->order_by('paid_at', 'DESC')
+            ->limit(1)
+            ->get('orders')->row_array();
 
         return $this->output
             ->set_content_type('application/json')
@@ -1977,6 +2156,8 @@ class Seller extends Seller_Controller
                 'belum'    => (object) $belum,          // {order_id: jumlah}
                 'total'    => array_sum($belum),
                 'menunggu' => array_column($menunggu, 'id'),
+                'perlu'    => count($menunggu),
+                'terbaru'  => $terbaru ? $terbaru['order_number'] : NULL,
             )));
     }
 }
