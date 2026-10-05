@@ -41,3 +41,6 @@ upload/avatar/*
 !upload/**/index.html
 application/config/duitku.php
 application/config/duitku - Copy.php
+application/config/duitku copy.php
+application/config/duitku.php
+application/config/database.php
