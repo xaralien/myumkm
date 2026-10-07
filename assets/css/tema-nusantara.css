@@ -2184,3 +2184,34 @@ button.btn-dekat { cursor: pointer; }
 @media (max-width: 575.98px) {
   .kirim-ke { border-radius: 0; border-left: 0; border-right: 0; margin-bottom: 12px; }
 }
+
+
+/* --- Pesan status GPS yang melayang ------------------------------------- */
+
+.gps-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 16px);
+  z-index: 3000;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--wn-tua);
+  color: #FFFFFF;
+  font-size: 13.5px;
+  line-height: 1.5;
+  box-shadow: 0 10px 28px rgba(16, 32, 48, 0.28);
+  /* Tidak terlihat DAN tidak bisa diklik saat tersembunyi: tanpa
+     pointer-events, kotak transparan ini menutupi tombol di bawahnya. */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.gps-toast.is-tampil { opacity: 1; transform: translate(-50%, 0); }
+.gps-toast.is-error { background: #8C2F26; }
+
+/* Di HP, tab bar ada di bawah - pesannya diangkat supaya tidak tertutup. */
+@media (max-width: 991.98px) {
+  .gps-toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+}

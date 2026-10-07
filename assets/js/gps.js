@@ -17,11 +17,42 @@
   var C = window.GPS;
   if (!C) { return; }
 
+  var toast = null, toastTimer = null;
+
+  /**
+   * Tampilkan pesan status.
+   *
+   * Dulu pesan hanya ditulis ke elemen #gpsInfo. Elemen itu tidak ada di
+   * semua halaman, dan di halaman yang punya pun letaknya di bawah layar -
+   * jadi tombol lokasi terlihat "tidak bekerja" padahal sebenarnya izinnya
+   * ditolak. Sekarang pesan selalu muncul melayang di bawah layar, di mana
+   * pun tombolnya ditekan.
+   */
   function pesan(teks, jenis) {
     var el = document.getElementById('gpsInfo');
-    if (!el) { return; }
-    el.textContent = teks || '';
-    el.className = 'gps-info' + (jenis ? ' is-' + jenis : '');
+    if (el) {
+      el.textContent = teks || '';
+      el.className = 'gps-info' + (jenis ? ' is-' + jenis : '');
+    }
+
+    if (!teks) { return; }
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'gps-toast';
+      toast.setAttribute('role', 'status');
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = teks;
+    toast.className = 'gps-toast is-tampil' + (jenis ? ' is-' + jenis : '');
+
+    clearTimeout(toastTimer);
+    // Pesan galat dibiarkan lebih lama: isinya petunjuk yang perlu dibaca,
+    // bukan sekadar kabar bahwa sesuatu sedang berjalan.
+    toastTimer = setTimeout(function () {
+      toast.className = 'gps-toast';
+    }, jenis === 'error' ? 7000 : 2500);
   }
 
   function minta(btn) {

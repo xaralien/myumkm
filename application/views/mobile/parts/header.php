@@ -58,8 +58,10 @@ $seg      = $this->uri->segment(1);
 
     <button type="button" class="mb-lokasi" data-gps>
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
-      <span><?= $lokasi ? html_escape($lokasi) : 'Pilih lokasi' ?></span>
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+      <!-- Panah ke bawah dibuang. Tombol ini tidak membuka daftar apa pun -
+           ia langsung meminta izin lokasi, dan panah dropdown menjanjikan
+           sesuatu yang tidak terjadi. -->
+      <span><?= $lokasi ? html_escape($lokasi) : 'Gunakan lokasi saya' ?></span>
     </button>
 
     <a href="<?= site_url('shop') ?>" class="mb-ikon" aria-label="Cari produk">
