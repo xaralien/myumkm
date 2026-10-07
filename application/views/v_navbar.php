@@ -304,13 +304,6 @@ $flash_info = $this->session->flashdata('info');
       });
     }
 
-    /* ---- tombol lokasi: cadangan kalau modal wilayah tidak dimuat ---- */
-    document.querySelectorAll('.nt-lokasi-nonaktif').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        if (false) {
-          window.location = btn.dataset.cadangan;
-        }
-      });
-    });
+    /* Tombol lokasi ditangani gps.js lewat atribut data-gps. */
   })();
 </script>

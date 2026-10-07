@@ -193,7 +193,14 @@
              makanya disebutkan di sini. */
           pesan('Lokasi ditolak browser. Ini hanya jalan lewat https atau localhost. Klik peta saja.', 'error');
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        /* Di SINI enableHighAccuracy sengaja tetap true. Titik ini jadi
+           alamat antar yang dibaca kurir, jadi meleset satu kilometer berarti
+           barang diantar ke blok yang salah - beda dengan pengurutan katalog,
+           yang tidak terpengaruh selisih sejauh itu.
+
+           timeout dinaikkan ke 15 detik karena chip GPS memang butuh waktu,
+           dan Safari di iOS bisa menggantung tanpa memanggil callback. */
+        { enableHighAccuracy: true, timeout: 15000 }
       );
     });
   }

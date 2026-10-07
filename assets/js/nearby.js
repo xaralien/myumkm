@@ -74,7 +74,11 @@
           pesan('Pencarian lokasi kelamaan. Coba lagi atau pilih wilayah manual.', 'error');
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+      /* Sama seperti gps.js: ini hanya untuk mengurutkan toko dari yang
+         terdekat, jadi ketepatan ratusan meter sudah cukup. Wi-Fi dan menara
+         seluler menjawab dalam 1-2 detik; chip GPS butuh belasan detik dan
+         menguras baterai tanpa mengubah urutannya. */
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
     );
   });
 })();

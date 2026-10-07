@@ -95,5 +95,5 @@
   <?php endif; ?>
 <?php endif; ?>
 
-<!-- Pemilih tujuan di atas sudah membawa elemen pesan dan gps.js. -->
+<!-- gps.js dimuat sekali dari kerangka, bukan per halaman. -->
 

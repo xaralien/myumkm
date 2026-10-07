@@ -242,13 +242,10 @@
       });
     })();
 
-    document.querySelectorAll('.mb-lokasi').forEach(function (b) {
-      b.addEventListener('click', function () {
-        if (!document.querySelector('script[src*="location.js"]')) {
-          window.location = b.dataset.cadangan;
-        }
-      });
-    });
+    /* Tombol lokasi ditangani gps.js lewat atribut data-gps. Kode lama di
+       sini mengarahkan halaman ke b.dataset.cadangan - atribut yang sudah
+       tidak ada sejak pemilih wilayah diganti GPS, sehingga nilainya
+       undefined dan browser pergi ke /undefined. */
   </script>
 </body>
 

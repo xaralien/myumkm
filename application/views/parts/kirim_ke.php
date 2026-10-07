@@ -106,4 +106,3 @@
     hash: '<?= $this->security->get_csrf_hash() ?>'
   };
 </script>
-<script src="<?= aset('assets/js/gps.js') ?>"></script>

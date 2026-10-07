@@ -49,7 +49,23 @@
               + 'Semua produk tetap tampil tanpanya.', 'error');
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+      /* enableHighAccuracy: false, dan itu disengaja.
+
+         Dengan true, perangkat menyalakan chip GPS sungguhan: 5-20 detik di
+         luar ruangan, lebih lama di dalam ruangan, dan baterai terkuras.
+         Dengan false, posisi diambil dari Wi-Fi dan menara seluler - muncul
+         dalam 1-2 detik, meleset ratusan meter sampai sekitar satu kilometer.
+
+         Meleset satu kilometer tidak masalah di sini: kita hanya mengurutkan
+         toko dari yang terdekat, bukan menuntun kurir ke pintu rumah.
+         Selisih sejauh itu tidak mengubah urutannya.
+
+         timeout 15 detik: Safari di iOS bisa menggantung tanpa pernah
+         memanggil callback mana pun, jadi tombolnya diam selamanya dan
+         pengunjung mengira halamannya rusak.
+
+         maximumAge 5 menit: pindah halaman tidak memicu pencarian ulang. */
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
     );
   }
 

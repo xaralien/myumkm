@@ -52,3 +52,16 @@ $email  = $this->config->item('email');
 
   </div>
 </footer>
+
+<!-- Tombol lokasi (data-gps) ada di bilah atas SEMUA halaman, jadi skripnya
+     dimuat di kerangka - bukan per halaman. Sebelumnya hanya beranda dan
+     katalog yang memuatnya, sehingga tombol yang sama diam saja di halaman
+     produk, keranjang, dan lainnya. -->
+<script>
+  window.GPS = window.GPS || { simpan: '<?= site_url('location/titik') ?>' };
+  window.CSRF = window.CSRF || {
+    name: '<?= $this->security->get_csrf_token_name() ?>',
+    hash: '<?= $this->security->get_csrf_hash() ?>'
+  };
+</script>
+<script src="<?= aset('assets/js/gps.js') ?>"></script>
