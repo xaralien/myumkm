@@ -72,6 +72,7 @@ class Checkout extends CI_Controller
                 'kecamatan'  => (int) $t['ongkir_kecamatan'],
                 'kota'       => (int) $t['ongkir_kota'],
                 'provinsi'   => $t['ongkir_provinsi'] === NULL ? NULL : (int) $t['ongkir_provinsi'],
+                'luar'       => $t['ongkir_luar'] === NULL ? NULL : (int) $t['ongkir_luar'],
                 'toko_dis'   => (int) $t['district_id'],
                 'toko_reg'   => (int) $t['regency_id'],
                 'toko_prov'  => (int) $t['province_id'],
@@ -82,6 +83,26 @@ class Checkout extends CI_Controller
                 'nama_prov'  => $t['province_name'],
             )),
         );
+
+        /* Buku alamat, hanya untuk yang sudah login. Tamu tetap mengisi
+           manual - memaksa mendaftar dulu di tengah membeli adalah cara
+           tercepat kehilangan pesanan. */
+        $data['alamat_saya'] = array();
+        $data['alamat_pilih'] = NULL;
+
+        $uid = $this->auth_lib->id();
+
+        if ($uid) {
+            $this->load->model('address_model');
+
+            $data['alamat_saya'] = $this->address_model->daftar($uid);
+
+            $pilih = (int) $this->input->get('alamat');
+
+            $data['alamat_pilih'] = $pilih
+                ? $this->address_model->milik($pilih, $uid)
+                : $this->address_model->utama($uid);
+        }
 
         $data['pages'] = 'v_checkout';
         $this->load->view('index', $data);

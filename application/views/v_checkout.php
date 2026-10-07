@@ -42,6 +42,40 @@
         <div class="form-card">
           <h3 class="form-card-title">Alamat pengiriman</h3>
 
+          <?php if ($alamat_saya): ?>
+            <!-- Alamat tersimpan. Satu ketukan menggantikan enam kolom isian,
+                 dan mengetik ulang alamat tiap belanja adalah alasan umum
+                 orang berhenti di tengah checkout. -->
+            <div class="alm-pilih">
+              <?php foreach ($alamat_saya as $a): ?>
+                <?php $terpilih = $alamat_pilih && (int) $alamat_pilih['id'] === (int) $a['id']; ?>
+                <button type="button"
+                        class="alm-opsi <?= $terpilih ? 'is-aktif' : '' ?>"
+                        data-alamat
+                        data-nama="<?= html_escape($a['recipient_name']) ?>"
+                        data-hp="<?= html_escape($a['recipient_phone']) ?>"
+                        data-alamat-teks="<?= html_escape($a['address']) ?>"
+                        data-prov="<?= (int) $a['province_id'] ?>"
+                        data-reg="<?= (int) $a['regency_id'] ?>"
+                        data-dis="<?= (int) $a['district_id'] ?>">
+                  <span class="alm-opsi-label">
+                    <?= html_escape($a['label']) ?>
+                    <?php if ($a['is_primary']): ?><em>Utama</em><?php endif; ?>
+                  </span>
+                  <span class="alm-opsi-nama"><?= html_escape($a['recipient_name']) ?></span>
+                  <span class="alm-opsi-isi">
+                    <?= html_escape($a['address']) ?>,
+                    <?= html_escape($a['district_name']) ?>, <?= html_escape($a['regency_name']) ?>
+                  </span>
+                </button>
+              <?php endforeach; ?>
+
+              <a class="alm-opsi is-tambah" href="<?= site_url('akun/alamat_form?balik=checkout') ?>">
+                <span>+ Alamat baru</span>
+              </a>
+            </div>
+          <?php endif; ?>
+
           <?php if (! empty($akun) && ! empty($akun['address'])): ?>
             <!-- Alamat profil sudah terisi otomatis di kolom di bawah. Tombol
                  ini untuk MENGEMBALIKANNYA setelah pembeli mengetik alamat
@@ -243,6 +277,40 @@
 <script src="<?= aset('assets/js/peta-alamat.js') ?>"></script>
 
 <script>
+  /* Alamat tersimpan: menekan kartunya mengisi seluruh kolom di bawah.
+     Kolomnya tetap bisa diubah setelah terisi - pembeli kadang perlu
+     menambah patokan untuk kiriman tertentu tanpa mengubah alamat
+     tersimpannya. */
+  (function () {
+    var kartu = document.querySelectorAll('[data-alamat]');
+    if (!kartu.length) { return; }
+
+    function isi(b) {
+      var set = function (id, nilai) {
+        var el = document.getElementById(id);
+        if (el) { el.value = nilai || ''; }
+      };
+
+      set('recipient_name', b.dataset.nama);
+      set('recipient_phone', b.dataset.hp);
+      set('recipient_address', b.dataset.alamatTeks);
+
+      if (window.setWilayah) {
+        window.setWilayah(+b.dataset.prov, +b.dataset.reg, +b.dataset.dis);
+      }
+
+      kartu.forEach(function (x) { x.classList.toggle('is-aktif', x === b); });
+    }
+
+    kartu.forEach(function (b) {
+      b.addEventListener('click', function () { isi(b); });
+    });
+
+    // Yang sudah ditandai aktif dari server diisikan saat halaman dibuka.
+    var awal = document.querySelector('[data-alamat].is-aktif');
+    if (awal) { isi(awal); }
+  })();
+
   /* Mengembalikan isian ke alamat profil. Wilayah diisi lewat setWilayah()
      milik region-select.js, yang juga memicu penghitungan ongkir. */
   (function () {

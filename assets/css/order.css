@@ -5229,3 +5229,113 @@ button.produk-toko-link { border: 0; background: transparent; font: inherit; cur
   resize: vertical;
 }
 .refund-putus-aksi { display: flex; gap: 8px; margin-top: 8px; }
+
+
+/* --- Buku alamat -------------------------------------------------------- */
+
+.alm-kepala {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.alm-daftar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.alm-kartu {
+  padding: 16px 18px;
+  border: 1px solid var(--ord-line);
+  border-radius: 14px;
+  background: var(--ord-bg);
+}
+/* Alamat utama diberi garis tebal di kiri, bukan latar berbeda: latar yang
+   berbeda terbaca sebagai "tidak aktif" oleh sebagian orang. */
+.alm-kartu.is-utama { border-left: 3px solid var(--ord-green); }
+
+.alm-kartu-atas { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.alm-kartu-atas h2 { font-size: 15px; font-weight: 700; margin: 0; }
+
+.alm-tanda {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ord-soft);
+  color: var(--ord-green);
+}
+
+.alm-penerima { margin: 0 0 4px; font-size: 13.5px; }
+.alm-penerima span { color: var(--ord-muted); margin-left: 6px; }
+.alm-isi { margin: 0 0 6px; font-size: 13.5px; line-height: 1.55; color: var(--ord-muted); }
+.alm-patokan { margin: 0; font-size: 12.5px; color: var(--ord-muted); font-style: italic; }
+
+.alm-aksi { display: flex; gap: 14px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+.alm-aksi a, .alm-aksi .link-btn { font-size: 13px; color: var(--ord-green); text-decoration: underline; }
+.alm-aksi .link-btn.is-hapus { color: var(--ord-red); }
+
+.alm-form-aksi { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* --- Pemilih alamat di checkout ----------------------------------------- */
+
+.alm-pilih {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+}
+.alm-pilih::-webkit-scrollbar { display: none; }
+
+.alm-opsi {
+  flex: 0 0 auto;
+  width: 230px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ord-line);
+  border-radius: 12px;
+  background: #FFFFFF;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.alm-opsi:hover { border-color: var(--ord-green); color: inherit; }
+.alm-opsi.is-aktif { border-color: var(--ord-green); background: var(--ord-soft); }
+
+.alm-opsi-label { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+.alm-opsi-label em {
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ord-green);
+  margin-left: 5px;
+}
+.alm-opsi-nama { display: block; font-size: 12.5px; margin-bottom: 2px; }
+.alm-opsi-isi {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ord-muted);
+}
+
+.alm-opsi.is-tambah {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  border-style: dashed;
+  color: var(--ord-green);
+  font-weight: 600;
+  font-size: 13.5px;
+}

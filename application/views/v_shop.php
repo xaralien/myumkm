@@ -27,87 +27,28 @@
   <div class="container">
 
 
-    <!-- =============== BILAH LOKASI =============== -->
-    <?php if ($lokasi): ?>
-      <div class="locbar">
-        <div class="dekat-bar">
-  <?php if ($mode_dekat): ?>
- 
-    <div class="dekat-aktif">
-      <span>Toko dalam <strong><?= (int) $radius ?> km</strong> dari lokasimu</span>
- 
-      <!-- Pilihan radius berupa TAUTAN, bukan dropdown + tombol.
-           Satu ketukan, dan hasilnya bisa di-bookmark. -->
-      <span class="dekat-radius">
-        <?php foreach (array(3, 5, 10, 25, 50) as $r): ?>
-          <a href="<?= site_url('shop') . '?dekat=1&radius=' . $r ?>"
-             class="<?= (int) $radius === $r ? 'is-aktif' : '' ?>"><?= $r ?> km</a>
-        <?php endforeach; ?>
-      </span>
- 
-      <a href="<?= site_url('shop') ?>" class="dekat-mati">Tampilkan semua</a>
-    </div>
- 
-  <?php else: ?>
- 
-    <?php if ($punya_titik): ?>
-      <a href="<?= site_url('shop') . '?dekat=1&radius=10' ?>" class="btn-dekat">
-        Cari toko di sekitar saya
-      </a>
-    <?php else: ?>
-      <!-- Tombol ini meminta izin lokasi lewat JavaScript, lalu memuat
-           ulang halaman dalam mode dekat. -->
-      <button type="button" class="btn-dekat" id="btnDekat">
-        Cari toko di sekitar saya
-      </button>
-    <?php endif; ?>
- 
-    <span class="hint">Menampilkan toko berdasarkan jarak sebenarnya, bukan batas wilayah.</span>
- 
-  <?php endif; ?>
- 
-  <p class="dekat-info" id="dekatInfo"></p>
-</div>
-        <div class="locbar-teks">
-          <span class="locbar-label">Kirim ke</span>
-          <strong><?= html_escape($lokasi['district_name']) ?>,
-            <?= html_escape($lokasi['regency_name']) ?></strong>
-        </div>
-        <button type="button" class="locbar-ganti" data-open-location>Ganti</button>
-      </div>
+    <!-- =============== KIRIM KE =============== -->
+    <?php $this->load->view('parts/kirim_ke'); ?>
 
+    <?php if ($mode_dekat && $total > 0): ?>
       <?php
-      /* Jelaskan kenapa ada toko dari luar kecamatan. Tanpa kalimat ini
-           pengunjung mengira filternya rusak. */
-      $dekat = (int) $sebaran[1];
-      $kota = (int) $sebaran[2];
-      $prov = (int) $sebaran[3];
+        /* Jelaskan kenapa ada toko dari luar kecamatan tujuan. Tanpa kalimat
+           ini, pengunjung mengira saringannya rusak - padahal memang
+           disengaja: produk jauh tetap tampil, hanya di belakang. */
+        $dekat_n = (int) $sebaran[1];
+        $kota_n  = (int) $sebaran[2];
+        $prov_n  = (int) $sebaran[3];
       ?>
-      <?php if ($total > 0 && $dekat === 0): ?>
+      <?php if ($dekat_n > 0 && ($kota_n + $prov_n) > 0): ?>
         <p class="locbar-info">
-          Belum ada toko di <?= html_escape($lokasi['district_name']) ?>.
-          Ini toko terdekat di <?= html_escape($kota ? $lokasi['regency_name'] : $lokasi['province_name']) ?>.
+          <strong><?= $dekat_n ?></strong> produk dari toko di kecamatan tujuan, ditampilkan lebih dulu.
+          <?= $kota_n + $prov_n ?> lainnya dari sekitar dan luar kota.
         </p>
-      <?php elseif ($total > 0 && $dekat > 0 && ($kota + $prov) > 0 && empty($f['strict'])): ?>
+      <?php elseif ($dekat_n === 0): ?>
         <p class="locbar-info">
-          <strong><?= $dekat ?></strong> produk dari toko di kecamatanmu, ditampilkan lebih dulu.
-          <?= $kota + $prov ?> lainnya dari sekitar.
-          <a href="<?= site_url('shop') . '?strict=1' ?>">Tampilkan kecamatanku saja</a>
-        </p>
-      <?php elseif (!empty($f['strict'])): ?>
-        <p class="locbar-info">
-          Hanya toko di <?= html_escape($lokasi['district_name']) ?>.
-          <a href="<?= site_url('shop') ?>">Tampilkan juga sekitarnya</a>
+          Belum ada toko di kecamatan tujuan. Ini toko terdekat dari sana.
         </p>
       <?php endif; ?>
-    <?php else: ?>
-      <div class="locbar">
-        <div class="locbar-teks">
-          <span class="locbar-label">Lokasi belum dipilih</span>
-          <strong>Semua toko ditampilkan</strong>
-        </div>
-        <button type="button" class="locbar-ganti" data-open-location>Pilih lokasi</button>
-      </div>
     <?php endif; ?>
 
     <!-- =============== PENCARIAN & FILTER ===============
@@ -297,4 +238,15 @@
   window.LOKASI_URLS = { titik: '<?= site_url('location/titik') ?>' };
 </script>
 <script src="<?= aset('assets/js/nearby.js') ?>"></script>
-<?php $this->load->view('v_location_modal'); ?>
+<!-- Modal pemilihan wilayah tidak dipakai lagi - lokasi ditentukan GPS.
+     Berkasnya dibiarkan ada kalau sewaktu-waktu perlu dikembalikan.
+     Elemen pesan sudah ada di bilah lokasi di atas; id harus unik, jadi
+     tidak digandakan di sini. -->
+<script>
+  window.GPS = { simpan: '<?= site_url('location/titik') ?>' };
+  window.CSRF = window.CSRF || {
+    name: '<?= $this->security->get_csrf_token_name() ?>',
+    hash: '<?= $this->security->get_csrf_hash() ?>'
+  };
+</script>
+<script src="<?= aset('assets/js/gps.js') ?>"></script>

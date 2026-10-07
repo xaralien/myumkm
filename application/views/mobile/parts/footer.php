@@ -152,6 +152,7 @@
       <?php endif; ?>
 
       <nav class="mb-sheet-menu" aria-label="Menu akun">
+        <a href="<?= site_url('akun/alamat') ?>">Alamat saya</a>
         <a href="<?= site_url('akun/pesanan') ?>">
           Pesanan saya
           <span class="mb-sheet-angka" data-akun-notif="pesanan_saya" hidden></span>

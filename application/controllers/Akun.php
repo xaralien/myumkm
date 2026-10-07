@@ -80,6 +80,108 @@ class Akun extends Member_Controller
         $this->load->view('index', $data);
     }
 
+    /* =====================================================================
+       BUKU ALAMAT
+       ===================================================================== */
+
+    /** Daftar alamat tersimpan. GET akun/alamat */
+    public function alamat()
+    {
+        $this->load->model('address_model');
+
+        $data = array(
+            'daftar' => $this->address_model->daftar($this->me['id']),
+            'maks'   => Address_model::MAKS,
+            'pages'  => 'v_alamat',
+        );
+
+        $this->load->view('index', $data);
+    }
+
+    /** Formulir tambah/ubah. GET akun/alamat_form[/{id}] */
+    public function alamat_form($id = NULL)
+    {
+        $this->load->model(array('address_model', 'region_model'));
+
+        $alamat = $id ? $this->address_model->milik($id, $this->me['id']) : NULL;
+
+        if ($id && ! $alamat) {
+            show_404();
+        }
+
+        $data = array(
+            'alamat'    => $alamat,
+            'provinsi'  => $this->region_model->provinces(),
+            'pages'     => 'v_alamat_form',
+        );
+
+        $this->load->view('index', $data);
+    }
+
+    /** POST akun/alamat_simpan[/{id}] */
+    public function alamat_simpan($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->load->model('address_model');
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('label', 'Nama alamat', 'trim|required|max_length[40]');
+        $this->form_validation->set_rules('recipient_name', 'Nama penerima', 'trim|required|max_length[100]');
+        $this->form_validation->set_rules('recipient_phone', 'Nomor HP', 'trim|required|max_length[25]');
+        $this->form_validation->set_rules('address', 'Alamat', 'trim|required|max_length[500]');
+        $this->form_validation->set_rules('district_id', 'Kecamatan', 'trim|required|integer');
+
+        if ( ! $this->form_validation->run()) {
+            return $this->alamat_form($id);
+        }
+
+        $hasil = $this->address_model->simpan($this->input->post(NULL, TRUE), $this->me['id'], $id);
+
+        $this->session->set_flashdata($hasil['ok'] ? 'sukses' : 'error', $hasil['pesan']);
+
+        /* Kembali ke checkout kalau pembeli datang dari sana - dia sedang di
+           tengah membeli, dan melemparnya ke halaman daftar alamat berarti
+           dia harus mencari jalan kembali sendiri. */
+        $balik = $this->input->post('balik');
+
+        return redirect($balik === 'checkout' ? 'checkout' : 'akun/alamat');
+    }
+
+    /** POST akun/alamat_utama/{id} */
+    public function alamat_utama($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->load->model('address_model');
+        $ok = $this->address_model->jadikan_utama($id, $this->me['id']);
+
+        $this->session->set_flashdata($ok ? 'sukses' : 'error',
+            $ok ? 'Alamat utama diperbarui.' : 'Alamat tidak ditemukan.');
+
+        return redirect($this->input->post('balik') === 'checkout' ? 'checkout' : 'akun/alamat');
+    }
+
+    /** POST akun/alamat_hapus/{id} */
+    public function alamat_hapus($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $this->load->model('address_model');
+        $ok = $this->address_model->hapus($id, $this->me['id']);
+
+        $this->session->set_flashdata($ok ? 'sukses' : 'error',
+            $ok ? 'Alamat dihapus. Pesanan lama tidak terpengaruh.' : 'Alamat tidak ditemukan.');
+
+        return redirect('akun/alamat');
+    }
+
     /**
      * Angka untuk titik merah & hitungan di menu akun.  GET akun/notif [AJAX]
      *

@@ -51,11 +51,18 @@
       ongkir = T.provinsi;
       ket = 'Luar ' + T.nama_kota + ', masih dalam ' + T.nama_prov + '.';
     } else {
-      rOngkir.textContent = 'Tidak dilayani';
-      rTotal.textContent  = rupiah(T.subtotal);
-      pesan(T.nama_toko + ' tidak mengirim ke luar ' + T.nama_prov
-            + '. Coba alamat lain atau pilih toko yang lebih dekat.', 'error');
-      return;
+      /* Luar provinsi. Boleh, asal penjual sudah mengisi tarifnya - barang
+         seperti bunga segar dan kue basah memang tidak layak berhari-hari
+         di jalan, dan penjual yang paling tahu itu. */
+      if (T.luar === null || T.luar === undefined) {
+        rOngkir.textContent = 'Tidak dilayani';
+        rTotal.textContent  = rupiah(T.subtotal);
+        pesan(T.nama_toko + ' belum melayani pengiriman ke luar ' + T.nama_prov
+              + '. Tanyakan lewat chat, atau pilih toko yang lebih dekat dengan tujuanmu.', 'error');
+        return;
+      }
+      ongkir = T.luar;
+      ket = 'Luar ' + T.nama_prov + '.';
     }
 
     var gratis = T.gratis_min > 0 && T.subtotal >= T.gratis_min;

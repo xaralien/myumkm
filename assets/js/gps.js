@@ -1,0 +1,88 @@
+/* =============================================================================
+   gps.js - menentukan lokasi pembeli lewat GPS perangkat
+   Simpan di: assets/js/gps.js
+
+   Menggantikan pemilihan wilayah bertingkat (provinsi > kota > kecamatan).
+   Alasannya: pembeli jarang tahu nama kecamatannya sendiri, apalagi saat
+   sedang bepergian - dan tiga dropdown berturut-turut adalah tiga
+   kesempatan untuk menyerah sebelum melihat satu produk pun.
+
+   Lokasi di sini hanya MENGURUTKAN hasil, tidak menyaring. Pembeli yang
+   menolak izin GPS tetap melihat seluruh katalog, hanya tidak diurutkan
+   dari yang terdekat.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var C = window.GPS;
+  if (!C) { return; }
+
+  function pesan(teks, jenis) {
+    var el = document.getElementById('gpsInfo');
+    if (!el) { return; }
+    el.textContent = teks || '';
+    el.className = 'gps-info' + (jenis ? ' is-' + jenis : '');
+  }
+
+  function minta(btn) {
+    if (!navigator.geolocation) {
+      return pesan('Perangkat ini tidak mendukung deteksi lokasi.', 'error');
+    }
+
+    if (btn) { btn.disabled = true; }
+    pesan('Mencari lokasimu...');
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) { kirim(pos.coords.latitude, pos.coords.longitude, btn); },
+      function (err) {
+        if (btn) { btn.disabled = false; }
+
+        /* Pesan dibedakan: izin ditolak bisa diperbaiki pengguna, sedangkan
+           https/localhost adalah batasan browser yang tidak ada hubungannya
+           dengan dia. Satu pesan untuk keduanya membuat orang mencari-cari
+           pengaturan yang tidak akan menolong. */
+        if (err && err.code === 1) {
+          pesan('Izin lokasi ditolak. Aktifkan lewat ikon gembok di bilah alamat, '
+              + 'atau lanjutkan tanpa lokasi - semua produk tetap tampil.', 'error');
+        } else {
+          pesan('Lokasi tidak terbaca. Deteksi lokasi hanya jalan lewat https atau localhost. '
+              + 'Semua produk tetap tampil tanpanya.', 'error');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  function kirim(lat, lng, btn) {
+    var body = new FormData();
+    body.append('lat', lat);
+    body.append('lng', lng);
+    if (window.CSRF) { body.append(window.CSRF.name, window.CSRF.hash); }
+
+    fetch(C.simpan, {
+      method: 'POST', body: body, credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.ok) {
+          if (btn) { btn.disabled = false; }
+          return pesan(j.pesan || 'Gagal menyimpan lokasi.', 'error');
+        }
+        // Dimuat ulang supaya urutannya ikut berubah dari server.
+        window.location.reload();
+      })
+      .catch(function () {
+        if (btn) { btn.disabled = false; }
+        pesan('Koneksi bermasalah. Coba lagi.', 'error');
+      });
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('[data-gps]') : null;
+    if (!btn) { return; }
+
+    e.preventDefault();
+    minta(btn);
+  });
+})();

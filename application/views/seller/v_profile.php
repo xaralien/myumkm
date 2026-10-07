@@ -232,6 +232,21 @@ $avatar = $store['avatar']
             </div>
 
             <div class="mb-3">
+                <label class="form-label" for="ongkir_luar">Luar provinsi</label>
+                <div class="rupiah-wrap">
+                    <input type="text" id="ongkir_luar" name="ongkir_luar"
+                        class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
+                        value="<?= set_value('ongkir_luar', $store['ongkir_luar'] === NULL ? '' : (int) $store['ongkir_luar']) ?>">
+                </div>
+                <p class="hint">
+                    <strong>Kosongkan</strong> kalau barangmu tidak tahan perjalanan jauh
+                    &mdash; bunga segar atau kue basah, misalnya. Pesanan dari luar provinsi
+                    akan ditolak saat checkout, dan pembeli diarahkan menanyakannya lewat chat.
+                </p>
+                <?= form_error('ongkir_luar') ?>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label" for="gratis_ongkir_min">Gratis ongkir mulai *</label>
                 <div class="rupiah-wrap">
                     <input type="text" id="gratis_ongkir_min" name="gratis_ongkir_min"

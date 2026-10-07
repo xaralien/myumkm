@@ -70,9 +70,15 @@ class Location extends CI_Controller
                 )));
         }
 
+        /* Titik ini adalah TUJUAN PENGIRIMAN, bukan sekadar posisi pembeli.
+           Keduanya sering sama (beli untuk diri sendiri), tapi tidak selalu:
+           kado ke kota lain dikirim ke sana, dan toko dekat tujuan yang
+           lebih masuk akal - bukan toko dekat pembelinya. */
         $this->session->set_userdata('dekat', array(
-            'lat' => (float) $lat,
-            'lng' => (float) $lng,
+            'lat'   => (float) $lat,
+            'lng'   => (float) $lng,
+            'label' => 'Lokasi saya',
+            'dari'  => 'gps',
         ));
 
         return $this
@@ -83,6 +89,43 @@ class Location extends CI_Controller
                 'csrf_name' => $this->security->get_csrf_token_name(),
                 'csrf_hash' => $this->security->get_csrf_hash(),
             )));
+    }
+
+    /**
+     * Pilih tujuan pengiriman dari buku alamat. POST location/tujuan/{id}
+     *
+     * Alamat tersimpan yang punya koordinat dipakai langsung. Yang belum
+     * punya koordinat tetap diterima - kecamatannya saja sudah cukup untuk
+     * menghitung ongkir, hanya pengurutan jaraknya yang tidak seakurat
+     * titik peta.
+     */
+    public function tujuan($id = NULL)
+    {
+        $this->load->library('auth_lib');
+        $uid = $this->auth_lib->id();
+
+        if ( ! $uid) {
+            show_404();
+        }
+
+        $this->load->model('address_model');
+        $a = $this->address_model->milik($id, $uid);
+
+        if ( ! $a) {
+            show_404();
+        }
+
+        $this->session->set_userdata('dekat', array(
+            'lat'         => $a['latitude'] !== NULL ? (float) $a['latitude'] : NULL,
+            'lng'         => $a['longitude'] !== NULL ? (float) $a['longitude'] : NULL,
+            'label'       => $a['label'],
+            'dari'        => 'alamat',
+            'alamat_id'   => (int) $a['id'],
+            'district_id' => (int) $a['district_id'],
+            'wilayah'     => trim($a['district_name'] . ', ' . $a['regency_name'], ', '),
+        ));
+
+        return redirect($this->input->post('balik') ?: 'shop');
     }
 
     /**

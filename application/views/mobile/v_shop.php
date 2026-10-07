@@ -17,6 +17,8 @@
   };
 ?>
 
+<?php $this->load->view('parts/kirim_ke'); ?>
+
 <form class="mb-cari" action="<?= site_url('shop') ?>" method="get" role="search">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
   <input type="search" name="q" value="<?= html_escape($f['q']) ?>"
@@ -93,4 +95,5 @@
   <?php endif; ?>
 <?php endif; ?>
 
-<?php $this->load->view('v_location_modal'); ?>
+<!-- Pemilih tujuan di atas sudah membawa elemen pesan dan gps.js. -->
+

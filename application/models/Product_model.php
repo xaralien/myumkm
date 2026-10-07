@@ -129,18 +129,24 @@ class Product_model extends CI_Model
      *  query builder tidak melindungi bagian ini.
      */
     protected $sort_map = array(
-        'baru' => array('id', 'DESC'),
+        'baru'  => array('id', 'DESC'),
         'murah' => array('price', 'ASC'),
         'mahal' => array('price', 'DESC'),
-        'nama' => array('name', 'ASC'),
+        'nama'  => array('name', 'ASC'),
+
+        /* Dua kunci, bukan satu: produk berbintang 5,0 dari SATU ulasan
+           tidak pantas mengalahkan 4,8 dari dua ratus ulasan. Jumlah
+           ulasan jadi penentu kedua. */
+        'ulasan' => array('rating_avg', 'DESC'),
     );
 
     public function sort_options()
     {
         return array(
-            'baru' => 'Terbaru',
-            'murah' => 'Harga terendah',
-            'mahal' => 'Harga tertinggi',
+            'baru'   => 'Terbaru',
+            'ulasan' => 'Ulasan terbaik',
+            'mahal'  => 'Harga tertinggi',
+            'murah'  => 'Harga terendah',
             'nama' => 'Nama A-Z',
         );
     }
@@ -259,15 +265,11 @@ class Product_model extends CI_Model
 
         $jarak = $this->jarak_sql($f['dekat_lat'], $f['dekat_lng']);
 
-        $rows = $this
-            ->db
-            ->select('p.id, ' . $jarak . ' AS jarak_km, s.radius_km AS store_radius_km', FALSE)
-            ->having('jarak_km <= ' . (float) $f['radius'], NULL, FALSE)
-            ->having('(store_radius_km IS NULL OR jarak_km <= store_radius_km)', NULL, FALSE)
-            ->get()
-            ->result_array();
-
-        return count($rows);
+        /* Tidak ada lagi batas jarak. Produk dari kota lain tetap tampil,
+           hanya diurutkan belakangan - pembeli yang mencari barang tertentu
+           lebih memilih menunggu kiriman jauh daripada tidak menemukannya
+           sama sekali. Jadi jumlahnya sama dengan mode biasa. */
+        return (int) $this->db->count_all_results();
     }
 
     public function search(array $f, $limit, $offset)
@@ -310,17 +312,16 @@ class Product_model extends CI_Model
             ->join('regencies rg', 'rg.id = s.regency_id', 'left');
 
         if ($dekat) {
-            // Alias, bukan pengulangan rumus - itu yang membuatnya sah.
-            $this
-                ->db
-                ->having('jarak_km <= ' . (float) $f['radius'], NULL, FALSE)
-                ->having('(store_radius_km IS NULL OR jarak_km <= store_radius_km)', NULL, FALSE);
+            /* Jarak hanya MENGURUTKAN, tidak lagi menyaring. Produk jauh
+               tetap muncul, hanya di belakang.
 
-            /* Jarak jadi kunci urut PERTAMA. Sebelumnya urutannya
-               proximity, lalu p.id DESC, baru jarak_km - dan karena p.id
-               unik, jarak_km tidak pernah menentukan apa pun. Toko
-               terdekat tidak muncul lebih dulu. */
-            $this->db->order_by('jarak_km', 'ASC');
+               Pengecualian: kalau pembeli memilih urutan lain (harga,
+               ulasan), urutan itu yang menang - dia sedang mencari
+               berdasarkan hal lain, dan memaksa jarak di depan membuat
+               pilihannya seolah diabaikan. */
+            if (empty($f['sort']) || $f['sort'] === 'baru') {
+                $this->db->order_by('jarak_km', 'ASC');
+            }
         } elseif ($prox !== NULL) {
             $this->db->order_by($prox . ' ASC', '', FALSE);
         }
@@ -328,6 +329,13 @@ class Product_model extends CI_Model
         $key = isset($f['sort']) ? $f['sort'] : 'baru';
         $sort = isset($this->sort_map[$key]) ? $this->sort_map[$key] : $this->sort_map['baru'];
         $this->db->order_by('p.' . $sort[0], $sort[1]);
+
+        if ($key === 'ulasan') {
+            // Lihat catatan di sort_map: bintang tinggi dari satu ulasan
+            // tidak boleh mengalahkan bintang sedikit lebih rendah dari
+            // ratusan ulasan.
+            $this->db->order_by('p.rating_count', 'DESC');
+        }
 
         return $this->db->limit((int) $limit, (int) $offset)->get()->result_array();
     }
@@ -653,10 +661,17 @@ class Product_model extends CI_Model
 
         $this->bbox_filter($lat, $lng, $radius_km);
 
+        /* Batas jarak di SINI tetap ada, dan itu disengaja: bagian ini
+           memang daftar "toko di sekitarmu", jadi toko dari kota lain
+           tidak ada gunanya ditampilkan.
+
+           Yang dibuang adalah syarat radius_km milik toko. Katalog kini
+           tidak lagi membatasi jangkauan antar, jadi menyembunyikan toko
+           di sini hanya karena radius antarnya kecil membuat beranda dan
+           katalog menunjukkan hal yang berbeda untuk toko yang sama. */
         return $this
             ->db
             ->having('jarak_km <= ' . (float) $radius_km, NULL, FALSE)
-            ->having('(store_radius_km IS NULL OR jarak_km <= store_radius_km)', NULL, FALSE)
             ->order_by('jarak_km', 'ASC')
             ->limit((int) $limit)
             ->get()

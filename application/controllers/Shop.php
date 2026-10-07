@@ -77,13 +77,18 @@ class Shop extends CI_Controller
 
         $dekat = $this->session->userdata('dekat');
 
-        $f['radius'] = (int) $this->input->get('radius');
-        if (!in_array($f['radius'], array(3, 5, 10, 25, 50), TRUE)) {
-            $f['radius'] = 10;  // nilai di luar daftar dikembalikan ke bawaan
-        }
+        /* Radius tidak dipakai lagi untuk MENYARING - produk jauh tetap
+           tampil. Nilainya dibiarkan ada supaya kode lama yang membacanya
+           tidak pecah, tapi tidak lagi membatasi apa pun. */
+        $f['radius'] = 99999;
 
-        // Mode dekat hanya aktif kalau titiknya ada DAN pembeli memilihnya.
-        $mode_dekat = $dekat && $this->input->get('dekat') === '1';
+        /* Mode dekat aktif BEGITU titiknya ada. Dulu pembeli harus memilih
+           "cari di sekitarku" lebih dulu - padahal setelah mengizinkan GPS,
+           dia memang sudah menyatakan maunya diurutkan dari yang terdekat. */
+        /* Pengurutan jarak butuh koordinat. Alamat tersimpan yang belum
+           punya titik peta tetap sah sebagai tujuan - kecamatannya cukup
+           untuk ongkir - hanya urutan jaraknya yang tidak bisa dihitung. */
+        $mode_dekat = $dekat && isset($dekat['lat']) && $dekat['lat'] !== NULL;
 
         if ($mode_dekat) {
             $f['dekat_lat'] = $dekat['lat'];
@@ -112,6 +117,13 @@ class Shop extends CI_Controller
             'mode_dekat' => $mode_dekat,
             'radius' => $f['radius'],
             'punya_titik' => (bool) $dekat,
+
+            /* Tujuan pengiriman yang sedang dipakai, beserta alamat
+               tersimpan untuk menggantinya. Katalog diurutkan dari toko
+               terdekat ke TUJUAN, bukan ke posisi pembeli - itu dua hal
+               berbeda begitu dia mengirim ke orang lain. */
+            'tujuan'       => $dekat,
+            'alamat_saya'  => $this->alamat_saya(),
         );
 
         $data['pages'] = 'v_shop';
@@ -127,6 +139,20 @@ class Shop extends CI_Controller
             return NULL;
         }
         return max(0, (int) $v);
+    }
+
+    /** Alamat tersimpan pembeli, untuk pemilih "Kirim ke". Tamu: kosong. */
+    protected function alamat_saya()
+    {
+        $this->load->library('auth_lib');
+        $uid = $this->auth_lib->id();
+
+        if ( ! $uid) {
+            return array();
+        }
+
+        $this->load->model('address_model');
+        return $this->address_model->daftar($uid);
     }
 
     protected function build_pagination($total, $page)

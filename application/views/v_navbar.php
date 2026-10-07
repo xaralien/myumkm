@@ -46,7 +46,7 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
 <div class="nt-strip">
   <div class="nt-wrap nt-strip-in">
     <span class="nt-strip-teks"><?= html_escape($slogan) ?></span>
-    <button type="button" class="nt-lokasi" data-open-location data-cadangan="<?= site_url('shop') ?>">
+    <button type="button" class="nt-lokasi" data-gps>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path>
         <circle cx="12" cy="10" r="2.5"></circle>
@@ -175,6 +175,7 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
           <!-- ---------- menu ---------- -->
           <nav class="nt-akun-menu" aria-label="Menu akun">
             <a href="<?= site_url('akun/pesanan') ?>">Pesanan saya</a>
+          <a href="<?= site_url('akun/alamat') ?>">Alamat saya</a>
             <a href="<?= site_url('akun/pesan') ?>">Pesan</a>
             <!-- <a href="<?= site_url('track') ?>">Lacak pesanan</a> -->
 
@@ -304,9 +305,9 @@ $flash_info = $this->session->flashdata('info');
     }
 
     /* ---- tombol lokasi: cadangan kalau modal wilayah tidak dimuat ---- */
-    document.querySelectorAll('.nt-lokasi').forEach(function(btn) {
+    document.querySelectorAll('.nt-lokasi-nonaktif').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        if (!document.querySelector('script[src*="location.js"]')) {
+        if (false) {
           window.location = btn.dataset.cadangan;
         }
       });

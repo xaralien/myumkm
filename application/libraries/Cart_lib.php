@@ -398,14 +398,23 @@ class Cart_lib
             $tingkat = 'provinsi';
             $ongkir  = (int) $toko['ongkir_provinsi'];
         } else {
-            return array(
-                'ok' => FALSE,
-                'ongkir' => 0,
-                'tingkat' => 'luar',
-                'pesan' => $toko['name'] . ' tidak mengirim ke luar '
-                    . $toko['province_name'] . '. Bunga segar tidak tahan '
-                    . 'perjalanan antarprovinsi.'
-            );
+            /* Luar provinsi. Dulu selalu ditolak dengan alasan "bunga segar
+               tidak tahan perjalanan" - benar untuk toko bunga, tapi tidak
+               untuk keripik atau batik. Sekarang penjual yang memutuskan
+               lewat tarifnya sendiri. */
+            if ($toko['ongkir_luar'] === NULL) {
+                return array(
+                    'ok' => FALSE,
+                    'ongkir' => 0,
+                    'tingkat' => 'luar',
+                    'pesan' => $toko['name'] . ' belum melayani pengiriman ke luar '
+                        . $toko['province_name'] . '. Coba tanyakan lewat chat '
+                        . 'atau pilih toko yang lebih dekat dengan tujuanmu.'
+                );
+            }
+
+            $tingkat = 'luar';
+            $ongkir  = (int) $toko['ongkir_luar'];
         }
 
         // Gratis ongkir per toko. 0 berarti fiturnya dimatikan.

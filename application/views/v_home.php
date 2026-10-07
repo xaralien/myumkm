@@ -333,4 +333,13 @@
   };
 </script>
 <script src="<?= aset('assets/js/shop.js') ?>"></script>
-<?php $this->load->view('v_location_modal'); ?>
+<p class="gps-info" id="gpsInfo" aria-live="polite"></p>
+
+<script>
+  window.GPS = { simpan: '<?= site_url('location/titik') ?>' };
+  window.CSRF = window.CSRF || {
+    name: '<?= $this->security->get_csrf_token_name() ?>',
+    hash: '<?= $this->security->get_csrf_hash() ?>'
+  };
+</script>
+<script src="<?= aset('assets/js/gps.js') ?>"></script>

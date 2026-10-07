@@ -436,6 +436,7 @@ class Seller extends Seller_Controller
         $this->form_validation->set_rules('ongkir_kecamatan', 'Ongkir dalam kecamatan', 'required|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('ongkir_kota', 'Ongkir dalam kota', 'required|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('ongkir_provinsi', 'Ongkir luar kota', 'trim|integer|greater_than_equal_to[0]');
+        $this->form_validation->set_rules('ongkir_luar', 'Ongkir luar provinsi', 'trim|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('gratis_ongkir_min', 'Gratis ongkir mulai', 'required|integer|greater_than_equal_to[0]');
 
         /* Pengganti jam buka, jeda persiapan, dan batas hari pesan - semuanya
@@ -496,6 +497,10 @@ class Seller extends Seller_Controller
         $luar = $this->input->post('ongkir_provinsi');
         $luar = ($luar === '' || $luar === NULL) ? NULL : (int) $luar;
 
+        // Aturan kosong-vs-nol yang sama berlaku untuk luar provinsi.
+        $luar_prov = $this->input->post('ongkir_luar');
+        $luar_prov = ($luar_prov === '' || $luar_prov === NULL) ? NULL : (int) $luar_prov;
+
         $this->db->trans_begin();
 
         $u = array('name' => $this->input->post('name', TRUE));
@@ -519,6 +524,7 @@ class Seller extends Seller_Controller
             'ongkir_kecamatan' => (int) $this->input->post('ongkir_kecamatan'),
             'ongkir_kota' => (int) $this->input->post('ongkir_kota'),
             'ongkir_provinsi' => $luar,
+            'ongkir_luar'     => $luar_prov,
             'gratis_ongkir_min' => (int) $this->input->post('gratis_ongkir_min'),
             'waktu_proses_hari' => (int) $this->input->post('waktu_proses_hari'),
             'latitude' => $this->input->post('latitude') ?: NULL,
@@ -671,6 +677,7 @@ class Seller extends Seller_Controller
             'ongkir_kecamatan',
             'ongkir_kota',
             'ongkir_provinsi',
+            'ongkir_luar',
             'gratis_ongkir_min',
         );
 
