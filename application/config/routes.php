@@ -50,7 +50,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 $route['default_controller'] = 'home';
-$route['404_override'] = '';
+/* Alamat tidak dikenal ditangani Galat::index, supaya halaman 404 tampil
+   di dalam kerangka situs - navbar, keranjang, tab bar di HP - bukan
+   sebagai halaman telanjang. Berkas views/errors/html/error_404.php tetap
+   dipakai saat CodeIgniter sendiri tidak bisa diandalkan. */
+$route['404_override'] = 'galat';
 $route['translate_uri_dashes'] = FALSE;
 
 /* 'admin' sendirian mencari controller bawaan di folder admin/ - yang tidak

@@ -2215,3 +2215,120 @@ button.btn-dekat { cursor: pointer; }
 @media (max-width: 991.98px) {
   .gps-toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 }
+
+
+/* =====================================================================
+   HALAMAN GALAT DI DALAM KERANGKA SITUS (v_galat.php)
+   ===================================================================== */
+
+.gl-bagian {
+  position: relative;
+  padding: 64px 0 72px;
+  background-image: var(--wn-gradien);
+  background-color: var(--wn-tua);
+  color: #FFFFFF;
+  overflow: hidden;
+}
+.gl-bagian::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wn-motif);
+  background-size: 96px 96px;
+  opacity: .11;
+  pointer-events: none;
+}
+.gl-bagian > * { position: relative; }
+
+.gl-kotak { max-width: 560px; margin: 0 auto; text-align: center; }
+
+.gl-kode {
+  margin: 0;
+  font-family: var(--wn-serif);
+  font-size: clamp(72px, 18vw, 128px);
+  font-weight: 700;
+  line-height: .9;
+  background: var(--wn-gradien-emas);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+/* Tanpa cadangan ini, angka besarnya tidak terlihat sama sekali di browser
+   yang tidak mendukung background-clip. */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .gl-kode { color: var(--wn-emas-muda); -webkit-text-fill-color: currentColor; }
+}
+
+.gl-judul {
+  font-family: var(--wn-serif);
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 10px 0 10px;
+}
+
+.gl-pesan {
+  max-width: 44ch;
+  margin: 0 auto 26px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #D7E4EE;
+}
+
+.gl-cari {
+  display: flex;
+  gap: 8px;
+  max-width: 420px;
+  margin: 0 auto 22px;
+}
+.gl-cari input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  /* 16px mencegah iOS memperbesar halaman saat kolom disentuh. */
+  font-size: 16px;
+  color: var(--wn-tua);
+  outline: none;
+}
+.gl-cari input::placeholder { color: #8FA4B5; }
+.gl-cari button {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wn-gradien-emas);
+  color: #243B4F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.gl-aksi { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.nt-tombol-garis {
+  border: 1.5px solid rgba(255, 255, 255, .55);
+  background: transparent;
+  color: #FFFFFF;
+}
+.nt-tombol-garis:hover { background: rgba(255, 255, 255, .14); color: #FFFFFF; }
+
+.gl-tautan {
+  margin: 26px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+  font-size: 13.5px;
+  color: #9FB6C9;
+}
+.gl-tautan a { color: var(--wn-emas-muda); }
+.gl-tautan a:hover { text-decoration: underline; }
+
+@media (max-width: 575.98px) {
+  .gl-bagian { padding: 40px 0 48px; }
+  .gl-aksi .nt-tombol { flex: 1 1 100%; justify-content: center; }
+}

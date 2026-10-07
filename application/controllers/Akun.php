@@ -327,6 +327,163 @@ class Akun extends Member_Controller
             )));
     }
 
+
+    /* ------------------------------------------------------------------
+       profil, simpan_profil, dan buka_toko DIKEMBALIKAN.
+
+       Ketiganya hilang di commit faee68f, sementara view, tautan menu, dan
+       callback validasinya (nama_toko_unik, valid_phone) tetap ada - jadi
+       tombol "Buka toko" di beranda, navbar, footer, dan lembar akun HP
+       semuanya berujung 404.
+       ------------------------------------------------------------------ */
+
+    /* --------------------------------------------------------------- profil */
+
+    public function profil()
+    {
+        if ($this->input->method() === 'post') {
+            $this->form_validation->set_rules('name',        'Nama',           'required|trim|min_length[2]|max_length[100]');
+            $this->form_validation->set_rules('phone',       'Nomor WhatsApp', 'required|trim|callback_valid_phone');
+            $this->form_validation->set_rules('address',     'Alamat',         'trim|max_length[255]');
+            $this->form_validation->set_rules('district_id', 'Kecamatan',      'trim|integer');
+
+            if ($this->input->post('password', FALSE)) {
+                $this->form_validation->set_rules('password_lama', 'Password sekarang', 'required');
+                $this->form_validation->set_rules('password',      'Password baru',     'min_length[8]');
+                $this->form_validation->set_rules('password2',     'Ulangi password',   'matches[password]');
+            }
+
+            $this->form_validation->set_message('required',   '{field} wajib diisi.');
+            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
+            $this->form_validation->set_message('matches',    'Password baru tidak sama.');
+            $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
+
+            if ($this->form_validation->run()) {
+                return $this->simpan_profil();
+            }
+        }
+
+        $data = array(
+            'akun'      => $this->akun,
+            'provinces' => $this->region_model->provinces(),
+        );
+        $data['pages'] = 'akun/v_profil';
+        $this->load->view('index', $data);
+    }
+
+    protected function simpan_profil()
+    {
+        $u = array(
+            'name'    => trim($this->input->post('name', TRUE)),
+            'phone'   => $this->normalize_phone($this->input->post('phone', TRUE)),
+            'address' => trim((string) $this->input->post('address', TRUE)) ?: NULL,
+        );
+
+        // Wilayah opsional, tapi kalau diisi harus kecamatan yang benar-benar ada.
+        $dis = (int) $this->input->post('district_id');
+        if ($dis) {
+            $w = $this->region_model->district_full($dis);
+            if (! $w) {
+                $this->session->set_flashdata('error', 'Kecamatan tidak valid.');
+                return redirect('akun/profil');
+            }
+            $u['province_id'] = (int) $w['province_id'];
+            $u['regency_id']  = (int) $w['regency_id'];
+            $u['district_id'] = (int) $w['district_id'];
+        }
+
+        // Ganti password: password lama WAJIB benar. Tanpa ini, siapa pun
+        // yang sempat memakai perangkat pemilik akun bisa mengambil alihnya.
+        if ($this->input->post('password', FALSE)) {
+            if (! password_verify((string) $this->input->post('password_lama', FALSE), $this->akun['password_hash'])) {
+                $this->session->set_flashdata('error', 'Password sekarang salah.');
+                return redirect('akun/profil');
+            }
+            $u['password_hash'] = password_hash((string) $this->input->post('password', FALSE), PASSWORD_DEFAULT);
+        }
+
+        $avatar = $this->unggah_avatar('avatar', $this->akun['avatar']);
+        if ($avatar === FALSE) {
+            return redirect('akun/profil');
+        }
+        $u['avatar'] = $avatar;
+
+        $this->db->where('id', (int) $this->me['id'])->update('users', $u);
+
+        // Nama di menu dibaca dari sesi - diperbarui supaya langsung berubah.
+        $this->auth_lib->segarkan();
+
+        $this->session->set_flashdata('sukses', 'Profil tersimpan.');
+        return redirect('akun/profil');
+    }
+
+    /* ------------------------------------------------------------ buka toko */
+
+    public function buka_toko()
+    {
+        // 1 akun 1 toko. Yang sudah punya diarahkan ke pengaturan tokonya.
+        if ($this->auth_lib->store()) {
+            return redirect('seller/profile');
+        }
+
+        if ($this->input->method() === 'post') {
+            $this->form_validation->set_rules('store_name',  'Nama toko',   'required|trim|min_length[3]|max_length[120]|callback_nama_toko_unik');
+            $this->form_validation->set_rules('phone',       'WhatsApp toko', 'required|trim|callback_valid_phone');
+            $this->form_validation->set_rules('address',     'Alamat toko', 'required|trim|max_length[255]');
+            $this->form_validation->set_rules('district_id', 'Kecamatan',   'required|integer');
+            $this->form_validation->set_rules('description', 'Deskripsi',   'trim|max_length[1000]');
+            $this->form_validation->set_rules('setuju',      'Persetujuan', 'required');
+
+            $this->form_validation->set_message('required',   '{field} wajib diisi.');
+            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
+            $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
+
+            if ($this->form_validation->run()) {
+                $w = $this->region_model->district_full((int) $this->input->post('district_id'));
+
+                if (! $w) {
+                    $this->session->set_flashdata('error', 'Kecamatan tidak valid.');
+                    return redirect('akun/buka_toko');
+                }
+
+                $id = $this->toko_model->buat($this->me['id'], array(
+                    'name'        => $this->input->post('store_name', TRUE),
+                    'phone'       => $this->normalize_phone($this->input->post('phone', TRUE)),
+                    'address'     => trim($this->input->post('address', TRUE)),
+                    'description' => trim((string) $this->input->post('description', TRUE)) ?: NULL,
+                    'province_id' => (int) $w['province_id'],
+                    'regency_id'  => (int) $w['regency_id'],
+                    'district_id' => (int) $w['district_id'],
+                ));
+
+                if (! $id) {
+                    /* Lolos pengecekan tapi ditolak database: nama baru saja
+                       diambil orang lain, atau tombol ditekan dua kali. */
+                    $this->session->set_flashdata(
+                        'error',
+                        'Nama toko itu baru saja dipakai. Coba nama lain.'
+                    );
+                    return redirect('akun/buka_toko');
+                }
+
+                $this->session->set_flashdata(
+                    'sukses',
+                    'Toko dibuat dan menunggu persetujuan admin. Sambil menunggu, '
+                        . 'kamu sudah bisa menambahkan produk - produknya tampil di '
+                        . 'katalog begitu toko disetujui.'
+                );
+                return redirect('seller');
+            }
+        }
+
+        $data = array(
+            'akun'      => $this->akun,
+            'provinces' => $this->region_model->provinces(),
+        );
+        $data['pages'] = 'akun/v_buka_toko';
+        $this->load->view('index', $data);
+    }
+
     /** WAJIB public - dipanggil form_validation dari luar kelas. */
     public function nama_toko_unik($str)
     {

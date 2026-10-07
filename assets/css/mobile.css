@@ -287,7 +287,7 @@
 .mb-geser .mb-kartu { width: 158px; }
 
 .mb-kartu-foto { aspect-ratio: 1 / 1; background: var(--wn-abu); }
-.mb-kartu-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mb-kartu-foto img { aspect-ratio: 1 / 1; width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .mb-kartu-isi {
   display: flex;

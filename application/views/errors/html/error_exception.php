@@ -1,32 +1,43 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-?>
+/* Exception tak tertangani. Simpan di: application/views/errors/html/error_exception.php */
 
-<div style="border:1px solid #990000;padding-left:20px;margin:0 0 10px 0;">
+require_once __DIR__ . '/galat_kerangka.php';
 
-<h4>An uncaught Exception was encountered</h4>
+$rincian = '';
 
-<p>Type: <?php echo get_class($exception); ?></p>
-<p>Message: <?php echo $message; ?></p>
-<p>Filename: <?php echo $exception->getFile(); ?></p>
-<p>Line Number: <?php echo $exception->getLine(); ?></p>
+if (ENVIRONMENT !== 'production') {
+    $b = function ($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); };
 
-<?php if (defined('SHOW_DEBUG_BACKTRACE') && SHOW_DEBUG_BACKTRACE === TRUE): ?>
+    $rincian = '<div>' . $b(get_class($exception)) . ': ' . $b($message) . '</div>'
+             . '<div>' . $b($exception->getFile()) . ' baris ' . (int) $exception->getLine() . '</div>';
 
-	<p>Backtrace:</p>
-	<?php foreach ($exception->getTrace() as $error): ?>
+    if (defined('SHOW_DEBUG_BACKTRACE') && SHOW_DEBUG_BACKTRACE === TRUE) {
+        $jejak = '';
 
-		<?php if (isset($error['file']) && strpos($error['file'], realpath(BASEPATH)) !== 0): ?>
+        foreach ($exception->getTrace() as $t) {
+            // Berkas milik CodeIgniter sendiri dilewati - yang menolong saat
+            // menelusuri galat adalah berkas aplikasi, bukan isi framework.
+            if (isset($t['file']) && strpos($t['file'], realpath(BASEPATH)) !== 0) {
+                $jejak .= '<div>' . $b($t['file']) . ':' . (int) $t['line']
+                       . ' &rarr; ' . $b($t['function']) . '()</div>';
+            }
+        }
 
-			<p style="margin-left:10px">
-			File: <?php echo $error['file']; ?><br />
-			Line: <?php echo $error['line']; ?><br />
-			Function: <?php echo $error['function']; ?>
-			</p>
-		<?php endif ?>
+        if ($jejak) {
+            $rincian .= '<div style="margin-top:8px;opacity:.85">' . $jejak . '</div>';
+        }
+    }
+}
 
-	<?php endforeach ?>
-
-<?php endif ?>
-
-</div>
+galat_tampilkan(array(
+    'kode'  => '',
+    'judul' => 'Ada yang tidak beres',
+    'pesan' => 'Halaman ini gagal dimuat. Tim kami bisa memeriksanya kalau '
+             . 'kamu memberi tahu apa yang sedang kamu lakukan tadi.',
+    'saran' => array(
+        array('Lihat katalog', 'shop'),
+        array('Lacak pesanan', 'lacak'),
+    ),
+    'rincian' => $rincian,
+));
