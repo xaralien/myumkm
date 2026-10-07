@@ -2332,3 +2332,20 @@ button.btn-dekat { cursor: pointer; }
   .gl-bagian { padding: 40px 0 48px; }
   .gl-aksi .nt-tombol { flex: 1 1 100%; justify-content: center; }
 }
+
+
+/* Rating produk di kartu katalog (desktop) */
+.product-item .product-nilai {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wn-teks-2);
+}
+.product-item .product-nilai svg { color: #E8B23A; flex: 0 0 auto; }
+.product-item .product-nilai span { font-weight: 400; color: var(--wn-samar); }
+
+.product-item .product-nilai i { font-style: normal; color: var(--wn-samar); font-weight: 400; }

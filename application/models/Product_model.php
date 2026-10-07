@@ -285,7 +285,17 @@ class Product_model extends CI_Model
             s.regency_id  AS store_regency_id,
             d.name AS store_district, rg.name AS store_regency,
             (SELECT COUNT(*) FROM product_variants v
-             WHERE v.product_id = p.id AND v.is_active = 1) AS variant_count';
+             WHERE v.product_id = p.id AND v.is_active = 1) AS variant_count,
+
+            /* Jumlah barang terjual: SUM(qty), bukan COUNT baris pesanan -
+               satu pesanan berisi 5 buket berarti 5 terjual, bukan 1.
+
+               Subquery, bukan join: dengan join, satu baris produk berlipat
+               sebanyak pesanannya dan seluruh hitungan lain di query ini
+               (termasuk jarak dan jumlah varian) ikut salah. */
+            (SELECT COALESCE(SUM(oi.qty), 0) FROM order_items oi
+              JOIN orders o ON o.id = oi.order_id
+             WHERE oi.product_id = p.id AND o.payment_status = \'paid\') AS terjual';
 
         if ($dekat) {
             $jarak = $this->jarak_sql($f['dekat_lat'], $f['dekat_lng']);
@@ -468,6 +478,19 @@ class Product_model extends CI_Model
                 s.avatar AS store_avatar,
                 s.waktu_proses_hari AS store_proses,
                 s.description AS store_description,
+
+                /* Rating toko dibaca dari kolom tersimpan, bukan dihitung
+                   AVG() di sini: nilainya sudah diperbarui tiap ada ulasan
+                   baru, dan menghitungnya ulang berarti menjumlahkan seluruh
+                   ulasan toko setiap kali satu halaman produk dibuka. */
+                s.rating_avg   AS store_rating,
+                s.rating_count AS store_rating_count,
+
+                /* Jumlah pesanan LUNAS toko ini. Subquery, bukan join:
+                   dengan join, satu baris produk akan berlipat sebanyak
+                   pesanannya dan seluruh hasil jadi salah. */
+                (SELECT COUNT(*) FROM orders o
+                  WHERE o.store_id = s.id AND o.payment_status = \'paid\') AS store_terjual,
                 s.province_id AS store_province_id,
                 s.regency_id  AS store_regency_id,
                 s.district_id AS store_district_id,

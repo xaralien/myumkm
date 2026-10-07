@@ -122,6 +122,11 @@ foreach ($addons as $a) {
                          halaman sendiri. -->
                     <a class="produk-toko-info" href="<?= html_escape($link_toko) ?>">
                         <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
+                        <?php $this->load->view('parts/toko_nilai', array(
+                            'rating'        => $p['store_rating'],
+                            'jumlah_ulasan' => $p['store_rating_count'],
+                            'terjual'       => $p['store_terjual'],
+                        )); ?>
                         <span class="produk-toko-lokasi">
                             <?= html_escape($p['store_district']) ?>,
                             <?= html_escape($p['store_regency']) ?>

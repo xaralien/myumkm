@@ -179,20 +179,44 @@
                   <p class="product-cat"><?= html_escape($p['category_name']) ?></p>
                 <?php endif; ?>
 
+                <?php if (isset($p['jarak_km'])): ?>
+                  <!-- Dikeluarkan dari <p class="product-store">: paragraf di
+                       dalam paragraf tidak sah, dan browser menutup yang luar
+                       lebih awal sehingga nama tokonya terlempar keluar
+                       kelompok dan jarak antarkartu jadi tidak rata. -->
+                  <p class="product-jarak"><?= number_format($p['jarak_km'], 1, ',', '.') ?> km dari kamu</p>
+                <?php endif; ?>
+
                 <p class="product-store">
-                  <?php if (isset($p['jarak_km'])): ?>
-    <p class="product-jarak"><?= number_format($p['jarak_km'], 1, ',', '.') ?> km dari kamu</p>
-  <?php endif; ?>
- 
                   <?= html_escape($p['store_name']) ?>
                   <?php if (!empty($p['store_district'])): ?>
                     <em><?= html_escape($p['store_district']) ?><?php
-      if (isset($p['proximity']) && (int) $p['proximity'] > 1) {
-        echo ', ' . html_escape($p['store_regency']);
-      }
-      ?></em>
+                      if (isset($p['proximity']) && (int) $p['proximity'] > 1) {
+                          echo ', ' . html_escape($p['store_regency']);
+                      }
+                    ?></em>
                   <?php endif; ?>
                 </p>
+
+                <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
+                <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>
+                  <!-- Rating PRODUK, bukan rating toko: kartu ini tentang satu
+                       barang, dan toko bagus pun bisa punya produk yang
+                       mengecewakan. -->
+                  <p class="product-nilai">
+                    <?php if ((int) $p['rating_count'] > 0): ?>
+                      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
+                      <b><?= number_format($p['rating_avg'], 1, ',', '.') ?></b>
+                      <span>(<?= (int) $p['rating_count'] ?>)</span>
+                    <?php endif; ?>
+
+                    <?php if ((int) $p['rating_count'] > 0 && $teks_terjual): ?>
+                      <i aria-hidden="true">&middot;</i>
+                    <?php endif; ?>
+
+                    <?php if ($teks_terjual): ?><span><?= $teks_terjual ?></span><?php endif; ?>
+                  </p>
+                <?php endif; ?>
               </div>
 
               <button type="button" class="icon-cross btn-add"

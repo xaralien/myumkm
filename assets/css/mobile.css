@@ -287,7 +287,17 @@
 .mb-geser .mb-kartu { width: 158px; }
 
 .mb-kartu-foto { aspect-ratio: 1 / 1; background: var(--wn-abu); }
-.mb-kartu-foto img { aspect-ratio: 1 / 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mb-kartu-foto img {
+  width: 100%;
+  height: 100%;
+  /* aspect-ratio menjaga petaknya tetap persegi bahkan SEBELUM gambarnya
+     selesai dimuat. Tanpa ini, kartu-kartu melompat tinggi-rendah saat
+     gambar masuk satu per satu, dan jempol yang sedang menggulir mengenai
+     produk yang salah. */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
 
 .mb-kartu-isi {
   display: flex;
@@ -605,7 +615,10 @@
   margin-bottom: 18px;
 }
 .mb-detail-toko b { display: block; font-size: 14px; }
-.mb-detail-toko em { font-style: normal; font-size: 12px; color: var(--wn-samar); }
+/* display: block wajib. Tanpa itu <em> menyambung ke baris rating di
+   atasnya, sehingga terbaca "10+ terjual Tebet, Kota Jakarta Selatan"
+   seperti satu kalimat. */
+.mb-detail-toko em { display: block; font-style: normal; font-size: 12px; color: var(--wn-samar); }
 
 .mb-detail-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
 .mb-detail-label span { font-weight: 400; color: var(--wn-samar); }
@@ -1840,3 +1853,152 @@
 }
 .mb-kartu-rating svg { color: #E8B23A; flex: 0 0 auto; }
 .mb-kartu-rating em { font-style: normal; font-weight: 400; color: var(--wn-samar); }
+
+
+/* --- Filter katalog versi HP -------------------------------------------- */
+
+.mb-urut-aksi { display: flex; align-items: center; gap: 8px; }
+
+.mb-filter-tombol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--wn-garis-2);
+  border-radius: 999px;
+  background: #FFFFFF;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wn-tua);
+  cursor: pointer;
+}
+.mb-filter-tombol.is-aktif { border-color: var(--wn-biru); color: var(--wn-biru); background: var(--wn-dasar-2); }
+.mb-filter-tombol i {
+  font-style: normal;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: var(--wn-biru);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  line-height: 17px;
+  text-align: center;
+}
+
+.mb-filter-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(16, 32, 48, .45);
+}
+.mb-filter-scrim[hidden] { display: none; }
+
+.mb-filter-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 61;
+  padding: 16px var(--mb-tepi) calc(20px + env(safe-area-inset-bottom, 0px));
+  background: #FFFFFF;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px rgba(16, 32, 48, .18);
+  max-height: 80dvh;
+  overflow-y: auto;
+}
+.mb-filter-sheet[hidden] { display: none; }
+
+.mb-filter-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.mb-filter-kepala strong { font-size: 17px; }
+.mb-filter-kepala button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wn-dasar-2);
+  font-size: 21px;
+  line-height: 1;
+  color: var(--wn-samar);
+  cursor: pointer;
+}
+
+.mb-filter-label {
+  margin: 14px 0 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--wn-samar);
+}
+
+.mb-filter-harga { display: flex; align-items: center; gap: 8px; }
+.mb-filter-harga input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--wn-garis-2);
+  border-radius: 12px;
+  /* 16px mencegah iOS memperbesar halaman saat kolom disentuh. */
+  font-size: 16px;
+}
+.mb-filter-harga span { color: var(--wn-samar); }
+
+.mb-filter-bantu { margin: 7px 0 0; font-size: 12px; color: var(--wn-samar); }
+
+.mb-filter-cepat { display: flex; flex-wrap: wrap; gap: 7px; }
+.mb-filter-cepat a {
+  padding: 8px 13px;
+  border: 1px solid var(--wn-garis-2);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wn-teks-2);
+}
+.mb-filter-cepat a.is-aktif { background: var(--wn-gradien); border-color: transparent; color: #FFFFFF; }
+
+.mb-filter-aksi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.mb-filter-reset { flex: 0 0 auto; font-size: 13.5px; color: var(--ord-red); text-decoration: underline; }
+.mb-filter-aksi button {
+  flex: 1 1 auto;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wn-gradien);
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Rating + terjual di bawah nama toko */
+.tk-nilai {
+  /* flex, bukan inline-flex: baris rating harus berdiri sendiri di antara
+     nama toko dan wilayahnya. Sebagai inline-flex ia menempel ke teks di
+     sekitarnya dan terbaca seperti satu kalimat panjang. */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 3px 0;
+  font-size: 12.5px;
+  color: var(--wn-teks-2);
+}
+.tk-nilai svg { color: #E8B23A; flex: 0 0 auto; }
+.tk-nilai b { font-weight: 700; }
+.tk-nilai-ulasan, .tk-nilai-terjual { color: var(--wn-samar); font-weight: 400; }
+.tk-nilai i { font-style: normal; color: var(--wn-samar); }
+
+/* Pemisah titik di baris rating kartu */
+.mb-kartu-rating i { font-style: normal; color: var(--wn-samar); }

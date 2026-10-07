@@ -40,17 +40,86 @@
 </div>
 
 <div class="mb-urut">
-  <span><?= (int) $total ?> produk<?= $lokasi ? ' di sekitar ' . html_escape($lokasi['district_name']) : '' ?></span>
-  <label>
-    <span class="visually-hidden">Urutkan</span>
-    <select onchange="location = this.value;" aria-label="Urutkan produk">
-      <?php foreach ($sorts as $kunci => $label): ?>
-        <option value="<?= html_escape($ubah(array('sort' => $kunci))) ?>"
-          <?= $f['sort'] === $kunci ? 'selected' : '' ?>><?= html_escape($label) ?></option>
-      <?php endforeach; ?>
-    </select>
-  </label>
+  <span><?= (int) $total ?> produk</span>
+
+  <div class="mb-urut-aksi">
+    <label>
+      <span class="visually-hidden">Urutkan</span>
+      <select onchange="location = this.value;" aria-label="Urutkan produk">
+        <?php foreach ($sorts as $kunci => $label): ?>
+          <option value="<?= html_escape($ubah(array('sort' => $kunci))) ?>"
+            <?= $f['sort'] === $kunci ? 'selected' : '' ?>><?= html_escape($label) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+
+    <?php $filter_aktif = ($f['min'] !== NULL || $f['max'] !== NULL); ?>
+    <button type="button" class="mb-filter-tombol <?= $filter_aktif ? 'is-aktif' : '' ?>" id="mbFilterBuka">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+      Filter<?= $filter_aktif ? ' <i>1</i>' : '' ?>
+    </button>
+  </div>
 </div>
+
+<!-- Lembar filter naik dari bawah, bukan halaman terpisah: pindah halaman
+     berarti kehilangan posisi gulir, dan pembeli yang sudah menggulir jauh
+     harus mencarinya lagi dari awal. -->
+<div class="mb-filter-scrim" id="mbFilterScrim" hidden></div>
+
+<aside class="mb-filter-sheet" id="mbFilterSheet" hidden aria-label="Filter produk">
+  <div class="mb-filter-kepala">
+    <strong>Filter</strong>
+    <button type="button" id="mbFilterTutup" aria-label="Tutup">&times;</button>
+  </div>
+
+  <form method="get" action="<?= site_url('shop') ?>">
+    <!-- Pencarian, kategori, dan urutan yang sedang aktif ikut dibawa.
+         Tanpa ini, menerapkan filter harga diam-diam menghapus kata kunci
+         yang baru saja diketik pembeli. -->
+    <?php foreach (array('q' => $f['q'], 'category' => $f['category'], 'sort' => $f['sort']) as $k => $v): ?>
+      <?php if ($v !== '' && $v !== NULL): ?>
+        <input type="hidden" name="<?= $k ?>" value="<?= html_escape($v) ?>">
+      <?php endif; ?>
+    <?php endforeach; ?>
+
+    <p class="mb-filter-label">Rentang harga</p>
+    <div class="mb-filter-harga">
+      <label class="visually-hidden" for="mbMin">Harga terendah</label>
+      <input type="number" id="mbMin" name="min" inputmode="numeric" min="0" placeholder="Rp terendah"
+             value="<?= $f['min'] !== NULL ? (int) $f['min'] : '' ?>">
+      <span aria-hidden="true">&ndash;</span>
+      <label class="visually-hidden" for="mbMax">Harga tertinggi</label>
+      <input type="number" id="mbMax" name="max" inputmode="numeric" min="0" placeholder="Rp tertinggi"
+             value="<?= $f['max'] !== NULL ? (int) $f['max'] : '' ?>">
+    </div>
+
+    <?php if (! empty($range['min']) || ! empty($range['max'])): ?>
+      <p class="mb-filter-bantu">
+        Produk di katalog: <?= rupiah($range['min']) ?> &ndash; <?= rupiah($range['max']) ?>
+      </p>
+    <?php endif; ?>
+
+    <p class="mb-filter-label">Pintasan</p>
+    <div class="mb-filter-cepat">
+      <?php foreach (array(
+          array('Di bawah 50rb', NULL, 50000),
+          array('50rb - 150rb', 50000, 150000),
+          array('150rb - 500rb', 150000, 500000),
+          array('Di atas 500rb', 500000, NULL),
+      ) as $c): ?>
+        <a href="<?= html_escape($ubah(array('min' => $c[1], 'max' => $c[2]))) ?>"
+           class="<?= ((int) $f['min'] === (int) $c[1] && (int) $f['max'] === (int) $c[2]) ? 'is-aktif' : '' ?>">
+          <?= $c[0] ?>
+        </a>
+      <?php endforeach; ?>
+    </div>
+
+    <div class="mb-filter-aksi">
+      <a href="<?= html_escape($ubah(array('min' => NULL, 'max' => NULL))) ?>" class="mb-filter-reset">Hapus filter</a>
+      <button type="submit">Terapkan</button>
+    </div>
+  </form>
+</aside>
 
 <?php if (! $products): ?>
   <p class="mb-kosong">
@@ -73,6 +142,23 @@
               if (! empty($p['store_district'])) { echo ' &middot; ' . html_escape($p['store_district']); }
             ?>
           </span>
+          <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
+          <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>
+            <!-- Rating PRODUK, bukan rating toko: kartu ini tentang satu
+                 barang, dan toko bagus pun bisa punya produk yang
+                 mengecewakan. -->
+            <span class="mb-kartu-rating">
+              <?php if ((int) $p['rating_count'] > 0): ?>
+                <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
+                <?= number_format($p['rating_avg'], 1, ',', '.') ?>
+                <em>(<?= (int) $p['rating_count'] ?>)</em>
+              <?php endif; ?>
+
+              <?php if ((int) $p['rating_count'] > 0 && $teks_terjual): ?><i aria-hidden="true">&middot;</i><?php endif; ?>
+              <?php if ($teks_terjual): ?><em><?= $teks_terjual ?></em><?php endif; ?>
+            </span>
+          <?php endif; ?>
+
           <span class="mb-kartu-harga">
             <?php if ((int) $p['variant_count'] > 1): ?><small>mulai </small><?php endif; ?>
             <?= rupiah($p['price']) ?>
@@ -97,3 +183,29 @@
 
 <!-- gps.js dimuat sekali dari kerangka, bukan per halaman. -->
 
+<script>
+  /* Lembar filter. Dibuka/ditutup dengan atribut hidden, bukan kelas:
+     elemen ber-hidden juga disembunyikan dari pembaca layar, sedangkan
+     kelas yang cuma mengatur tampilan tetap terbaca di sana. */
+  (function () {
+    var sheet = document.getElementById('mbFilterSheet');
+    var scrim = document.getElementById('mbFilterScrim');
+    var buka  = document.getElementById('mbFilterBuka');
+    var tutup = document.getElementById('mbFilterTutup');
+    if (!sheet || !buka) { return; }
+
+    function setBuka(ya) {
+      sheet.hidden = !ya;
+      if (scrim) { scrim.hidden = !ya; }
+      document.body.style.overflow = ya ? 'hidden' : '';
+    }
+
+    buka.addEventListener('click', function () { setBuka(true); });
+    if (tutup) { tutup.addEventListener('click', function () { setBuka(false); }); }
+    if (scrim) { scrim.addEventListener('click', function () { setBuka(false); }); }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !sheet.hidden) { setBuka(false); }
+    });
+  })();
+</script>

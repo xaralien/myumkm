@@ -51,6 +51,11 @@
          bahwa ia bisa ditekan. -->
     <a href="<?= site_url('toko/' . $p['store_slug']) ?>">
       <b><?= html_escape($p['store_name']) ?></b>
+      <?php $this->load->view('parts/toko_nilai', array(
+          'rating'        => $p['store_rating'],
+          'jumlah_ulasan' => $p['store_rating_count'],
+          'terjual'       => $p['store_terjual'],
+      )); ?>
       <em><?= html_escape($p['store_district']) ?>, <?= html_escape($p['store_regency']) ?></em>
     </a>
     <!-- Produk ini ikut terbawa ke percakapan. -->
