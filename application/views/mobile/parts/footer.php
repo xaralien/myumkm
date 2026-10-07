@@ -247,6 +247,17 @@
        tidak ada sejak pemilih wilayah diganti GPS, sehingga nilainya
        undefined dan browser pergi ke /undefined. */
   </script>
+<!-- Tombol lokasi (data-gps) ada di bilah atas SEMUA halaman, jadi skripnya
+     dimuat di kerangka - bukan per halaman. -->
+<script>
+  window.GPS = window.GPS || { simpan: '<?= site_url('location/titik') ?>' };
+  window.CSRF = window.CSRF || {
+    name: '<?= $this->security->get_csrf_token_name() ?>',
+    hash: '<?= $this->security->get_csrf_hash() ?>'
+  };
+</script>
+<script src="<?= aset('assets/js/gps.js') ?>"></script>
+
 </body>
 
 </html>
