@@ -59,6 +59,7 @@
           </div>
         <?php endif; ?>
 
+        <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'ulasan', 'objek_id' => $u['id'])); ?>
       </li>
     <?php endforeach; ?>
   </ul>

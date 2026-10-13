@@ -7,6 +7,8 @@
   <a href="<?= site_url('admin/categories/form') ?>" class="btn btn-primary">Tambah kategori</a>
 </div>
 
+<?php $this->load->view('admin/parts_antrean'); ?>
+
 <div class="adm-angka">
   <div class="adm-kartu">
     <span class="adm-nilai"><?= (int) $angka['perlu_diproses'] ?></span>

@@ -125,6 +125,9 @@ $sortir = function ($kunci, $label, $angka = FALSE) use ($url, $urut, $arah) {
           <span class="badge-status <?= $p['is_active'] ? 'is-ok' : '' ?>">
             <?= $p['is_active'] ? 'Tayang' : 'Disembunyikan' ?>
           </span>
+          <?php if ( ! empty($p['diturunkan_at'])): ?>
+            <span class="lencana lencana-merah" title="<?= html_escape($p['diturunkan_alasan']) ?>">Diturunkan admin</span>
+          <?php endif; ?>
           <?php if ($p['stock'] !== NULL && (int) $p['stock'] <= $ambang_stok): ?>
             <span class="lencana <?= (int) $p['stock'] === 0 ? 'lencana-merah' : 'lencana-emas' ?>">
               <?= (int) $p['stock'] === 0 ? 'Stok habis' : 'Sisa ' . (int) $p['stock'] ?>

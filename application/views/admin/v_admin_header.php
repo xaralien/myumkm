@@ -73,8 +73,8 @@
             <span class="panel-lencana" data-notif="pesan" hidden>0</span>
           </a>
           <?php $grup('Keuangan', array('seller/pendapatan' => 'Pendapatan & pencairan', 'seller/pembukuan' => 'Pembukuan',
-                                        'seller/laporan' => 'Laporan penjualan', 'seller/refund' => 'Refund'),
-                      array('seller/pendapatan', 'seller/pembukuan', 'seller/laporan', 'seller/refund')); ?>
+                                        'seller/laporan' => 'Laporan penjualan', 'seller/refund' => 'Refund', 'seller/sengketa' => 'Sengketa'),
+                      array('seller/pendapatan', 'seller/pembukuan', 'seller/laporan', 'seller/refund', 'seller/sengketa')); ?>
           <?php $grup('Promosi', array('seller/voucher' => 'Voucher toko', 'seller/qr' => 'QR code toko', 'seller/template' => 'Balasan cepat chat'),
                       array('seller/voucher', 'seller/qr', 'seller/template')); ?>
           <?php $grup('Naik Kelas', array('seller/mulai' => 'Langkah awal', 'seller/naik_kelas' => 'Skor naik kelas',
@@ -94,6 +94,21 @@
     <?php if ($this->session->flashdata('sukses')): ?>
       <div class="alert-box alert-ok mb-4"><?= html_escape($this->session->flashdata('sukses')) ?></div>
     <?php endif; ?>
+    <?php
+      /* Pengumuman admin yang belum dibaca penjual - tampil di semua halaman panel. */
+      if ($me['role'] !== 'admin' && ! empty($store['id']) && $this->db->table_exists('broadcast_toko')):
+        $umum = $this->db->select('b.id, b.judul, b.isi, b.created_at', FALSE)->from('broadcast_toko t')
+          ->join('broadcast b', 'b.id = t.broadcast_id')->where('t.store_id', (int) $store['id'])
+          ->where('t.dibaca_at IS NULL', NULL, FALSE)->order_by('b.id', 'DESC')->limit(2)->get()->result_array();
+        foreach ($umum as $u): ?>
+          <div class="pengumuman mb-3">
+            <div><strong>📢 <?= html_escape($u['judul']) ?></strong><p class="mb-0"><?= nl2br(html_escape($u['isi'])) ?></p></div>
+            <?= form_open('seller/pengumuman/baca/' . (int) $u['id']) ?>
+              <input type="hidden" name="balik" value="<?= html_escape(uri_string()) ?>">
+              <button class="btn btn-sm btn-black-hover-outline">Sudah dibaca</button>
+            <?= form_close() ?>
+          </div>
+    <?php endforeach; endif; ?>
     <?php if ($this->session->flashdata('info')): ?>
       <div class="alert-box alert-warn mb-4"><?= html_escape($this->session->flashdata('info')) ?></div>
     <?php endif; ?>

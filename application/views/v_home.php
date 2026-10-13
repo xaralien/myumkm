@@ -226,6 +226,7 @@
   </div>
 </section>
 
+<?php $this->load->view('parts/banner_beranda'); ?>
 <?php $this->load->view('parts/beranda_deret'); ?>
 
 <!-- =========================== TOKO DEKAT ============================ -->

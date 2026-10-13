@@ -27,6 +27,7 @@ $e = isset($toko_ekstra) ? $toko_ekstra : array();
         'teks' => $toko['name'] . ' - UMKM dari ' . $toko['regency_name'],
         'url'  => site_url('toko/' . $toko['slug']),
     )); ?>
+    <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'toko', 'objek_id' => $toko['id'])); ?>
   </div>
 </div>
 

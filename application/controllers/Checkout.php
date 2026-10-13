@@ -475,6 +475,16 @@ class Checkout extends CI_Controller
         $data['bisa_refund'] = ($order['payment_status'] === 'paid')
             && in_array($order['order_status'], array('pending', 'confirmed', 'preparing', 'delivering'), TRUE);
 
+        $data['sengketa'] = NULL;
+        $data['sengketa_pesan'] = array();
+        $data['boleh_sengketa'] = FALSE;
+        if ($this->db->table_exists('sengketa')) {
+            $this->load->model('sengketa_model');
+            $data['sengketa'] = $this->sengketa_model->aktif($order['id']);
+            $data['sengketa_pesan'] = $data['sengketa'] ? $this->sengketa_model->pesan($data['sengketa']['id']) : array();
+            $data['boleh_sengketa'] = $this->sengketa_model->boleh_dibuka($order);
+        }
+
         $data['pages'] = 'v_order_done';
         $this->load->view('index', $data);
     }
@@ -582,6 +592,48 @@ class Checkout extends CI_Controller
             return redirect($done);
         }
         return redirect('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']);
+    }
+
+    /**
+     * Buka sengketa / tanggapi sengketa.
+     * POST checkout/sengketa/{nomor}/{token}       alasan, tuntutan, jumlah, cerita
+     * POST checkout/sengketa_balas/{nomor}/{token} isi
+     */
+    public function sengketa($order_number = NULL, $token = NULL)
+    {
+        $order = $this->pesanan_post($order_number, $token);
+        $this->load->model('sengketa_model');
+        $done = 'checkout/done/' . $order['order_number'] . '/' . $order['access_token'];
+        if ( ! $this->sengketa_model->boleh_dibuka($order)) {
+            $this->session->set_flashdata('error', 'Sengketa tidak bisa dibuka untuk pesanan ini.');
+            return redirect($done);
+        }
+        $h = $this->sengketa_model->buka($order, (array) $this->input->post(NULL, TRUE));
+        $this->session->set_flashdata($h['ok'] ? 'sukses' : 'error', $h['pesan']);
+        return redirect($done . '#sengketa');
+    }
+
+    public function sengketa_balas($order_number = NULL, $token = NULL)
+    {
+        $order = $this->pesanan_post($order_number, $token);
+        $this->load->model('sengketa_model');
+        $g = $this->sengketa_model->aktif($order['id']);
+        if ($g && in_array($g['status'], array('terbuka', 'ditinjau'), TRUE)) {
+            $this->sengketa_model->kirim($g['id'], 'pembeli', $this->input->post('isi', TRUE));
+        }
+        return redirect('checkout/done/' . $order['order_number'] . '/' . $order['access_token'] . '#sengketa');
+    }
+
+    protected function pesanan_post($nomor, $token)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+        $order = $this->order_model->find_by_token($nomor, $token);
+        if ( ! $order) {
+            show_404();
+        }
+        return $order;
     }
 
     public function terima($order_number = NULL, $token = NULL)

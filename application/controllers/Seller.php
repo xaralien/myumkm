@@ -461,6 +461,12 @@ class Seller extends Seller_Controller
     {
         $p = $this->milik($id);
 
+        if ( ! $p['is_active'] && ! empty($p['diturunkan_at'])) {
+            $this->session->set_flashdata('error', '"' . $p['name'] . '" diturunkan admin (' . $p['diturunkan_alasan']
+                . '). Perbaiki produknya, lalu hubungi admin untuk memulihkannya.');
+            return redirect('seller');
+        }
+
         // Draf dari unggahan Excel belum punya foto - jangan tayang tanpa foto.
         if ( ! $p['is_active'] && empty($p['image'])) {
             $this->session->set_flashdata('error', 'Tambahkan foto ' . $p['name'] . ' dulu (tekan Ubah), baru bisa ditayangkan.');

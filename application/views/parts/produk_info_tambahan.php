@@ -12,6 +12,7 @@ $e = isset($ekstra) ? $ekstra : array();
       'teks' => $p['name'] . ' - ' . rupiah($p['price']) . ' dari ' . $p['store_name'] . ' (' . $p['store_regency'] . ')',
       'url'  => site_url('produk/' . $p['store_slug'] . '/' . $p['slug']),
   )); ?>
+  <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'produk', 'objek_id' => $p['id'])); ?>
 </div>
 
 <?php if ( ! empty($e['libur'])): ?>

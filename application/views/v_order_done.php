@@ -26,9 +26,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
     <div class="row justify-content-center">
       <div class="col-lg-8">
 
-        <?php if ($this->session->flashdata('error')): ?>
-          <div class="alert-box alert-error mb-4"><?= html_escape($this->session->flashdata('error')) ?></div>
-        <?php endif; ?>
+        <?php $this->load->view('parts/auth_pesan'); ?>
 
         <div class="form-card text-center">
           <p class="hint mb-1">Nomor pesanan</p>
@@ -139,6 +137,8 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
             <?php endif; ?>
           <?php endif; ?>
         </div>
+
+        <?php $this->load->view('parts/order_sengketa'); ?>
 
         <div class="form-card">
           <h3 class="form-card-title">Pengiriman</h3>

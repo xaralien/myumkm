@@ -285,3 +285,38 @@ fieldset legend { font-size: 15px; font-weight: 700; float: none; }
 }
 .panel-grup > summary { color: #fff; opacity: .92; }
 .panel-grup > summary:hover, .panel-grup[open] > summary { opacity: 1; }
+
+/* ---- Laporkan & moderasi ----------------------------------------------- */
+.laporkan { display: inline-block; font-size: 13px; color: var(--wn-samar); }
+.laporkan summary { cursor: pointer; list-style: none; }
+.laporkan summary::-webkit-details-marker { display: none; }
+.laporkan[open] .laporkan-form { margin-top: 6px; max-width: 320px; background: #fff; border: 1px solid var(--wn-garis); border-radius: 12px; padding: 10px; }
+.laporan-baris { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-top: 1px solid rgba(0,0,0,.06); }
+
+/* ---- Banner beranda & promo -------------------------------------------- */
+.banner-deret { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: 14px; overflow-x: auto; margin-top: 24px; margin-bottom: 8px; scroll-snap-type: x mandatory; }
+.banner-kartu { position: relative; display: flex; align-items: flex-end; min-height: 150px; border-radius: 20px; overflow: hidden;
+  color: #fff; text-decoration: none; scroll-snap-align: start; }
+.banner-kartu img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.banner-teks { position: relative; display: flex; flex-direction: column; padding: 18px 20px; width: 100%;
+  background: linear-gradient(0deg, rgba(0,0,0,.55), rgba(0,0,0,0)); }
+.banner-teks strong { font-family: var(--wn-serif); font-size: 22px; line-height: 1.2; }
+.banner-teks em { font-style: normal; opacity: .92; }
+.promo-isi { max-width: 760px; font-size: 17px; }
+.promo-voucher { max-width: 420px; }
+
+/* ---- Sengketa ----------------------------------------------------------- */
+.sk-utas { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.sk-pesan { max-width: 85%; border-radius: 14px; padding: 8px 12px; background: var(--wn-dasar-2); }
+.sk-pesan p { margin: 2px 0 0; }
+.sk-pesan.is-saya { align-self: flex-end; background: #EAF3F8; }
+.sk-pesan.sk-admin { align-self: center; max-width: 100%; background: #FFF6DA; border: 1px solid #F0DC9C; }
+.sk-dari { font-size: 12px; color: var(--wn-samar); font-weight: 700; }
+.pengumuman { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; background: #FFF8E6;
+  border: 1px solid #F0DC9C; border-radius: 14px; padding: 12px 16px; }
+@media (max-width: 767px) { .pengumuman { flex-direction: column; } }
+.peta-sebaran { height: 440px; border-radius: 18px; overflow: hidden; border: 1px solid var(--wn-garis); background: var(--wn-dasar-2); }
+.antre-baris { display: flex; flex-wrap: wrap; gap: 10px; }
+.antre { display: flex; align-items: center; gap: 10px; background: #FFF8E6; border: 1px solid #F0DC9C; border-radius: 14px;
+  padding: 10px 14px; text-decoration: none; color: var(--wn-tua); }
+.antre strong { font-size: 22px; font-family: var(--wn-serif); }
