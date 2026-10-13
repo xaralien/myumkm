@@ -90,7 +90,15 @@ class Notifikasi_lib
         }
 
         $p = $this->CI->pengaturan_lib;
-        if ( ! $p->aktif('email_aktif') || ! $p->get('email_dari')) {
+
+        /* SMTP dari Admin > Pengaturan kalau diisi; kalau tidak, memakai
+           config/surat.php - berkas yang sama dengan email reset sandi &
+           verifikasi (Surat_lib). Jadi cukup mengatur SMTP di satu tempat. */
+        $this->CI->config->load('surat', TRUE, TRUE);
+        $surat = (array) $this->CI->config->item('surat', 'surat');
+        $dari  = $p->get('email_dari') ?: (isset($surat['from_email']) ? $surat['from_email'] : '');
+
+        if ( ! $p->aktif('email_aktif') || ! $dari) {
             $this->catat('email', $ke, $judul, $isi, 'dilewati', 'Email belum diaktifkan', $acara);
             return FALSE;
         }
@@ -106,12 +114,22 @@ class Notifikasi_lib
                 'smtp_crypto' => ((int) $p->get('smtp_port') === 465) ? 'ssl' : 'tls',
                 'smtp_timeout' => 8,
             );
+        } elseif ( ! empty($surat['host'])) {
+            $cfg += array(
+                'protocol'    => 'smtp',
+                'smtp_host'   => $surat['host'],
+                'smtp_port'   => (int) (isset($surat['port']) ? $surat['port'] : 587),
+                'smtp_user'   => isset($surat['user']) ? $surat['user'] : '',
+                'smtp_pass'   => isset($surat['pass']) ? $surat['pass'] : '',
+                'smtp_crypto' => ! empty($surat['crypto']) ? $surat['crypto'] : NULL,
+                'smtp_timeout' => (int) (isset($surat['timeout']) ? $surat['timeout'] : 8),
+            );
         }
 
         $this->CI->load->library('email');
         $this->CI->email->initialize($cfg);
         $this->CI->email->clear();
-        $this->CI->email->from($p->get('email_dari'), $p->get('nama_brand'));
+        $this->CI->email->from($dari, $p->get('nama_brand'));
         $this->CI->email->to($ke);
         $this->CI->email->subject($judul);
         $this->CI->email->message($isi);

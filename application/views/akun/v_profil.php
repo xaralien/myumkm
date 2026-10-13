@@ -17,6 +17,12 @@
       <div class="alert-box alert-error mb-4" role="alert"><?= html_escape($this->session->flashdata('error')) ?></div>
     <?php endif; ?>
 
+    <!-- Pesan sukses sudah ditangani v_navbar / header mobile untuk semua
+         halaman, jadi tidak diulang di sini. -->
+
+    <!-- Diam sendiri kalau emailnya sudah terverifikasi. -->
+    <?php $this->load->view('parts/verif_spanduk'); ?>
+
     <!-- multipart: tanpa enctype, berkas foto tidak ikut terkirim sama
          sekali dan $_FILES kosong tanpa pesan galat. -->
     <?= form_open_multipart('akun/profil') ?>

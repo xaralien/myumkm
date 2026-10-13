@@ -1,5 +1,5 @@
 -- =============================================================================
---  30_moderasi_cms.sql
+--  32_moderasi_cms.sql
 --
 --  1. Moderasi: produk diturunkan admin, ulasan disembunyikan, laporan
 --     dari pengguna.
@@ -13,9 +13,9 @@
 
 SET NAMES utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom30;
+DROP PROCEDURE IF EXISTS _kolom32;
 DELIMITER $$
-CREATE PROCEDURE _kolom30(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+CREATE PROCEDURE _kolom32(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
@@ -30,10 +30,10 @@ DELIMITER ;
    Produk yang diturunkan admin otomatis disembunyikan (is_active = 0) dan
    TIDAK bisa ditayangkan lagi oleh penjual sampai admin memulihkannya.
    ------------------------------------------------------------------------- */
-CALL _kolom30('products', 'diturunkan_at',     'DATETIME NULL');
-CALL _kolom30('products', 'diturunkan_alasan', 'VARCHAR(255) NULL');
-CALL _kolom30('reviews',  'is_hidden',         'TINYINT(1) NOT NULL DEFAULT 0');
-CALL _kolom30('reviews',  'hidden_alasan',     'VARCHAR(255) NULL');
+CALL _kolom32('products', 'diturunkan_at',     'DATETIME NULL');
+CALL _kolom32('products', 'diturunkan_alasan', 'VARCHAR(255) NULL');
+CALL _kolom32('reviews',  'is_hidden',         'TINYINT(1) NOT NULL DEFAULT 0');
+CALL _kolom32('reviews',  'hidden_alasan',     'VARCHAR(255) NULL');
 
 CREATE TABLE IF NOT EXISTS laporan (
   id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -146,4 +146,4 @@ CREATE TABLE IF NOT EXISTS broadcast_toko (
   CONSTRAINT fk_bt_toko      FOREIGN KEY (store_id)     REFERENCES stores (id)    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom30;
+DROP PROCEDURE IF EXISTS _kolom32;

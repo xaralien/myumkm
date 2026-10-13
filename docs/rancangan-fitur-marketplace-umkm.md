@@ -2,11 +2,11 @@
 
 Disusun dari sudut pandang Product Manager & UI/UX Strategist, lalu dicocokkan
 dengan kode yang ada di repository ini (CodeIgniter 3: `application/controllers`,
-`models`, `libraries`, `views`, dan migrasi `database/15–30`).
+`models`, `libraries`, `views`, dan migrasi `database/15–32`).
 
 Pembaruan: fitur "Tambah produk dari foto saja", "Penjualan offline / kasir mini (POS)",
 COD, dan ambil sendiri di toko dikeluarkan dari rancangan. Semua fitur yang
-tersisa kini sudah dibangun (migrasi `database/24–30`).
+tersisa kini sudah dibangun (migrasi `database/24–32`).
 
 **Keterangan status**
 
@@ -37,8 +37,8 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ **Daftar & masuk akun** — *Pain:* pembeli perlu riwayat pesanan tersimpan → *Fungsi:* registrasi dengan nama, email, nomor WhatsApp. (`Auth.php`)
 - ✅ 🧓 **Belanja tanpa akun (guest checkout)** — *Pain:* pembeli lokal malas daftar hanya untuk sekali beli → *Fungsi:* checkout cukup nama + nomor WA; pesanan dibuka lewat token. (`orders.user_id` boleh NULL, `Checkout::done/{token}`)
 - ✅ 🧓 **Lacak pesanan dengan nomor pesanan + nomor WA** — *Pain:* pembeli tamu tidak punya akun untuk mengecek status → *Fungsi:* form lacak sederhana tanpa login. (`Track.php`)
-- ✅ 🧓 **Login OTP WhatsApp / tanpa kata sandi** — *Pain:* pembeli sering lupa sandi → *Fungsi:* masuk cukup dengan kode OTP dikirim ke WA. (`Auth::otp` + `Auth_lib::buat_token` — kode 6 angka dikirim lewat gerbang WA.)
-- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` — tautan reset via WA/email, token sekali pakai.)
+- ✅ 🧓 **Login OTP WhatsApp / tanpa kata sandi** — *Pain:* pembeli sering lupa sandi → *Fungsi:* masuk cukup dengan kode OTP dikirim ke WA. (`Auth::otp` + `Auth_lib::buat_otp` — kode 6 angka dikirim lewat gerbang WA, terkunci setelah 5 kali salah.)
+- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` + `Token_model` & `Surat_lib` — tautan sekali pakai ke email (SMTP di `config/surat.php`) dan WhatsApp; isian boleh email atau nomor WA. Ditambah verifikasi email, wajib sebelum membuka toko.)
 - ✅ **Profil & ubah sandi** — *Pain:* data kontak berubah → *Fungsi:* ubah nama, foto, nomor, sandi. (`Akun::profil`)
 
 ### B. Penemuan Produk
@@ -185,7 +185,7 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 ## Catatan Pemasangan
 
-1. Jalankan migrasi `database/24_*.sql` sampai `database/30_*.sql` berurutan (aman diulang; cadangkan dulu).
-2. Isi kunci di **Admin > Pengaturan**: gerbang WhatsApp (mis. Fonnte), email, dan agregator ekspedisi (mis. Biteship). Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
+1. Jalankan migrasi `database/24_*.sql` sampai `database/32_*.sql` berurutan (aman diulang; cadangkan dulu). Urutan penting: `26_pengaturan_notifikasi.sql` menambah kolom ke tabel `auth_tokens` dari `25_reset_sandi_verifikasi.sql`.
+2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Isi kunci di **Admin > Pengaturan**: gerbang WhatsApp (mis. Fonnte) dan agregator ekspedisi (mis. Biteship). Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
 3. Dokumen legalitas penjual disimpan di `application/dokumen_toko/` (tidak bisa diakses publik). Pastikan server web menolak akses langsung ke `/application/`.
 4. Yang masih bisa dikembangkan: tarif ongkir otomatis dari kurir saat checkout pembeli (kini tarif tetap per wilayah yang diatur penjual; perbandingan tarif kurir tersedia untuk penjual).

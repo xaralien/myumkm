@@ -151,7 +151,13 @@ class Toko extends CI_Controller {
         }
 
         $produk = $this->db
-            ->select('p.*, c.name AS category_name', FALSE)
+            ->select('p.*, c.name AS category_name,
+
+                /* Sama seperti di katalog: SUM(qty) lewat subquery. Dengan
+                   join, satu baris produk berlipat sebanyak pesanannya. */
+                (SELECT COALESCE(SUM(oi.qty), 0) FROM order_items oi
+                  JOIN orders o ON o.id = oi.order_id
+                 WHERE oi.product_id = p.id AND o.payment_status = \'paid\') AS terjual', FALSE)
             ->limit(self::PER_HAL, ($hal - 1) * self::PER_HAL)
             ->get()->result_array();
 

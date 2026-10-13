@@ -1,5 +1,5 @@
 -- =============================================================================
---  26_promo_preorder_multitoko.sql
+--  28_promo_preorder_multitoko.sql
 --
 --  1. Voucher toko & platform, catatan pemakaiannya, dan potongan di pesanan.
 --  2. Harga grosir (harga satuan bertingkat menurut jumlah beli).
@@ -14,9 +14,9 @@
 
 SET NAMES utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom26;
+DROP PROCEDURE IF EXISTS _kolom28;
 DELIMITER $$
-CREATE PROCEDURE _kolom26(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+CREATE PROCEDURE _kolom28(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
@@ -81,11 +81,11 @@ CREATE TABLE IF NOT EXISTS voucher_pemakaian (
    diskon_platform - voucher platform, ditanggung marketplace
    subsidi_ongkir  - subsidi ongkir otomatis dari Pengaturan, ditanggung
                      marketplace. Toko tetap menerima ongkir utuh. */
-CALL _kolom26('orders', 'diskon_toko',      'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER shipping_fee');
-CALL _kolom26('orders', 'diskon_platform',  'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER diskon_toko');
-CALL _kolom26('orders', 'subsidi_ongkir',   'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER diskon_platform');
-CALL _kolom26('orders', 'voucher_toko',     'VARCHAR(30) NULL AFTER subsidi_ongkir');
-CALL _kolom26('orders', 'voucher_platform', 'VARCHAR(30) NULL AFTER voucher_toko');
+CALL _kolom28('orders', 'diskon_toko',      'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER shipping_fee');
+CALL _kolom28('orders', 'diskon_platform',  'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER diskon_toko');
+CALL _kolom28('orders', 'subsidi_ongkir',   'BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER diskon_platform');
+CALL _kolom28('orders', 'voucher_toko',     'VARCHAR(30) NULL AFTER subsidi_ongkir');
+CALL _kolom28('orders', 'voucher_platform', 'VARCHAR(30) NULL AFTER voucher_toko');
 
 /* ---------------------------------------------------------------------------
    2. HARGA GROSIR
@@ -102,23 +102,23 @@ CREATE TABLE IF NOT EXISTS product_tiers (
   CONSTRAINT fk_tier_produk FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CALL _kolom26('order_items', 'harga_catatan', 'VARCHAR(60) NULL');
+CALL _kolom28('order_items', 'harga_catatan', 'VARCHAR(60) NULL');
 
 /* ---------------------------------------------------------------------------
    3. PRE-ORDER
    ------------------------------------------------------------------------- */
-CALL _kolom26('products', 'is_preorder',     'TINYINT(1) NOT NULL DEFAULT 0');
-CALL _kolom26('products', 'po_hari',         'TINYINT UNSIGNED NOT NULL DEFAULT 3');
-CALL _kolom26('products', 'po_kuota_harian', 'SMALLINT UNSIGNED NULL');
-CALL _kolom26('products', 'po_dp_persen',    'TINYINT UNSIGNED NOT NULL DEFAULT 0');
+CALL _kolom28('products', 'is_preorder',     'TINYINT(1) NOT NULL DEFAULT 0');
+CALL _kolom28('products', 'po_hari',         'TINYINT UNSIGNED NOT NULL DEFAULT 3');
+CALL _kolom28('products', 'po_kuota_harian', 'SMALLINT UNSIGNED NULL');
+CALL _kolom28('products', 'po_dp_persen',    'TINYINT UNSIGNED NOT NULL DEFAULT 0');
 
 /* tanggal_kirim: tanggal kirim/ambil yang dipilih pembeli untuk pesanan
    berisi produk pre-order. dp_jumlah: uang muka yang dibayar lebih dulu;
    NULL berarti dibayar penuh. lunas_at: kapan sisanya dilunasi. */
-CALL _kolom26('orders', 'tanggal_kirim', 'DATE NULL');
-CALL _kolom26('orders', 'dp_jumlah',     'BIGINT UNSIGNED NULL');
-CALL _kolom26('orders', 'lunas_at',      'DATETIME NULL');
-CALL _kolom26('order_items', 'is_preorder', 'TINYINT(1) NOT NULL DEFAULT 0');
+CALL _kolom28('orders', 'tanggal_kirim', 'DATE NULL');
+CALL _kolom28('orders', 'dp_jumlah',     'BIGINT UNSIGNED NULL');
+CALL _kolom28('orders', 'lunas_at',      'DATETIME NULL');
+CALL _kolom28('order_items', 'is_preorder', 'TINYINT(1) NOT NULL DEFAULT 0');
 
 /* ---------------------------------------------------------------------------
    4. TAGIHAN GABUNGAN
@@ -159,6 +159,6 @@ CREATE TABLE IF NOT EXISTS tagihan_order (
 
 /* Tagihan PERTAMA pesanan ini (grup atau DP). Pesanan tanpa tagihan_id
    dibayar lewat alur lama: nomor pesanan = merchantOrderId. */
-CALL _kolom26('orders', 'tagihan_id', 'BIGINT UNSIGNED NULL');
+CALL _kolom28('orders', 'tagihan_id', 'BIGINT UNSIGNED NULL');
 
-DROP PROCEDURE IF EXISTS _kolom26;
+DROP PROCEDURE IF EXISTS _kolom28;

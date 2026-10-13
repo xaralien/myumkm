@@ -85,10 +85,14 @@
 
     <?php if ($sudah): ?>
       <h2 class="ul-sub mt-4">Sudah kamu ulas</h2>
-      <?php $this->load->view('parts/ulasan_daftar', array('ulasan' => array_map(function ($u) {
-          $u['media'] = $u['media'] ?? array();
-          return $u;
-      }, $sudah))); ?>
+      <?php
+        /* Dulu di sini ada array_map yang mengisi $u['media'] dengan array
+           kosong kalau belum ada. Itu menutupi bug, bukan memperbaikinya:
+           medianya tidak pernah diambil model, dan defaultnya membuat
+           halaman tampil "normal" tanpa foto sehingga tidak ada yang sadar.
+           Sekarang milik_pesanan() yang melampirkannya. */
+      ?>
+      <?php $this->load->view('parts/ulasan_daftar', array('ulasan' => $sudah)); ?>
     <?php endif; ?>
 
   </div></div></div>

@@ -41,9 +41,15 @@ class Review_model extends CI_Model {
     /** Ulasan yang sudah ditulis untuk satu pesanan. */
     public function milik_pesanan($order_id)
     {
-        return $this->db->where('order_id', (int) $order_id)
-                        ->order_by('id', 'ASC')
-                        ->get('reviews')->result_array();
+        $baris = $this->db->where('order_id', (int) $order_id)
+                          ->order_by('id', 'ASC')
+                          ->get('reviews')->result_array();
+
+        /* Media ikut dilampirkan. Sebelumnya tidak, sehingga halaman "Sudah
+           kamu ulas" menampilkan ulasan tanpa foto - padahal fotonya ada di
+           database. Pembeli yang baru saja mengunggah lima foto wajar
+           mengira unggahannya gagal. */
+        return $this->lampirkan_media($baris);
     }
 
     /* =====================================================================
@@ -370,7 +376,7 @@ class Review_model extends CI_Model {
 
     /**
      * Sembunyikan ulasan yang diturunkan admin (moderasi) dari tampilan
-     * publik dan dari perhitungan rating. Kolomnya dari 30_moderasi_cms.sql.
+     * publik dan dari perhitungan rating. Kolomnya dari 32_moderasi_cms.sql.
      */
     protected function tampil($alias = '')
     {

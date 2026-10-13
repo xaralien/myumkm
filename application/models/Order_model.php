@@ -57,7 +57,7 @@ class Order_model extends CI_Model
         return $order;
     }
 
-    /** Kolom order_items dari migrasi 26 - dilewati kalau belum ada. */
+    /** Kolom order_items dari migrasi 28 - dilewati kalau belum ada. */
     protected function kolom_item_tambahan(array $it)
     {
         static $ada = NULL;

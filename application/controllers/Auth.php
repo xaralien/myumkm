@@ -7,9 +7,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *   GET/POST auth/login      ?next=jalur/tujuan
  *   GET/POST auth/register   ?next=jalur/tujuan
  *   GET/POST auth/logout
- *   GET/POST auth/lupa            minta tautan reset kata sandi
- *   GET/POST auth/reset/{token}   buat kata sandi baru
- *   GET/POST auth/otp             masuk dengan kode WhatsApp
+ *
+ *   GET/POST auth/lupa              minta tautan reset sandi (email atau WhatsApp)
+ *   GET/POST auth/reset/{token}     pasang sandi baru
+ *   GET      auth/verifikasi/{token} tandai email terverifikasi
+ *   POST     auth/kirim_verifikasi  kirim ulang email verifikasi
+ *   GET/POST auth/otp               masuk dengan kode WhatsApp
  */
 class Auth extends CI_Controller
 {
@@ -101,6 +104,23 @@ class Auth extends CI_Controller
                 );
 
                 if ($hasil['ok']) {
+
+                    /* Email verifikasi dikirim, tapi TIDAK menghalangi apa
+                       pun: akunnya sudah aktif dan sudah login. Yang belum
+                       verifikasi hanya melihat spanduk pengingat di halaman
+                       akun, dan baru benar-benar diwajibkan saat membuka
+                       toko - lihat Akun::buka_toko().
+
+                       Dibuat longgar dengan sengaja. Setiap email yang masuk
+                       folder spam adalah satu calon pembeli yang hilang,
+                       sementara risiko email tak terverifikasi bagi pembeli
+                       biasa hampir tidak ada - yang dipertaruhkan baru muncul
+                       kalau dia menerima uang. */
+                    $row = $this->auth_lib->row();
+                    if ($row) {
+                        $this->kirim_tautan_verifikasi($row);
+                    }
+
                     $this->session->set_flashdata('sukses', 'Akun dibuat. Selamat datang!');
                     return redirect($this->sesudah_masuk());
                 }
@@ -120,67 +140,270 @@ class Auth extends CI_Controller
         return redirect('');
     }
 
-    /* ======================================================= LUPA SANDI ===
-     |  Pembeli/penjual memulihkan akunnya sendiri lewat WhatsApp atau email.
-     |  Sebelumnya satu-satunya jalan adalah meminta admin.
-     | ==================================================================== */
+    /* ============================================================ LUPA SANDI */
 
+    /** Formulir "lupa password" dan pengirim tautannya. */
     public function lupa()
     {
-        if ($this->input->method() === 'post') {
-            $isian = trim((string) $this->input->post('akun', TRUE));
-            $user  = $this->cari_akun($isian);
-
-            if ($user) {
-                $t = $this->auth_lib->buat_token($user['id'], 'reset', 60);
-                if ($t['ok']) {
-                    $this->load->library('notifikasi_lib');
-                    $tautan = site_url('auth/reset/' . $t['token']);
-                    $isi = 'Halo ' . $user['name'] . ', ada permintaan atur ulang kata sandi akunmu.' . "\n\n"
-                         . 'Buka tautan ini dalam 60 menit: ' . $tautan . "\n\n"
-                         . 'Abaikan pesan ini kalau kamu tidak memintanya.';
-                    $this->notifikasi_lib->wa($user['phone'], $isi, 'reset_sandi');
-                    $this->notifikasi_lib->email($user['email'], 'Atur ulang kata sandi', $isi, 'reset_sandi');
-                }
-            }
-
-            /* Pesan SAMA untuk akun ada maupun tidak - kalau berbeda, form
-               ini bisa dipakai menebak email/nomor siapa saja yang terdaftar. */
-            $this->session->set_flashdata('sukses',
-                'Kalau akunnya terdaftar, tautan atur ulang sudah dikirim ke WhatsApp dan email akun itu. '
-                . 'Belum sampai dalam beberapa menit? Hubungi admin.');
-            return redirect('auth/lupa');
-        }
-
-        $this->load->view('index', array('pages' => 'v_lupa'));
-    }
-
-    public function reset($token = NULL)
-    {
-        $row = $token ? $this->auth_lib->cek_token('reset', $token) : NULL;
-        if ( ! $row) {
-            $this->session->set_flashdata('error', 'Tautan sudah kedaluwarsa atau pernah dipakai. Minta tautan baru.');
-            return redirect('auth/lupa');
+        if ($this->auth_lib->user()) {
+            return redirect('akun/profil');
         }
 
         if ($this->input->method() === 'post') {
-            $this->form_validation->set_rules('password',  'Kata sandi baru', 'required|min_length[8]');
-            $this->form_validation->set_rules('password2', 'Ulangi kata sandi', 'required|matches[password]');
-            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
-            $this->form_validation->set_message('matches', 'Kata sandi tidak sama.');
+            /* Boleh email ATAU nomor WhatsApp. Banyak pelaku UMKM jarang
+               membuka email - bahkan lupa sandi emailnya sendiri - tapi
+               WhatsApp selalu terbuka. Nomor hanya diterima kalau dipakai
+               tepat satu akun; lihat cari_akun(). */
+            $this->form_validation->set_rules('email', 'Email atau nomor WhatsApp', 'required|trim|callback_email_atau_wa');
             $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
 
-            if ($this->form_validation->run() && $this->auth_lib->pakai_token($row['id'])) {
-                $this->db->where('id', (int) $row['user_id'])->update('users', array(
-                    'password_hash' => password_hash((string) $this->input->post('password', FALSE), PASSWORD_DEFAULT),
-                ));
-                $this->auth_lib->masuk_id($row['user_id']);
-                $this->session->set_flashdata('sukses', 'Kata sandi baru tersimpan. Kamu sudah masuk.');
-                return redirect($this->sesudah_masuk());
+            if ($this->form_validation->run()) {
+                $email = strtolower(trim((string) $this->input->post('email', TRUE)));
+
+                $user = $this->cari_akun($email);
+
+                /* Pesannya SAMA, ada akunnya atau tidak.
+
+                   Kalau dibedakan, formulir ini berubah jadi alat pemeriksa:
+                   siapa pun bisa memasukkan daftar email dan mengetahui mana
+                   yang terdaftar di sini. Itu data yang berharga bagi
+                   penipu - mereka tahu siapa yang pantas dikirimi email
+                   palsu "pesananmu bermasalah" atas nama Sapa UMKM. */
+                if ($user) {
+                    $this->kirim_tautan_reset($user);
+                }
+
+                /* Teks biasa, tanpa html_escape dan tanpa tag: spanduk yang
+                   menampilkannya (v_navbar / header mobile) sudah memanggil
+                   html_escape sendiri, jadi meng-escape di sini membuat
+                   tanda kutip dan & tampil sebagai &amp;. */
+                $this->session->set_flashdata('sukses',
+                    'Kalau ' . $email . ' terdaftar, tautan untuk mengganti sandi '
+                    . 'sudah dikirim ke email dan WhatsApp akun itu. Cek juga folder spam.');
+
+                return redirect('auth/lupa');
             }
         }
 
-        $this->load->view('index', array('pages' => 'v_reset', 'token' => $token));
+        $data = array('pages' => 'v_lupa');
+        $this->load->view('index', $data);
+    }
+
+    /** Halaman pasang sandi baru. Token dari tautan di email. */
+    public function reset($token = NULL)
+    {
+        $token = (string) $token;
+
+        $this->load->model('token_model');
+
+        /* GET hanya MEMERIKSA, POST yang memakai tokennya. Alasannya ada di
+           komentar Token_model::periksa(). */
+        $cek = $this->token_model->periksa($token, 'reset');
+
+        if (! $cek['ok']) {
+            $this->session->set_flashdata('error', $this->pesan_token($cek['alasan']));
+            return redirect('auth/lupa');
+        }
+
+        if ($this->input->method() === 'post') {
+            $this->form_validation->set_rules('password',  'Password baru',    'required|min_length[8]');
+            $this->form_validation->set_rules('password2', 'Ulangi password',  'required|matches[password]');
+
+            $this->form_validation->set_message('required',   '{field} wajib diisi.');
+            $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
+            $this->form_validation->set_message('matches',    'Password tidak sama.');
+            $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
+
+            if ($this->form_validation->run()) {
+
+                // Baru DI SINI tokennya dipakai - setelah sandinya lolos
+                // validasi. Dipakai lebih dulu, sandi yang terlalu pendek
+                // berarti tautannya hangus dan orangnya harus minta lagi.
+                $pakai = $this->token_model->pakai($token, 'reset');
+
+                if (! $pakai['ok']) {
+                    $this->session->set_flashdata('error', $this->pesan_token($pakai['alasan']));
+                    return redirect('auth/lupa');
+                }
+
+                $this->auth_lib->ganti_sandi(
+                    $pakai['user_id'],
+                    (string) $this->input->post('password', FALSE)   // JANGAN di-XSS-clean
+                );
+
+                $this->session->set_flashdata('sukses',
+                    'Sandi berhasil diganti. Silakan masuk dengan sandi baru.');
+
+                return redirect('auth/login');
+            }
+        }
+
+        $data = array('token' => $token, 'pages' => 'v_reset');
+        $this->load->view('index', $data);
+    }
+
+    /* ========================================================== VERIFIKASI */
+
+    /** Tautan verifikasi dari email. */
+    public function verifikasi($token = NULL)
+    {
+        $this->load->model('token_model');
+
+        $hasil = $this->token_model->pakai((string) $token, 'verifikasi');
+
+        if (! $hasil['ok']) {
+            $this->session->set_flashdata('error', $this->pesan_token($hasil['alasan'], 'verifikasi'));
+            return redirect($this->auth_lib->user() ? 'akun/profil' : 'auth/login');
+        }
+
+        $this->db->where('id', $hasil['user_id'])
+                 ->where('email_verified_at IS NULL', NULL, FALSE)
+                 ->update('users', array('email_verified_at' => date('Y-m-d H:i:s')));
+
+        $this->auth_lib->segarkan();
+
+        $this->session->set_flashdata('sukses', 'Email kamu sudah terverifikasi. Terima kasih!');
+
+        /* Yang mengklik belum tentu sedang login - tautannya bisa dibuka di
+           HP padahal daftarnya di laptop. Yang belum login diarahkan ke
+           halaman masuk, bukan ke halaman akun yang akan menolaknya. */
+        return redirect($this->auth_lib->user() ? 'akun/profil' : 'auth/login');
+    }
+
+    /** Kirim ulang email verifikasi untuk akun yang sedang login. */
+    public function kirim_verifikasi()
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+
+        $row = $this->auth_lib->row();
+        if (! $row) {
+            return redirect('auth/login');
+        }
+
+        /* terverifikasi(), bukan $row['email_verified_at'] langsung: kolomnya
+           belum ada kalau migrasi 25 belum dijalankan, dan membacanya begitu
+           saja memunculkan peringatan PHP di halaman profil. */
+        if ($this->auth_lib->terverifikasi() !== FALSE) {
+            $this->session->set_flashdata('sukses', 'Email kamu sudah terverifikasi.');
+            return redirect('akun/profil');
+        }
+
+        $hasil = $this->kirim_tautan_verifikasi($row);
+
+        $this->session->set_flashdata(
+            $hasil['ok'] ? 'sukses' : 'error',
+            $hasil['pesan']
+        );
+
+        return redirect('akun/profil');
+    }
+
+    /* ------------------------------------------------------- pengirim surat */
+
+    /**
+     * Buat token reset lalu kirim emailnya.
+     *
+     * protected, dan TIDAK mengembalikan apa pun yang dipakai memberi pesan
+     * ke pengunjung: hasil pengiriman sengaja tidak dibocorkan di halaman
+     * lupa sandi, karena "gagal kirim" juga menjawab pertanyaan "apakah email
+     * ini terdaftar".
+     */
+    protected function kirim_tautan_reset(array $user)
+    {
+        $this->load->model('token_model');
+        $this->load->library('surat_lib');
+
+        $t = $this->token_model->buat($user['id'], 'reset');
+        if (! $t['ok']) {
+            return;
+        }
+
+        /* Tautan yang sama juga dikirim ke WhatsApp akun (kalau gerbang WA
+           sudah diaktifkan di Admin > Pengaturan; kalau belum, Notifikasi_lib
+           diam saja). */
+        if ( ! empty($user['phone'])) {
+            $this->load->library('notifikasi_lib');
+            $this->notifikasi_lib->wa($user['phone'],
+                'Halo ' . $user['name'] . ', ada permintaan ganti sandi akun ' . $this->config->item('nama_brand') . '.' . "\n\n"
+                . 'Buka tautan ini dalam ' . (int) (Token_model::UMUR_RESET / 3600) . ' jam: '
+                . site_url('auth/reset/' . $t['token']) . "\n\n"
+                . 'Abaikan pesan ini kalau kamu tidak memintanya.', 'reset_sandi');
+        }
+
+        $this->surat_lib->kirim(
+            $user['email'],
+            'Ganti sandi Sapa UMKM',
+            'reset',
+            array(
+                'nama'  => $user['name'],
+                'tautan'=> site_url('auth/reset/' . $t['token']),
+                'jam'   => (int) (Token_model::UMUR_RESET / 3600),
+            )
+        );
+    }
+
+    /**
+     * Buat token verifikasi lalu kirim emailnya.
+     *
+     * @return array ['ok' => bool, 'pesan' => string]
+     */
+    protected function kirim_tautan_verifikasi(array $user)
+    {
+        $this->load->model('token_model');
+        $this->load->library('surat_lib');
+
+        $t = $this->token_model->buat($user['id'], 'verifikasi');
+        if (! $t['ok']) {
+            return array('ok' => FALSE, 'pesan' => $t['pesan']);
+        }
+
+        $kirim = $this->surat_lib->kirim(
+            $user['email'],
+            'Verifikasi email Sapa UMKM',
+            'verifikasi',
+            array(
+                'nama'   => $user['name'],
+                'tautan' => site_url('auth/verifikasi/' . $t['token']),
+            )
+        );
+
+        if ($kirim) {
+            return array('ok' => TRUE, 'pesan' => 'Email verifikasi dikirim ke ' . $user['email'] . '.');
+        }
+
+        /* Pesannya dibedakan antara "SMTP belum diatur" dan "SMTP ada tapi
+           gagal". Yang pertama adalah pekerjaan pemilik situs dan tidak ada
+           gunanya menyuruh pengguna mencoba lagi; yang kedua kadang berhasil
+           kalau diulang. */
+        return array(
+            'ok'    => FALSE,
+            'pesan' => $this->surat_lib->siap()
+                ? 'Email gagal dikirim. Coba lagi beberapa saat lagi.'
+                : 'Pengiriman email belum diatur di server ini. Hubungi pengelola.',
+        );
+    }
+
+    /* ------------------------------------------------------------------ */
+
+    /** Pesan untuk token yang tidak bisa dipakai. */
+    protected function pesan_token($alasan, $jenis = 'reset')
+    {
+        $apa = ($jenis === 'verifikasi') ? 'verifikasi' : 'penggantian sandi';
+
+        switch ($alasan) {
+            case 'kedaluwarsa':
+                return 'Tautan ' . $apa . ' sudah kedaluwarsa. Minta tautan baru di bawah.';
+
+            case 'sudah_dipakai':
+                return 'Tautan ' . $apa . ' itu sudah pernah dipakai. '
+                     . 'Kalau sandimu belum berganti, minta tautan baru di bawah.';
+
+            default:
+                return 'Tautan ' . $apa . ' tidak dikenali. '
+                     . 'Pastikan tautannya tersalin lengkap, atau minta yang baru di bawah.';
+        }
     }
 
     /* ========================================================= OTP WA ===
@@ -211,7 +434,7 @@ class Auth extends CI_Controller
                punya akun. Kodenya memang tidak akan pernah cocok. */
             $uid = $akun ? (int) $akun[0]['id'] : 0;
             if ($uid) {
-                $t = $this->auth_lib->buat_token($uid, 'otp', 5, TRUE);
+                $t = $this->auth_lib->buat_otp($uid, 5);
                 if ( ! $t['ok']) {
                     $this->session->set_flashdata('error', $t['pesan']);
                     return redirect('auth/otp' . $this->query_next());
@@ -230,9 +453,7 @@ class Auth extends CI_Controller
         if ($this->input->method() === 'post' && $this->input->post('aksi') === 'cek') {
             $uid  = (int) $this->session->userdata('otp_uid');
             $kode = preg_replace('/[^0-9]/', '', (string) $this->input->post('kode'));
-            $row  = $uid ? $this->auth_lib->cek_token('otp', $kode, $uid) : NULL;
-
-            if ($row && $this->auth_lib->pakai_token($row['id']) && $this->auth_lib->masuk_id($uid)) {
+            if ($uid && $this->auth_lib->pakai_otp($uid, $kode) && $this->auth_lib->masuk_id($uid)) {
                 $this->session->unset_userdata(array('otp_uid', 'otp_nomor'));
                 return redirect($this->sesudah_masuk());
             }
@@ -251,6 +472,17 @@ class Auth extends CI_Controller
             'nomor' => $this->samarkan((string) $this->session->userdata('otp_nomor')),
             'next'  => $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE)),
         ));
+    }
+
+    /** Validasi isian lupa sandi: email yang sah, atau nomor HP. */
+    public function email_atau_wa($str)
+    {
+        $str = trim((string) $str);
+        if (strpos($str, '@') !== FALSE ? filter_var($str, FILTER_VALIDATE_EMAIL) : preg_match('/^(\+?62|0)8\d{7,12}$/', preg_replace('/[\s-]/', '', $str))) {
+            return TRUE;
+        }
+        $this->form_validation->set_message('email_atau_wa', 'Tulis email atau nomor WhatsApp yang benar.');
+        return FALSE;
     }
 
     /** Email, atau nomor WA yang hanya dipakai satu akun. */

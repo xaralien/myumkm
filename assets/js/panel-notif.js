@@ -15,6 +15,14 @@
   var C = window.PANEL_NOTIF;
   if (!C) { return; }
 
+  /* Halaman daftar pesanan punya pemantaunya sendiri (orders-notif.js), dan
+     penjualnya sedang MELIHAT daftar itu. Membunyikan nada serta mengedipkan
+     judul di sana berarti memberitahunya tentang sesuatu yang sudah ada di
+     depan matanya - dan dua pemantau sekaligus membunyikan nada dua kali.
+
+     Lencana di menu tetap diperbarui; yang dimatikan hanya nada dan kedipan. */
+  var diamSaja = !! window.ORDERS_NOTIF;
+
   var JEDA = 15000;
 
   var judulAsli = document.title;
@@ -115,10 +123,13 @@
 
         if (j.terbaru && j.terbaru !== terbaruTerakhir) {
           terbaruTerakhir = j.terbaru;
-          bunyi();
 
-          if (document.hidden) {
-            mulaiKedip('Pesanan baru masuk');
+          if (! diamSaja) {
+            bunyi();
+
+            if (document.hidden) {
+              mulaiKedip('Pesanan baru masuk');
+            }
           }
         }
       })

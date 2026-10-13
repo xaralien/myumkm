@@ -69,7 +69,7 @@ class Product_model extends CI_Model
 
     /**
      * Tingkat harga grosir: [product_id => [[min_qty, harga], ...]].
-     * Tabel dari 26_promo_preorder_multitoko.sql - kosong kalau belum ada.
+     * Tabel dari 28_promo_preorder_multitoko.sql - kosong kalau belum ada.
      */
     public function tiers_by_products(array $ids)
     {
@@ -157,7 +157,7 @@ class Product_model extends CI_Model
            ulasan jadi penentu kedua. */
         'ulasan' => array('rating_avg', 'DESC'),
 
-        // Kolom dari 25_wishlist_ikuti_label.sql, dinaikkan Stok_lib.
+        // Kolom dari 27_wishlist_ikuti_label.sql, dinaikkan Stok_lib.
         'terlaris' => array('terjual_count', 'DESC'),
     );
 

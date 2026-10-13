@@ -48,3 +48,6 @@ application/config/duitku - Copy.php
 application/config/duitku copy.php
 application/config/duitku.php
 application/config/database.php
+
+# Pengaturan SMTP - JANGAN di-commit. Salin dari surat.example.php.
+application/config/surat.php

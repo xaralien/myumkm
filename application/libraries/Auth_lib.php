@@ -99,82 +99,123 @@ class Auth_lib
         return array('ok' => TRUE, 'pesan' => '');
     }
 
-    /* ===================================================== token sekali pakai ===
-     |  Dipakai untuk reset kata sandi (tautan) dan OTP WhatsApp (6 angka).
-     |  Yang disimpan hanya hash SHA-256-nya.
-     | ======================================================================== */
+    /**
+     * Pasang sandi baru untuk satu akun.
+     *
+     * Dipakai alur reset sandi. Tidak memeriksa sandi lama - yang memanggil
+     * sudah membuktikan kepemilikan akun lewat token di email.
+     *
+     * CATATAN YANG BELUM DIKERJAKAN: sesi lain milik akun ini tidak ikut
+     * dimatikan. Idealnya, mengganti sandi mengeluarkan semua perangkat lain -
+     * karena alasan orang mengganti sandi sering justru karena akunnya diduga
+     * diakses orang lain. CodeIgniter menyimpan sesi sebagai berkas tanpa
+     * kolom user_id, jadi tidak ada cara mencari "sesi milik akun ini" tanpa
+     * menyisir seluruh berkas sesi. Perlu tabel sesi di database dulu.
+     */
+    public function ganti_sandi($user_id, $password)
+    {
+        $this->CI->db->where('id', (int) $user_id)->update('users', array(
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        ));
+
+        $this->_row = $this->_store = FALSE;
+
+        return TRUE;
+    }
+
+    /** Sudah terverifikasi emailnya? NULL kalau tidak ada yang login. */
+    public function terverifikasi()
+    {
+        $row = $this->row();
+        if (! $row) {
+            return NULL;
+        }
+
+        /* array_key_exists, bukan isset(): isset() mengembalikan FALSE untuk
+           nilai NULL, jadi kolom yang ada tapi masih NULL tidak bisa
+           dibedakan dari kolom yang belum dibuat migrasinya. Yang pertama
+           berarti "belum verifikasi", yang kedua berarti migrasi 25 belum
+           dijalankan - dan di situ semua orang harus dianggap terverifikasi,
+           supaya situsnya tidak menuntut sesuatu yang belum ada tabelnya. */
+        if (! array_key_exists('email_verified_at', $row)) {
+            return TRUE;
+        }
+
+        return $row['email_verified_at'] !== NULL;
+    }
+
+    /* ============================================================ OTP WA ===
+     |  Kode 6 angka untuk masuk lewat WhatsApp (Auth::otp). Disimpan di
+     |  tabel auth_tokens yang sama dengan reset sandi & verifikasi email
+     |  (Token_model), dengan jenis 'otp'.
+     |
+     |  Hash-nya DIBERI GARAM user_id + waktu kedaluwarsa. token_hash di tabel
+     |  itu UNIQUE dan barisnya tidak pernah dihapus, sedangkan kode 6 angka
+     |  hanya punya sejuta kemungkinan - tanpa garam, dua orang yang kebetulan
+     |  mendapat kode sama membuat insert-nya gagal.
+     | ===================================================================== */
+
+    protected function hash_otp($user_id, $kode, $expires_at)
+    {
+        return hash('sha256', 'otp|' . (int) $user_id . '|' . $expires_at . '|' . $kode);
+    }
 
     /**
      * @return array ['ok' => bool, 'token' => string, 'pesan' => string]
      */
-    public function buat_token($user_id, $jenis, $menit, $angka = FALSE)
+    public function buat_otp($user_id, $menit = 5)
     {
         // Satu permintaan per menit per akun - tanpa ini, tombol "kirim
         // ulang" bisa dipakai membanjiri WhatsApp seseorang.
-        $baru = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', $jenis)
+        $baru = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
             ->where('created_at >', date('Y-m-d H:i:s', time() - 60))
             ->count_all_results('auth_tokens');
         if ($baru) {
-            return array('ok' => FALSE, 'token' => '', 'pesan' => 'Tunggu satu menit sebelum meminta lagi.');
+            return array('ok' => FALSE, 'token' => '', 'pesan' => 'Tunggu satu menit sebelum meminta kode lagi.');
         }
 
-        $token = $angka
-            ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT)
-            : bin2hex(random_bytes(24));
+        $kode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $exp  = date('Y-m-d H:i:s', time() + $menit * 60);
 
-        // Token lama yang belum terpakai dimatikan: hanya yang terbaru berlaku.
-        $this->CI->db->where('user_id', (int) $user_id)->where('jenis', $jenis)
-            ->where('dipakai_at IS NULL', NULL, FALSE)
-            ->update('auth_tokens', array('dipakai_at' => date('Y-m-d H:i:s')));
+        // Kode lama yang belum terpakai dimatikan: hanya yang terbaru berlaku.
+        $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
+            ->where('used_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('used_at' => date('Y-m-d H:i:s')));
 
         $this->CI->db->insert('auth_tokens', array(
-            'user_id'     => (int) $user_id,
-            'jenis'       => $jenis,
-            'token_hash'  => hash('sha256', $token),
-            'kedaluwarsa' => date('Y-m-d H:i:s', time() + $menit * 60),
+            'user_id'    => (int) $user_id,
+            'jenis'      => 'otp',
+            'token_hash' => $this->hash_otp($user_id, $kode, $exp),
+            'expires_at' => $exp,
+            'ip'         => $this->CI->input->ip_address(),
         ));
-        return array('ok' => TRUE, 'token' => $token, 'pesan' => '');
+        return array('ok' => TRUE, 'token' => $kode, 'pesan' => '');
     }
 
     /**
-     * Periksa token tanpa memakainya. OTP dibatasi 5 kali salah - enam
-     * angka hanya punya sejuta kemungkinan, jadi tebakan harus dihentikan.
-     *
-     * @return array|NULL baris auth_tokens yang masih berlaku
+     * Cocokkan kode lalu memakainya. Dibatasi 5 kali salah - enam angka
+     * hanya punya sejuta kemungkinan, jadi tebakan harus dihentikan.
      */
-    public function cek_token($jenis, $token, $user_id = NULL)
+    public function pakai_otp($user_id, $kode)
     {
-        $this->CI->db->where('jenis', $jenis)
-            ->where('dipakai_at IS NULL', NULL, FALSE)
-            ->where('kedaluwarsa >', date('Y-m-d H:i:s'));
-
-        if ($jenis === 'otp') {
-            // OTP dicocokkan ke token TERBARU akun itu saja.
-            $row = $this->CI->db->where('user_id', (int) $user_id)
-                ->order_by('id', 'DESC')->limit(1)->get('auth_tokens')->row_array();
-            if ( ! $row || (int) $row['percobaan'] >= 5) {
-                return NULL;
-            }
-            if ( ! hash_equals($row['token_hash'], hash('sha256', (string) $token))) {
-                $this->CI->db->set('percobaan', 'percobaan + 1', FALSE)
-                    ->where('id', $row['id'])->update('auth_tokens');
-                return NULL;
-            }
-            return $row;
+        $row = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
+            ->where('used_at IS NULL', NULL, FALSE)
+            ->where('expires_at >', date('Y-m-d H:i:s'))
+            ->order_by('id', 'DESC')->limit(1)->get('auth_tokens')->row_array();
+        if ( ! $row || (int) $row['percobaan'] >= 5) {
+            return FALSE;
         }
-
-        return $this->CI->db->where('token_hash', hash('sha256', (string) $token))
-            ->limit(1)->get('auth_tokens')->row_array() ?: NULL;
-    }
-
-    public function pakai_token($id)
-    {
-        $this->CI->db->where('id', (int) $id)->where('dipakai_at IS NULL', NULL, FALSE)
-            ->update('auth_tokens', array('dipakai_at' => date('Y-m-d H:i:s')));
+        if ( ! hash_equals($row['token_hash'], $this->hash_otp($user_id, (string) $kode, $row['expires_at']))) {
+            $this->CI->db->set('percobaan', 'percobaan + 1', FALSE)
+                ->where('id', $row['id'])->update('auth_tokens');
+            return FALSE;
+        }
+        $this->CI->db->where('id', (int) $row['id'])->where('used_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('used_at' => date('Y-m-d H:i:s')));
         return $this->CI->db->affected_rows() > 0;
     }
 
-    /** Masuk tanpa kata sandi - hanya setelah token/OTP terbukti sah. */
+    /** Masuk tanpa kata sandi - hanya setelah OTP terbukti sah. */
     public function masuk_id($user_id)
     {
         $user = $this->CI->db->where('id', (int) $user_id)->where('is_active', 1)

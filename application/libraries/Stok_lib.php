@@ -138,7 +138,7 @@ class Stok_lib {
 
     /**
      * Naikkan/turunkan products.terjual_count (urutan "Terlaris").
-     * Kolomnya dari 25_wishlist_ikuti_label.sql - dilewati kalau belum ada.
+     * Kolomnya dari 27_wishlist_ikuti_label.sql - dilewati kalau belum ada.
      */
     protected function ubah_terjual(array $item, $arah)
     {

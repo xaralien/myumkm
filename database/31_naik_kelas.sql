@@ -1,5 +1,5 @@
 -- =============================================================================
---  29_naik_kelas.sql
+--  31_naik_kelas.sql
 --
 --  1. Dokumen legalitas toko (NIB, P-IRT, Halal, ...) + verifikasi admin.
 --  2. Akademi UMKM: modul belajar, kuis, progres, jadwal kelas/konsultasi.
@@ -14,9 +14,9 @@
 
 SET NAMES utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom29;
+DROP PROCEDURE IF EXISTS _kolom31;
 DELIMITER $$
-CREATE PROCEDURE _kolom29(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+CREATE PROCEDURE _kolom31(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS akademi_daftar (
    3. PENDAMPING
    Pendamping = akun dengan role 'pendamping' (users.role sudah VARCHAR).
    ------------------------------------------------------------------------- */
-CALL _kolom29('stores', 'pendamping_id', 'INT UNSIGNED NULL');
+CALL _kolom31('stores', 'pendamping_id', 'INT UNSIGNED NULL');
 
 CREATE TABLE IF NOT EXISTS pendampingan_catatan (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -180,4 +180,4 @@ SELECT m.id, 'Biaya mengurus NIB di OSS adalah...', '["Gratis","Rp 500.000","Ter
   FROM akademi_modul m WHERE m.slug = 'mengurus-nib-oss'
    AND NOT EXISTS (SELECT 1 FROM akademi_soal s WHERE s.modul_id = m.id);
 
-DROP PROCEDURE IF EXISTS _kolom29;
+DROP PROCEDURE IF EXISTS _kolom31;

@@ -1,5 +1,5 @@
 -- =============================================================================
---  25_wishlist_ikuti_label.sql
+--  27_wishlist_ikuti_label.sql
 --
 --  1. Wishlist (produk favorit) pembeli.
 --  2. Ikuti toko - pelanggan setia melihat produk baru toko langganannya.
@@ -12,10 +12,10 @@
 
 SET NAMES utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom25;
+DROP PROCEDURE IF EXISTS _kolom27;
 DROP PROCEDURE IF EXISTS _indeks25;
 DELIMITER $$
-CREATE PROCEDURE _kolom25(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+CREATE PROCEDURE _kolom27(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
@@ -55,16 +55,16 @@ CREATE TABLE IF NOT EXISTS store_follows (
 
 /* Label diisi penjual. Nomor Halal/P-IRT ditampilkan apa adanya sebagai
    klaim penjual; tanda "terverifikasi" baru muncul kalau dokumen tokonya
-   sudah diperiksa admin (lihat 29_naik_kelas.sql). */
-CALL _kolom25('products', 'buatan_tangan', 'TINYINT(1) NOT NULL DEFAULT 0');
-CALL _kolom25('products', 'bahan_lokal',   'TINYINT(1) NOT NULL DEFAULT 0');
-CALL _kolom25('products', 'halal_no',      'VARCHAR(60) NULL');
-CALL _kolom25('products', 'pirt_no',       'VARCHAR(60) NULL');
+   sudah diperiksa admin (lihat 31_naik_kelas.sql). */
+CALL _kolom27('products', 'buatan_tangan', 'TINYINT(1) NOT NULL DEFAULT 0');
+CALL _kolom27('products', 'bahan_lokal',   'TINYINT(1) NOT NULL DEFAULT 0');
+CALL _kolom27('products', 'halal_no',      'VARCHAR(60) NULL');
+CALL _kolom27('products', 'pirt_no',       'VARCHAR(60) NULL');
 
 /* Disimpan, bukan dihitung tiap halaman dibuka: mengurutkan katalog
    berdasarkan SUM() dari seluruh order_items terlalu berat. Dinaikkan
    setiap pembayaran masuk (Order_model::mark_paid). */
-CALL _kolom25('products', 'terjual_count', 'INT UNSIGNED NOT NULL DEFAULT 0');
+CALL _kolom27('products', 'terjual_count', 'INT UNSIGNED NOT NULL DEFAULT 0');
 CALL _indeks25('products', 'ix_produk_terjual', 'INDEX `ix_produk_terjual` (`terjual_count`)');
 
 UPDATE products p
@@ -73,5 +73,5 @@ UPDATE products p
                             JOIN orders o ON o.id = oi.order_id
                            WHERE oi.product_id = p.id AND o.payment_status = 'paid');
 
-DROP PROCEDURE IF EXISTS _kolom25;
+DROP PROCEDURE IF EXISTS _kolom27;
 DROP PROCEDURE IF EXISTS _indeks25;

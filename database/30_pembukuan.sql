@@ -1,5 +1,5 @@
 -- =============================================================================
---  28_pembukuan.sql - pembukuan sederhana (kas masuk & keluar) untuk penjual.
+--  30_pembukuan.sql - pembukuan sederhana (kas masuk & keluar) untuk penjual.
 --
 --  Penjualan di marketplace TIDAK disalin ke tabel ini - dihitung langsung
 --  dari tabel orders (bagian toko = net_store) saat laporan dibuka, supaya

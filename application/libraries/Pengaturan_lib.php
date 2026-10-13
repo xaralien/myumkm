@@ -10,7 +10,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *
  * Nilai dibaca dari tabel `settings`. Kalau kuncinya belum pernah disimpan,
  * jatuh ke config/marketplace.php, lalu ke nilai bawaan di daftar() - jadi
- * situs tetap berjalan walau tabelnya kosong atau migrasi 24 belum
+ * situs tetap berjalan walau tabelnya kosong atau migrasi 26 belum
  * dijalankan.
  */
 class Pengaturan_lib
@@ -57,7 +57,7 @@ class Pengaturan_lib
                 'email_aktif'   => array('label' => 'Kirim notifikasi email', 'jenis' => 'ya_tidak', 'bawaan' => '0'),
                 'email_dari'    => array('label' => 'Alamat pengirim', 'jenis' => 'teks', 'bawaan' => ''),
                 'smtp_host'     => array('label' => 'SMTP host', 'jenis' => 'teks', 'bawaan' => '',
-                                         'catatan' => 'Kosongkan untuk memakai fungsi mail() server.'),
+                                         'catatan' => 'Kosongkan untuk memakai SMTP di config/surat.php (yang juga dipakai email reset sandi), atau mail() server kalau itu pun kosong.'),
                 'smtp_port'     => array('label' => 'SMTP port', 'jenis' => 'angka', 'bawaan' => 587),
                 'smtp_user'     => array('label' => 'SMTP user', 'jenis' => 'teks', 'bawaan' => ''),
                 'smtp_pass'     => array('label' => 'SMTP password', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),

@@ -1,11 +1,11 @@
 -- =============================================================================
---  24_pengaturan_notifikasi.sql
+--  26_pengaturan_notifikasi.sql
 --
 --  1. Pengaturan sistem yang bisa diubah admin dari panel (komisi, kontak,
 --     gerbang WhatsApp, email) - sebelumnya hanya lewat berkas config.
 --  2. Catatan notifikasi keluar (WhatsApp/email): terkirim, gagal, dilewati.
 --  3. Log audit aktivitas admin.
---  4. Token sekali pakai: reset kata sandi & kode OTP WhatsApp.
+--  4. Penghitung salah tebak OTP WhatsApp di tabel auth_tokens (migrasi 25).
 --
 --  Untuk MySQL 8 (juga jalan di MariaDB). Aman dijalankan berulang.
 --  CADANGKAN DULU.
@@ -55,18 +55,22 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   KEY ix_audit_objek (objek, objek_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-/* Yang disimpan HASH-nya, bukan token aslinya: kalau tabel ini bocor,
-   tautan reset dan kode OTP yang masih berlaku tidak bisa dipakai. */
-CREATE TABLE IF NOT EXISTS auth_tokens (
-  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  user_id     INT UNSIGNED NOT NULL,
-  jenis       ENUM('reset','otp') NOT NULL,
-  token_hash  CHAR(64) NOT NULL,
-  percobaan   TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  kedaluwarsa DATETIME NOT NULL,
-  dipakai_at  DATETIME NULL,
-  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  KEY ix_token_user (user_id, jenis, created_at),
-  CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/* Kode OTP WhatsApp memakai tabel auth_tokens dari migrasi 25
+   (25_reset_sandi_verifikasi.sql - JALANKAN ITU DULU) dengan jenis 'otp'.
+   Yang ditambahkan di sini hanya penghitung salah tebak: OTP 6 angka
+   dikunci setelah 5 kali salah. */
+DROP PROCEDURE IF EXISTS _kolom26;
+DELIMITER $$
+CREATE PROCEDURE _kolom26(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
+    SET @q = CONCAT('ALTER TABLE `', t, '` ADD COLUMN `', c, '` ', def);
+    PREPARE s FROM @q; EXECUTE s; DEALLOCATE PREPARE s;
+  END IF;
+END$$
+DELIMITER ;
+
+CALL _kolom26('auth_tokens', 'percobaan', 'TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER token_hash');
+
+DROP PROCEDURE IF EXISTS _kolom26;

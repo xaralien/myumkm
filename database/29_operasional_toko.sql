@@ -1,5 +1,5 @@
 -- =============================================================================
---  27_operasional_toko.sql
+--  29_operasional_toko.sql
 --
 --  1. Mode libur toko (mulai, sampai, pesan untuk pembeli).
 --  2. Template balasan chat penjual.
@@ -10,9 +10,9 @@
 
 SET NAMES utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom27;
+DROP PROCEDURE IF EXISTS _kolom29;
 DELIMITER $$
-CREATE PROCEDURE _kolom27(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
+CREATE PROCEDURE _kolom29(IN t VARCHAR(64), IN c VARCHAR(64), IN def TEXT)
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = t AND COLUMN_NAME = c) THEN
@@ -26,9 +26,9 @@ DELIMITER ;
    pre-order), tapi pesanan biasa ditolak di checkout selama rentang ini.
    Toko kembali buka sendiri setelah libur_sampai - penjual tidak perlu
    ingat mematikannya. */
-CALL _kolom27('stores', 'libur_mulai',  'DATE NULL');
-CALL _kolom27('stores', 'libur_sampai', 'DATE NULL');
-CALL _kolom27('stores', 'libur_pesan',  'VARCHAR(160) NULL');
+CALL _kolom29('stores', 'libur_mulai',  'DATE NULL');
+CALL _kolom29('stores', 'libur_sampai', 'DATE NULL');
+CALL _kolom29('stores', 'libur_pesan',  'VARCHAR(160) NULL');
 
 CREATE TABLE IF NOT EXISTS chat_templates (
   id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -42,4 +42,4 @@ CREATE TABLE IF NOT EXISTS chat_templates (
   CONSTRAINT fk_tpl_toko FOREIGN KEY (store_id) REFERENCES stores (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP PROCEDURE IF EXISTS _kolom27;
+DROP PROCEDURE IF EXISTS _kolom29;
