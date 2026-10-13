@@ -23,10 +23,10 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 | Kelompok | Total fitur | ✅ Ada | ❌ Belum |
 |---|---|---|---|
-| Pembeli | 35 | 35 | 0 |
+| Pembeli | 36 | 36 | 0 |
 | Penjual / UMKM | 39 | 39 | 0 |
 | Admin | 22 | 22 | 0 |
-| **Total** | **96** | **96** | **0** |
+| **Total** | **97** | **97** | **0** |
 
 ---
 
@@ -38,7 +38,8 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ 🧓 **Belanja tanpa akun (guest checkout)** — *Pain:* pembeli lokal malas daftar hanya untuk sekali beli → *Fungsi:* checkout cukup nama + nomor WA; pesanan dibuka lewat token. (`orders.user_id` boleh NULL, `Checkout::done/{token}`)
 - ✅ 🧓 **Lacak pesanan dengan nomor pesanan + nomor WA** — *Pain:* pembeli tamu tidak punya akun untuk mengecek status → *Fungsi:* form lacak sederhana tanpa login. (`Track.php`)
 - ✅ 🧓 **Login OTP WhatsApp / tanpa kata sandi** — *Pain:* pembeli sering lupa sandi → *Fungsi:* masuk cukup dengan kode OTP dikirim ke WA. (`Auth::otp` + `Auth_lib::buat_otp` — kode 6 angka dikirim lewat gerbang WA, terkunci setelah 5 kali salah.)
-- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` + `Token_model` & `Surat_lib` — tautan sekali pakai ke email (SMTP di `config/surat.php`) dan WhatsApp; isian boleh email atau nomor WA. Ditambah verifikasi email, wajib sebelum membuka toko.)
+- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` + `Token_model` & `Surat_lib` — tautan sekali pakai ke email (SMTP di `config/surat.php`) dan WhatsApp; isian boleh email atau nomor WA. )
+- ✅ **Verifikasi email** — *Pain:* email salah ketik membuat tautan reset sandi & kabar pesanan tidak sampai; penjual yang menerima uang harus bisa dihubungi → *Fungsi:* tautan verifikasi dikirim saat daftar, spanduk pengingat + kirim ulang di halaman akun, wajib sebelum membuka toko. (`Auth::verifikasi`, `Auth::kirim_verifikasi`, `parts/verif_spanduk.php`, kolom `users.email_verified_at` di `25_reset_sandi_verifikasi.sql`.)
 - ✅ **Profil & ubah sandi** — *Pain:* data kontak berubah → *Fungsi:* ubah nama, foto, nomor, sandi. (`Akun::profil`)
 
 ### B. Penemuan Produk
@@ -58,7 +59,7 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 ### C. Keranjang, Checkout & Pembayaran
 
 - ✅ **Keranjang & "Beli Langsung"** — *Pain:* ingin beli cepat satu barang → *Fungsi:* keranjang per toko dan jalur beli langsung. (`Cart.php`, `Cart_lib::mode_langsung`)
-- ✅ **Buku alamat** — *Pain:* mengetik alamat berulang; penerima sering bukan pembeli → *Fungsi:* simpan banyak alamat ("Rumah", "Rumah Ibu"), pilih saat checkout. (`22_buku_alamat.sql`, `Akun::alamat`)
+- ✅ **Buku alamat** — *Pain:* mengetik alamat berulang; penerima sering bukan pembeli → *Fungsi:* simpan banyak alamat ("Rumah", "Rumah Ibu"), pilih saat checkout; alamat baru bisa langsung disimpan dari halaman checkout (centang "Simpan alamat ini"). (`22_buku_alamat.sql`, `Akun::alamat`, `Checkout::simpan_alamat_pembeli`)
 - ✅ **Ongkir otomatis berdasarkan wilayah** — *Pain:* ongkir tidak jelas sebelum bayar → *Fungsi:* tarif kecamatan/kota/provinsi/luar provinsi dari toko, plus gratis ongkir minimal belanja. (`Cart_lib::shipping_fee`)
 - ✅ **Pembayaran online (VA/QRIS/e-wallet via Duitku)** — *Pain:* transfer manual rawan salah & lama dicek → *Fungsi:* pembayaran terverifikasi otomatis via callback. (`Payment.php`, `libraries/Duitku.php`)
 - ✅ **Voucher & promo** — *Pain:* pembeli mencari potongan harga → *Fungsi:* kode voucher toko/platform. (`Voucher_lib` — kode voucher toko & platform di checkout.)
@@ -182,6 +183,14 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ **Halaman galat ramah pengguna** — *Pain:* halaman error teknis membingungkan & membocorkan info → *Fungsi:* 404/galat dalam kerangka situs. (`Galat.php`)
 
 ---
+
+## Pengujian QA
+
+Lembar uji untuk Quality Assurance Engineer ada di `rancangan-fitur-marketplace-umkm.xlsx`:
+
+- **Uji QA** — 128 kasus uji (setiap fitur minimal satu): ID, skenario, jenis (positif/negatif/batas/keamanan), prioritas, prasyarat, langkah, data uji, dan hasil yang diharapkan. Penguji mengisi hasil aktual, status, nama, tanggal, dan ID bug.
+- **Laporan Bug** — templat pencatatan bug yang tertaut ke ID kasus uji.
+- **Ringkasan QA** — rekap otomatis per kelompok, prioritas, dan jenis uji, plus penilaian kesiapan rilis.
 
 ## Catatan Pemasangan
 
