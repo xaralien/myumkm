@@ -220,11 +220,17 @@
           <div class="mb-kartu-isi">
             <span class="mb-kartu-nama"><?= html_escape($p['name']) ?></span>
 
-            <?php if ((int) $p['rating_count'] > 0): ?>
+            <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
+            <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>
               <span class="mb-kartu-rating">
-                <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
-                <?= number_format($p['rating_avg'], 1, ',', '.') ?>
-                <em>(<?= (int) $p['rating_count'] ?>)</em>
+                <?php if ((int) $p['rating_count'] > 0): ?>
+                  <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
+                  <?= number_format($p['rating_avg'], 1, ',', '.') ?>
+                  <em>(<?= (int) $p['rating_count'] ?>)</em>
+                <?php endif; ?>
+
+                <?php if ((int) $p['rating_count'] > 0 && $teks_terjual): ?><i aria-hidden="true">&middot;</i><?php endif; ?>
+                <?php if ($teks_terjual): ?><em><?= $teks_terjual ?></em><?php endif; ?>
               </span>
             <?php elseif ($p['category_name']): ?>
               <span class="mb-kartu-toko"><?= html_escape($p['category_name']) ?></span>

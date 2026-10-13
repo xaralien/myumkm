@@ -42,6 +42,17 @@
         <div class="form-card">
           <h3 class="form-card-title">Alamat pengiriman</h3>
 
+          <?php if (! $alamat_saya && $this->auth_lib->id()): ?>
+            <!-- Belum punya alamat tersimpan. Petunjuknya ditaruh di sini,
+                 bukan hanya di menu Akun: pembeli yang sedang checkout tidak
+                 akan pergi mencari halaman pengaturan, jadi fitur buku alamat
+                 tidak pernah ditemukan kalau tidak disebut di tempat ini. -->
+            <p class="alm-ajak">
+              Isi alamat di bawah, lalu centang <strong>&ldquo;Simpan alamat ini&rdquo;</strong>
+              supaya belanja berikutnya tinggal pilih.
+            </p>
+          <?php endif; ?>
+
           <?php if ($alamat_saya): ?>
             <!-- Alamat tersimpan. Satu ketukan menggantikan enam kolom isian,
                  dan mengetik ulang alamat tiap belanja adalah alasan umum
@@ -148,22 +159,14 @@
           <?= form_error('recipient_district_id') ?>
           <p class="hint" id="jangkauanInfo" aria-live="polite"></p>
 
-          <div class="peta-blok">
-            <p class="hint mb-2">
-              Tidak yakin kecamatannya? Klik titik tujuan di peta &mdash; alamat
-              dan wilayah terisi sendiri, dan ongkirnya langsung dihitung ulang.
-            </p>
-            <div id="petaAlamat" class="peta-toko"></div>
-            <div class="peta-aksi">
-              <button type="button" class="btn btn-black-hover-outline btn-sm" id="btnLokasiSaya">
-                Gunakan lokasi saya
-              </button>
-              <button type="button" class="btn btn-black-hover-outline btn-sm" id="btnCariAlamat">
-                Cari dari alamat di atas
-              </button>
-            </div>
-            <p class="peta-info" id="petaInfo" aria-live="polite"></p>
-          </div>
+          <!-- Blok peta dibuang atas permintaan: tidak dipakai di alur
+               sekarang. Markupnya DIHAPUS, bukan sekadar ditutupi CSS -
+               peta yang tersembunyi tetap memuat Leaflet dan ubin petanya
+               dari internet, jadi pembeli membayar kuota untuk sesuatu yang
+               tidak pernah dilihat.
+
+               Markup lamanya ada di riwayat git berkas ini. -->
+
 
           <div class="mt-3">
             <label class="form-label" for="recipient_notes">Catatan untuk penjual <span class="hint">(opsional)</span></label>
@@ -171,6 +174,29 @@
                    placeholder="Misalnya warna, ukuran, atau patokan rumah"
                    value="<?= set_value('recipient_notes') ?>">
           </div>
+
+          <?php if ($this->auth_lib->id()): ?>
+            <!-- Hanya untuk yang sudah login: tamu tidak punya tempat
+                 menyimpannya. Tidak dicentang secara bawaan - menyimpan
+                 alamat orang lain (kado, kiriman ke kantor) ke buku alamat
+                 sendiri justru memenuhinya dengan alamat yang tidak akan
+                 dipakai lagi. -->
+            <div class="alm-simpan" id="almSimpan">
+              <label class="form-check">
+                <input type="checkbox" class="form-check-input" id="simpan_alamat"
+                       name="simpan_alamat" value="1" <?= set_checkbox('simpan_alamat', '1') ?>>
+                <span>Simpan alamat ini untuk belanja berikutnya</span>
+              </label>
+
+              <div class="alm-simpan-nama" id="almSimpanNama" hidden>
+                <label class="form-label" for="alamat_label">Beri nama alamat ini</label>
+                <input type="text" id="alamat_label" name="alamat_label" class="form-control"
+                       maxlength="40" placeholder="Rumah, Kantor, Rumah Ibu..."
+                       value="<?= set_value('alamat_label') ?>">
+                <p class="hint">Nama ini cuma untukmu, supaya mudah dikenali saat memilih nanti.</p>
+              </div>
+            </div>
+          <?php endif; ?>
         </div>
 
         <!-- Blok "Data pemesan" dihapus, bukan dikomentari: komentar HTML
@@ -262,19 +288,22 @@
 <script src="<?= aset('assets/js/region-select.js') ?>"></script>
 <script src="<?= aset('assets/js/checkout.js') ?>"></script>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  window.PETA_ALAMAT = {
-    peta: 'petaAlamat',
-    alamat: 'recipient_address',
-    info: 'petaInfo',
-    cari: 'btnCariAlamat',
-    lokasiSaya: 'btnLokasiSaya',
-    urlCocok: '<?= site_url('region/cocok') ?>'
-  };
+  /* Kolom nama alamat baru muncul setelah centangnya ditekan. Ditampilkan
+     sejak awal, ia jadi satu kolom lagi yang harus dilewati pembeli yang
+     memang tidak ingin menyimpan apa pun. */
+  (function () {
+    var c = document.getElementById('simpan_alamat');
+    var n = document.getElementById('almSimpanNama');
+    if (!c || !n) { return; }
+
+    function perbarui() { n.hidden = !c.checked; }
+
+    c.addEventListener('change', perbarui);
+    perbarui();   // hormati keadaan setelah validasi gagal
+  })();
 </script>
-<script src="<?= aset('assets/js/peta-alamat.js') ?>"></script>
+
 
 <script>
   /* Alamat tersimpan: menekan kartunya mengisi seluruh kolom di bawah.

@@ -203,11 +203,25 @@
                   <?php if ($p['category_name']): ?>
                     <p class="product-cat"><?= html_escape($p['category_name']) ?></p>
                   <?php endif; ?>
-                  <?php if ((int) $p['rating_count'] > 0): ?>
-                    <p class="product-rating">
-                      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
-                      <?= number_format($p['rating_avg'], 1, ',', '.') ?>
-                      <span>(<?= (int) $p['rating_count'] ?>)</span>
+                  <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
+                  <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>
+                    <!-- Kelasnya .product-nilai, sama dengan beranda dan
+                         katalog. Sebelumnya halaman ini memakai
+                         .product-rating sendiri - satu tampilan yang sama
+                         dengan dua nama kelas berarti dua tempat yang harus
+                         diubah tiap kali gayanya disesuaikan. -->
+                    <p class="product-nilai">
+                      <?php if ((int) $p['rating_count'] > 0): ?>
+                        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.4l1.2-6.5L2.5 9.3l6.6-.9z" fill="currentColor"></path></svg>
+                        <b><?= number_format($p['rating_avg'], 1, ',', '.') ?></b>
+                        <span>(<?= (int) $p['rating_count'] ?>)</span>
+                      <?php endif; ?>
+
+                      <?php if ((int) $p['rating_count'] > 0 && $teks_terjual): ?>
+                        <i aria-hidden="true">&middot;</i>
+                      <?php endif; ?>
+
+                      <?php if ($teks_terjual): ?><span><?= $teks_terjual ?></span><?php endif; ?>
                     </p>
                   <?php endif; ?>
                 </div>

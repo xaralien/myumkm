@@ -197,6 +197,8 @@ class Checkout extends CI_Controller
            membuat ulang invoice-nya. Keranjang tidak perlu ditahan lagi. */
         $this->cart_lib->clear();
 
+        $this->simpan_alamat_pembeli();
+
         $done = 'checkout/done/' . $saved['order_number'] . '/' . $saved['access_token'];
 
         $inv = $this->duitku->create_invoice($saved, $this->baris_duitku($items));
@@ -323,6 +325,54 @@ class Checkout extends CI_Controller
      * Inilah yang menutup transaksi di marketplace - penjual tidak bisa
      * mengklaim "sudah sampai" sepihak tanpa ada yang mengonfirmasi.
      */
+    /**
+     * Simpan alamat yang baru diisi ke buku alamat, kalau diminta.
+     *
+     * Dijalankan SETELAH pesanan tersimpan, dan kegagalannya sengaja
+     * diabaikan: pesanannya sudah jadi, dan menggagalkan checkout hanya
+     * karena buku alamat bermasalah jauh lebih merugikan daripada satu
+     * alamat yang tidak tersimpan.
+     */
+    protected function simpan_alamat_pembeli()
+    {
+        $this->load->library('auth_lib');
+        $uid = $this->auth_lib->id();
+
+        if ( ! $uid || $this->input->post('simpan_alamat') !== '1') {
+            return;
+        }
+
+        $this->load->model('address_model');
+
+        $alamat = trim((string) $this->input->post('recipient_address', TRUE));
+        $kec    = (int) $this->input->post('recipient_district_id');
+
+        if ($alamat === '' || ! $kec) {
+            return;
+        }
+
+        /* Alamat yang persis sama tidak disimpan dua kali. Tanpa penjaga ini,
+           pembeli yang checkout tiga kali ke rumahnya sendiri berakhir dengan
+           tiga "Rumah" yang identik di daftar pilihan. */
+        foreach ($this->address_model->daftar($uid) as $a) {
+            if (trim($a['address']) === $alamat && (int) $a['district_id'] === $kec) {
+                return;
+            }
+        }
+
+        $w = $this->region_model->district_full($kec);
+
+        $this->address_model->simpan(array(
+            'label'           => trim((string) $this->input->post('alamat_label', TRUE)) ?: 'Alamat saya',
+            'recipient_name'  => $this->input->post('recipient_name', TRUE),
+            'recipient_phone' => $this->input->post('recipient_phone', TRUE),
+            'address'         => $alamat,
+            'province_id'     => $w ? $w['province_id'] : NULL,
+            'regency_id'      => $w ? $w['regency_id'] : NULL,
+            'district_id'     => $kec,
+        ), $uid);
+    }
+
     /**
      * Pembeli mengajukan pengembalian dana.
      * POST checkout/refund/{nomor}/{token}

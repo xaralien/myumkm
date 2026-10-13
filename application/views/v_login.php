@@ -12,6 +12,10 @@
       <div class="alert-box alert-error mb-4" role="alert"><?= html_escape($this->session->flashdata('error')) ?></div>
     <?php endif; ?>
 
+    <!-- Pesan SUKSES tidak di sini. v_navbar dan mobile/parts/header sudah
+         menampilkannya untuk semua halaman; dibaca dua kali dalam satu
+         permintaan, spanduknya muncul ganda. -->
+
     <div class="form-card">
       <p class="hint mb-4">Masuk untuk menyimpan riwayat belanja dan mengelola tokomu. Belanja tanpa akun tetap bisa.</p>
 
@@ -25,7 +29,13 @@
           <?= form_error('email') ?>
         </div>
         <div class="mb-4">
-          <label class="form-label" for="password">Password</label>
+          <!-- Tautan "lupa" ditaruh di samping labelnya, bukan di bawah
+               tombol Masuk: yang mencarinya sedang menatap kolom sandi, dan
+               di situlah matanya. -->
+          <div class="label-baris">
+            <label class="form-label mb-0" for="password">Password</label>
+            <a class="tautan-lupa" href="<?= site_url('auth/lupa') ?>">Lupa sandi?</a>
+          </div>
           <input type="password" id="password" name="password" class="form-control"
                  autocomplete="current-password" required>
           <?= form_error('password') ?>

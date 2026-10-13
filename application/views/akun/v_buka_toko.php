@@ -12,7 +12,7 @@
       <div class="alert-box alert-error mb-4" role="alert"><?= html_escape($this->session->flashdata('error')) ?></div>
     <?php endif; ?>
 
-    <?= form_open('akun/buka_toko') ?>
+    <?= form_open_multipart('akun/buka_toko') ?>
 
     <div class="form-card">
       <h3 class="form-card-title">Tentang tokomu</h3>
@@ -20,6 +20,24 @@
         Toko baru ditinjau admin dulu sebelum tampil di katalog. Sambil menunggu,
         kamu sudah bisa masuk panel toko dan menambahkan produk.
       </p>
+
+      <!-- Avatar ditaruh paling atas: ini hal pertama yang dilihat pembeli
+           di kartu toko, dan penjual yang mengisinya sekarang tidak perlu
+           kembali ke pengaturan nanti. Tetap OPSIONAL - memaksa unggah foto
+           di langkah pertama adalah alasan umum orang berhenti mendaftar. -->
+      <div class="profil-avatar mb-3">
+        <img src="<?= base_url('assets/images/avatar.png') ?>" alt="" class="img-avatar" id="avatarPreview">
+        <div>
+          <label class="form-label" for="avatar">Avatar toko <span class="hint">(opsional)</span></label>
+          <input type="file" id="avatar" name="avatar" class="form-control"
+                 accept="image/jpeg,image/png,image/webp">
+          <p class="hint">
+            Logo atau foto produkmu. JPG, PNG, atau WEBP, maksimal 1 MB.
+            Bisa diisi nanti lewat Profil Toko.
+          </p>
+          <p class="img-info" id="avatarInfo"></p>
+        </div>
+      </div>
 
       <div class="mb-3">
         <label class="form-label" for="store_name">Nama toko</label>
@@ -107,3 +125,4 @@
   };
 </script>
 <script src="<?= aset('assets/js/region-select.js') ?>"></script>
+<script src="<?= aset('assets/js/avatar-preview.js') ?>"></script>

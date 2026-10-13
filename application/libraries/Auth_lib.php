@@ -99,6 +99,51 @@ class Auth_lib
         return array('ok' => TRUE, 'pesan' => '');
     }
 
+    /**
+     * Pasang sandi baru untuk satu akun.
+     *
+     * Dipakai alur reset sandi. Tidak memeriksa sandi lama - yang memanggil
+     * sudah membuktikan kepemilikan akun lewat token di email.
+     *
+     * CATATAN YANG BELUM DIKERJAKAN: sesi lain milik akun ini tidak ikut
+     * dimatikan. Idealnya, mengganti sandi mengeluarkan semua perangkat lain -
+     * karena alasan orang mengganti sandi sering justru karena akunnya diduga
+     * diakses orang lain. CodeIgniter menyimpan sesi sebagai berkas tanpa
+     * kolom user_id, jadi tidak ada cara mencari "sesi milik akun ini" tanpa
+     * menyisir seluruh berkas sesi. Perlu tabel sesi di database dulu.
+     */
+    public function ganti_sandi($user_id, $password)
+    {
+        $this->CI->db->where('id', (int) $user_id)->update('users', array(
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        ));
+
+        $this->_row = $this->_store = FALSE;
+
+        return TRUE;
+    }
+
+    /** Sudah terverifikasi emailnya? NULL kalau tidak ada yang login. */
+    public function terverifikasi()
+    {
+        $row = $this->row();
+        if (! $row) {
+            return NULL;
+        }
+
+        /* array_key_exists, bukan isset(): isset() mengembalikan FALSE untuk
+           nilai NULL, jadi kolom yang ada tapi masih NULL tidak bisa
+           dibedakan dari kolom yang belum dibuat migrasinya. Yang pertama
+           berarti "belum verifikasi", yang kedua berarti migrasi 25 belum
+           dijalankan - dan di situ semua orang harus dianggap terverifikasi,
+           supaya situsnya tidak menuntut sesuatu yang belum ada tabelnya. */
+        if (! array_key_exists('email_verified_at', $row)) {
+            return TRUE;
+        }
+
+        return $row['email_verified_at'] !== NULL;
+    }
+
     protected function masuk(array $user)
     {
         // Cegah session fixation: ganti id session setelah login.

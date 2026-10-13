@@ -2020,18 +2020,10 @@ body { background: #FFFFFF; }
 }
 
 /* Rating kecil di kartu produk */
-.product-item .product-rating {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: center;
-  margin: 4px 0 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--wn-teks-2);
-}
-.product-item .product-rating svg { color: #E8B23A; }
-.product-item .product-rating span { font-weight: 400; color: var(--wn-samar); }
+/* .product-rating dihapus: semua kartu produk kini memakai .product-nilai,
+   dan satu tampilan yang sama dengan dua nama kelas berarti dua tempat yang
+   harus diubah tiap kali gayanya disesuaikan. */
+
 
 @media (max-width: 991.98px) {
   .tk-kepala-in { grid-template-columns: auto minmax(0, 1fr); }
@@ -2349,3 +2341,94 @@ button.btn-dekat { cursor: pointer; }
 .product-item .product-nilai span { font-weight: 400; color: var(--wn-samar); }
 
 .product-item .product-nilai i { font-style: normal; color: var(--wn-samar); font-weight: 400; }
+
+/* ==========================================================================
+   LUPA SANDI & VERIFIKASI EMAIL
+   ========================================================================== */
+
+/* Label dan tautan "Lupa sandi?" sebaris, tautannya menempel kanan. */
+.label-baris {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+}
+
+.tautan-lupa {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wn-biru);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tautan-lupa:hover,
+.tautan-lupa:focus-visible {
+  color: var(--wn-biru-tua);
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Spanduk "email belum diverifikasi".
+
+   Emas, bukan merah. Ini pengingat, bukan galat - akunnya berfungsi penuh.
+   Merah membuat orang mengira ada yang rusak, lalu mengabaikannya setelah
+   kali ketiga melihatnya tanpa akibat apa pun.
+   -------------------------------------------------------------------------- */
+.verif-spanduk {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: 1px solid #EFD9A0;
+  border-left: 3px solid var(--wn-emas-2);
+  border-radius: 12px;
+  background: #FFFBF0;
+}
+
+.verif-spanduk svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--wn-emas);
+}
+
+.verif-spanduk-isi { flex: 1 1 auto; min-width: 0; }
+
+.verif-spanduk-judul {
+  margin: 0 0 3px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--wn-tua);
+}
+
+.verif-spanduk-teks {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--wn-teks-2);
+}
+
+/* Tombol kirim ulang sebagai tautan, bukan tombol penuh: aksinya sekunder,
+   dan tombol bertumpuk dengan tombol utama halaman membuat keduanya sama
+   tidak jelas. */
+.verif-spanduk-kirim {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wn-biru);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.verif-spanduk-kirim:hover { color: var(--wn-biru-tua); }
+
+@media (max-width: 575.98px) {
+  .verif-spanduk { padding: 12px 14px; gap: 10px; border-radius: 14px; }
+  .verif-spanduk svg { width: 18px; height: 18px; }
+}

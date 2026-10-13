@@ -19,6 +19,13 @@
   var JEDA = 15000;
   var timer = null;
 
+  /* Daftar pesanan yang menunggu SAAT HALAMAN DIBUKA. Yang ada di sini
+     tidak ditandai kuning - penjual sudah melihatnya sejak awal, dan
+     menandai semuanya membuat tandanya tidak berarti apa-apa (seluruh
+     kelompok "Perlu diproses" memang menunggu, itu sudah jelas dari
+     judul kelompoknya). Yang ditandai hanya yang MASUK setelah itu. */
+  var menungguAwal = null;
+
   var judulAsli = document.title;
   var kedipTimer = null;
   var totalLama = parseInt(C.total, 10) || 0;
@@ -106,6 +113,14 @@
     }
   }
 
+  function setPesananBaru(n) {
+    var el = document.getElementById('soPesananBaru');
+    if (!el) { return; }
+
+    el.hidden = n < 1;
+    if (n > 0) { el.querySelector('strong').textContent = n; }
+  }
+
   function setSpanduk(total) {
     var el = document.getElementById('soSpanduk');
     if (!el) { return; }
@@ -153,11 +168,28 @@
         }
         totalLama = total;
 
-        // Tanda pesanan yang menunggu persetujuan.
-        (j.menunggu || []).forEach(function (id) {
-          var baris = document.querySelector('[data-order-row="' + id + '"]');
-          if (baris) { baris.classList.add('is-menunggu-acc'); }
-        });
+        var menunggu = j.menunggu || [];
+
+        if (menungguAwal === null) {
+          // Pemeriksaan pertama cuma mencatat keadaan awal.
+          menungguAwal = menunggu.slice();
+        } else {
+          var baruN = 0;
+
+          menunggu.forEach(function (id) {
+            if (menungguAwal.indexOf(id) !== -1) { return; }
+
+            baruN++;
+
+            /* Barisnya ada kalau pesanan itu sudah tampil tapi statusnya baru
+               berubah. Pesanan yang benar-benar baru belum punya baris sampai
+               halaman dimuat ulang - itu ditangani spanduk di bawah. */
+            var baris = document.querySelector('[data-order-row="' + id + '"]');
+            if (baris) { baris.classList.add('is-menunggu-acc'); }
+          });
+
+          setPesananBaru(baruN);
+        }
 
         jadwal();
       })

@@ -57,6 +57,18 @@ $tampil = function ($peta, $kode) {
   <?php endif; ?>
 </form>
 
+<!-- Pesanan yang masuk saat halaman ini terbuka belum punya barisnya di
+     tabel, jadi tidak bisa ditandai apa pun. Spanduk ini yang memberi tahu,
+     dengan tautan muat ulang - tanpa itu penjual baru sadar saat kebetulan
+     menyegarkan halaman. -->
+<div class="alert-box alert-ok mb-3" id="soPesananBaru" hidden>
+  <strong>0</strong> pesanan baru masuk.
+  <!-- location.reload(), bukan tautan ke alamat yang disusun ulang: alamat
+       ini bisa membawa pencarian dan nomor halaman, dan menyusunnya kembali
+       dari $_SERVER berarti satu lagi tempat yang bisa salah. -->
+  <button type="button" class="link-btn" onclick="location.reload();">Muat ulang daftar</button>
+</div>
+
 <?php if (! empty($total_belum)): ?>
   <div class="alert-box alert-warn mb-3" id="soSpanduk"
     <?= empty($total_belum) ? 'hidden' : '' ?>>

@@ -75,6 +75,21 @@ class Address_model extends CI_Model {
             return array('ok' => FALSE, 'pesan' => 'Maksimal ' . self::MAKS . ' alamat tersimpan.');
         }
 
+        /* Provinsi dan kota DITURUNKAN dari kecamatan, tidak dibaca dari
+           formulir.
+
+           Dua alasan. Pertama, formulirnya mengirim prov_awal dan reg_awal -
+           nama itu dipakai region-select.js sebagai pembantu dropdown
+           bertingkat, bukan nama kolom - sehingga membacanya sebagai
+           province_id/regency_id selalu menghasilkan kosong. Itu bug yang
+           membuat wilayah tersimpan tidak pernah muncul lagi saat alamat
+           dibuka ulang.
+
+           Kedua, menurunkannya menjamin ketiganya selalu cocok. Kecamatan
+           adalah satu-satunya yang divalidasi wajib, jadi ia yang dipercaya. */
+        $kec = (int) ($data['district_id'] ?? 0);
+        $w   = $kec ? $this->region_model_wilayah($kec) : NULL;
+
         $baris = array(
             'label'           => mb_substr(trim($data['label']) ?: 'Alamat', 0, 40),
             'recipient_name'  => mb_substr(trim($data['recipient_name']), 0, 100),
@@ -82,9 +97,9 @@ class Address_model extends CI_Model {
             'address'         => mb_substr(trim($data['address']), 0, 500),
             'landmark'        => trim((string) ($data['landmark'] ?? '')) ?: NULL,
             'postcode'        => trim((string) ($data['postcode'] ?? '')) ?: NULL,
-            'province_id'     => (int) ($data['province_id'] ?? 0) ?: NULL,
-            'regency_id'      => (int) ($data['regency_id'] ?? 0) ?: NULL,
-            'district_id'     => (int) ($data['district_id'] ?? 0) ?: NULL,
+            'province_id'     => $w ? (int) $w['province_id'] : ((int) ($data['province_id'] ?? 0) ?: NULL),
+            'regency_id'      => $w ? (int) $w['regency_id']  : ((int) ($data['regency_id'] ?? 0) ?: NULL),
+            'district_id'     => $kec ?: NULL,
             'latitude'        => is_numeric($data['latitude'] ?? NULL) ? $data['latitude'] : NULL,
             'longitude'       => is_numeric($data['longitude'] ?? NULL) ? $data['longitude'] : NULL,
         );
@@ -155,6 +170,18 @@ class Address_model extends CI_Model {
         }
 
         return TRUE;
+    }
+
+    /** Provinsi & kota dari satu kecamatan. */
+    protected function region_model_wilayah($district_id)
+    {
+        return $this->db
+            ->select('r.id AS regency_id, p.id AS province_id', FALSE)
+            ->from('districts d')
+            ->join('regencies r', 'r.id = d.regency_id')
+            ->join('provinces p', 'p.id = r.province_id')
+            ->where('d.id', (int) $district_id)
+            ->get()->row_array() ?: NULL;
     }
 
     /** Satu baris ringkas untuk ditampilkan di daftar pilihan. */

@@ -67,13 +67,11 @@
 
         <!-- Wilayah + peta: komponen yang sama dengan checkout dan profil
              toko, jadi perilakunya seragam di seluruh aplikasi. -->
-        <?php $this->load->view('parts/wilayah_peta', array(
+        <?php $this->load->view('parts/wilayah', array(
             'provinsi'    => $provinsi,
             'province_id' => $alamat['province_id'] ?? NULL,
             'regency_id'  => $alamat['regency_id'] ?? NULL,
             'district_id' => $alamat['district_id'] ?? NULL,
-            'latitude'    => $alamat['latitude'] ?? NULL,
-            'longitude'   => $alamat['longitude'] ?? NULL,
         )); ?>
         <?= form_error('district_id') ?>
 

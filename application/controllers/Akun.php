@@ -426,6 +426,26 @@ class Akun extends Member_Controller
             return redirect('seller/profile');
         }
 
+        /* SATU-SATUNYA tempat verifikasi email benar-benar diwajibkan.
+
+           Di sini - dan bukan saat daftar atau checkout - karena di sini
+           uang mulai mengalir ke arah orangnya: penjual menerima pembayaran,
+           menerima pencairan, dan jadi pihak yang harus bisa dihubungi kalau
+           ada refund atau sengketa. Alamat email yang tidak pernah
+           dibuktikan membuat semua itu menggantung.
+
+           Pembeli tidak dituntut hal yang sama. Risikonya kecil, dan setiap
+           hambatan tambahan di depan orang yang baru mau coba-coba belanja
+           lebih mahal daripada yang dilindunginya. */
+        if ($this->auth_lib->terverifikasi() === FALSE) {
+            $this->session->set_flashdata('error',
+                'Verifikasi emailmu dulu sebelum membuka toko. Tautannya ada di '
+                . 'email yang kami kirim saat kamu mendaftar - kalau tidak ada, '
+                . 'kirim ulang dari halaman ini.');
+
+            return redirect('akun/profil');
+        }
+
         if ($this->input->method() === 'post') {
             $this->form_validation->set_rules('store_name',  'Nama toko',   'required|trim|min_length[3]|max_length[120]|callback_nama_toko_unik');
             $this->form_validation->set_rules('phone',       'WhatsApp toko', 'required|trim|callback_valid_phone');
@@ -446,8 +466,23 @@ class Akun extends Member_Controller
                     return redirect('akun/buka_toko');
                 }
 
+                /* Avatar diunggah SEBELUM toko dibuat, dan gagalnya
+                   menghentikan seluruh proses.
+
+                   Kalau dibalik - toko dibuat dulu, avatar menyusul - lalu
+                   unggahannya gagal, penjual sudah punya toko dan tidak bisa
+                   mengulang halaman ini (1 akun = 1 toko), jadi dia terjebak
+                   dengan pesan galat yang tidak bisa ditindaklanjuti. */
+                $avatar = $this->unggah_avatar('avatar', NULL);
+
+                if ($avatar === FALSE) {
+                    // unggah_avatar() sudah menaruh pesan galatnya sendiri.
+                    return redirect('akun/buka_toko');
+                }
+
                 $id = $this->toko_model->buat($this->me['id'], array(
                     'name'        => $this->input->post('store_name', TRUE),
+                    'avatar'      => $avatar,
                     'phone'       => $this->normalize_phone($this->input->post('phone', TRUE)),
                     'address'     => trim($this->input->post('address', TRUE)),
                     'description' => trim((string) $this->input->post('description', TRUE)) ?: NULL,
@@ -459,6 +494,19 @@ class Akun extends Member_Controller
                 if (! $id) {
                     /* Lolos pengecekan tapi ditolak database: nama baru saja
                        diambil orang lain, atau tombol ditekan dua kali. */
+
+                    /* Avatar yang terlanjur terunggah ikut dibuang. Tanpa ini,
+                       tiap percobaan yang gagal meninggalkan satu berkas
+                       yatim di upload/avatar/ yang tidak akan pernah terhapus
+                       karena tidak ada baris database yang menunjuknya. */
+                    if ($avatar) {
+                        $berkas = FCPATH . 'upload' . DIRECTORY_SEPARATOR
+                                . 'avatar' . DIRECTORY_SEPARATOR . basename($avatar);
+                        if (is_file($berkas)) {
+                            @unlink($berkas);
+                        }
+                    }
+
                     $this->session->set_flashdata(
                         'error',
                         'Nama toko itu baru saja dipakai. Coba nama lain.'
