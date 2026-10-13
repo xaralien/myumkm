@@ -11,3 +11,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |	https://codeigniter.com/userguide3/general/hooks.html
 |
 */
+
+/* Pengaturan dari panel admin (nama marketplace, slogan, WA admin)
+   menimpa nilai bawaan di config.php. Lihat hooks/Pengaturan_hook.php. */
+$hook['post_controller_constructor'][] = array(
+    'class'    => 'Pengaturan_hook',
+    'function' => 'terapkan',
+    'filename' => 'Pengaturan_hook.php',
+    'filepath' => 'hooks',
+);

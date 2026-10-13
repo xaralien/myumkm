@@ -182,7 +182,50 @@ class Order_model extends CI_Model
         $this->load->library('pendapatan_lib');
         $this->pendapatan_lib->catat($order);
 
+        /* Kabar lewat WhatsApp/email dikirim PALING AKHIR, sesudah semua
+           data tersimpan: gerbang yang lambat atau gagal tidak boleh
+           membuat pesanan setengah tercatat lunas. */
+        $this->load->library('notifikasi_lib');
+        $this->notifikasi_lib->pesanan_dibayar($order);
+        $this->kabar_stok_menipis($order);
+
         return TRUE;
+    }
+
+    /**
+     * Beri tahu penjual kalau stok produk di pesanan ini sampai di ambang
+     * menipis. Hanya produk yang BARU SAJA melewati ambang - produk yang
+     * memang sudah tipis sejak kemarin tidak dikabarkan berulang kali.
+     */
+    protected function kabar_stok_menipis(array $order)
+    {
+        $this->load->library('pengaturan_lib');
+        $ambang = (int) $this->pengaturan_lib->get('stok_menipis');
+        if ($ambang <= 0) {
+            return;
+        }
+
+        $item = $this->db->select('product_id, SUM(qty) AS qty', FALSE)
+            ->where('order_id', (int) $order['id'])
+            ->group_by('product_id')
+            ->get('order_items')->result_array();
+
+        $tipis = array();
+        foreach ($item as $i) {
+            $p = $this->db->select('id, name, stock')
+                ->where('id', (int) $i['product_id'])
+                ->where('stock IS NOT NULL', NULL, FALSE)
+                ->get('products')->row_array();
+
+            // Sebelum terjual stoknya masih di atas ambang, sekarang tidak.
+            if ($p && (int) $p['stock'] <= $ambang && (int) $p['stock'] + (int) $i['qty'] > $ambang) {
+                $tipis[] = $p;
+            }
+        }
+
+        if ($tipis) {
+            $this->notifikasi_lib->stok_menipis($order['store_id'], $tipis);
+        }
     }
 
     /**

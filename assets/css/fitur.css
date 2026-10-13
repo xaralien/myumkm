@@ -1,0 +1,53 @@
+/* =============================================================================
+   fitur.css - gaya untuk fitur tambahan (pengaturan, wishlist, voucher,
+   pembukuan, akademi, dll). Dimuat SESUDAH tema-nusantara.css, dan hanya
+   memakai variabel --wn-* / --ord-* milik tema supaya warnanya ikut tema.
+   ========================================================================== */
+
+/* ---- Tab & saringan --------------------------------------------------- */
+.fitur-tab, .fitur-saring {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  border-bottom: 1px solid var(--wn-garis);
+  padding-bottom: 8px;
+}
+.fitur-tab a, .fitur-saring a {
+  padding: 7px 14px; border-radius: 999px; text-decoration: none;
+  color: var(--wn-teks-2); background: var(--wn-dasar-2); font-weight: 600; font-size: 14px;
+}
+.fitur-tab a.aktif, .fitur-saring a.aktif { background: var(--wn-tua); color: #fff; }
+.fitur-saring { border-bottom: 0; padding-bottom: 0; }
+
+.fitur-baris-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fitur-baris-form .form-control, .fitur-baris-form .form-select { flex: 1 1 220px; width: auto; }
+.fitur-sel-panjang { max-width: 380px; white-space: normal; word-break: break-word; }
+
+.badge-status.is-bad { background: #FCE8E6; color: var(--ord-red, #B3261E); }
+
+/* ---- Kartu & grid serbaguna ------------------------------------------- */
+.fitur-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.fitur-kartu {
+  background: #fff; border: 1px solid var(--wn-garis); border-radius: 16px; padding: 16px;
+}
+.fitur-kartu h3 { font-size: 17px; margin: 0 0 6px; }
+.fitur-kosong {
+  text-align: center; padding: 36px 16px; color: var(--wn-samar);
+  background: var(--wn-dasar-2); border-radius: 16px;
+}
+
+/* Tombol besar untuk pengguna yang kurang terbiasa: target sentuh lebar. */
+.btn-besar { padding: 14px 20px; font-size: 17px; border-radius: 14px; font-weight: 700; }
+
+/* ---- Lencana ---------------------------------------------------------- */
+.lencana {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--wn-dasar-2); color: var(--wn-tua); border: 1px solid var(--wn-garis-2);
+  white-space: nowrap;
+}
+.lencana-emas { background: #FFF6DA; color: var(--wn-emas); border-color: #F0DC9C; }
+.lencana-hijau { background: #E7F5EC; color: #1E6B3A; border-color: #BFE3CB; }
+.lencana-merah { background: #FCE8E6; color: #B3261E; border-color: #F4C7C3; }
+.lencana-baris { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---- OTP -------------------------------------------------------------- */
+.otp-kotak { letter-spacing: .5em; text-align: center; font-size: 26px; font-weight: 700; }

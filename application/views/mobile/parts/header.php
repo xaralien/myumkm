@@ -38,7 +38,8 @@ $seg      = $this->uri->segment(1);
   <link href="<?= aset('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/style.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/order.css') ?>" rel="stylesheet">
-  <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
+  <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>
+  <link rel="stylesheet" href="<?= aset('assets/css/fitur.css') ?>">">
   <link rel="stylesheet" href="<?= aset('assets/css/mobile.css') ?>">
 </head>
 

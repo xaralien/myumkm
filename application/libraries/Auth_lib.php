@@ -99,6 +99,95 @@ class Auth_lib
         return array('ok' => TRUE, 'pesan' => '');
     }
 
+    /* ===================================================== token sekali pakai ===
+     |  Dipakai untuk reset kata sandi (tautan) dan OTP WhatsApp (6 angka).
+     |  Yang disimpan hanya hash SHA-256-nya.
+     | ======================================================================== */
+
+    /**
+     * @return array ['ok' => bool, 'token' => string, 'pesan' => string]
+     */
+    public function buat_token($user_id, $jenis, $menit, $angka = FALSE)
+    {
+        // Satu permintaan per menit per akun - tanpa ini, tombol "kirim
+        // ulang" bisa dipakai membanjiri WhatsApp seseorang.
+        $baru = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', $jenis)
+            ->where('created_at >', date('Y-m-d H:i:s', time() - 60))
+            ->count_all_results('auth_tokens');
+        if ($baru) {
+            return array('ok' => FALSE, 'token' => '', 'pesan' => 'Tunggu satu menit sebelum meminta lagi.');
+        }
+
+        $token = $angka
+            ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT)
+            : bin2hex(random_bytes(24));
+
+        // Token lama yang belum terpakai dimatikan: hanya yang terbaru berlaku.
+        $this->CI->db->where('user_id', (int) $user_id)->where('jenis', $jenis)
+            ->where('dipakai_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('dipakai_at' => date('Y-m-d H:i:s')));
+
+        $this->CI->db->insert('auth_tokens', array(
+            'user_id'     => (int) $user_id,
+            'jenis'       => $jenis,
+            'token_hash'  => hash('sha256', $token),
+            'kedaluwarsa' => date('Y-m-d H:i:s', time() + $menit * 60),
+        ));
+        return array('ok' => TRUE, 'token' => $token, 'pesan' => '');
+    }
+
+    /**
+     * Periksa token tanpa memakainya. OTP dibatasi 5 kali salah - enam
+     * angka hanya punya sejuta kemungkinan, jadi tebakan harus dihentikan.
+     *
+     * @return array|NULL baris auth_tokens yang masih berlaku
+     */
+    public function cek_token($jenis, $token, $user_id = NULL)
+    {
+        $this->CI->db->where('jenis', $jenis)
+            ->where('dipakai_at IS NULL', NULL, FALSE)
+            ->where('kedaluwarsa >', date('Y-m-d H:i:s'));
+
+        if ($jenis === 'otp') {
+            // OTP dicocokkan ke token TERBARU akun itu saja.
+            $row = $this->CI->db->where('user_id', (int) $user_id)
+                ->order_by('id', 'DESC')->limit(1)->get('auth_tokens')->row_array();
+            if ( ! $row || (int) $row['percobaan'] >= 5) {
+                return NULL;
+            }
+            if ( ! hash_equals($row['token_hash'], hash('sha256', (string) $token))) {
+                $this->CI->db->set('percobaan', 'percobaan + 1', FALSE)
+                    ->where('id', $row['id'])->update('auth_tokens');
+                return NULL;
+            }
+            return $row;
+        }
+
+        return $this->CI->db->where('token_hash', hash('sha256', (string) $token))
+            ->limit(1)->get('auth_tokens')->row_array() ?: NULL;
+    }
+
+    public function pakai_token($id)
+    {
+        $this->CI->db->where('id', (int) $id)->where('dipakai_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('dipakai_at' => date('Y-m-d H:i:s')));
+        return $this->CI->db->affected_rows() > 0;
+    }
+
+    /** Masuk tanpa kata sandi - hanya setelah token/OTP terbukti sah. */
+    public function masuk_id($user_id)
+    {
+        $user = $this->CI->db->where('id', (int) $user_id)->where('is_active', 1)
+            ->get('users')->row_array();
+        if ( ! $user) {
+            return FALSE;
+        }
+        $this->masuk($user);
+        $this->CI->db->where('id', $user['id'])
+            ->update('users', array('last_login_at' => date('Y-m-d H:i:s')));
+        return TRUE;
+    }
+
     protected function masuk(array $user)
     {
         // Cegah session fixation: ganti id session setelah login.

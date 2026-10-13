@@ -8,9 +8,7 @@
 <div class="untree_co-section before-footer-section">
   <div class="container"><div class="row justify-content-center"><div class="col-md-7 col-lg-5">
 
-    <?php if ($this->session->flashdata('error')): ?>
-      <div class="alert-box alert-error mb-4" role="alert"><?= html_escape($this->session->flashdata('error')) ?></div>
-    <?php endif; ?>
+    <?php $this->load->view('parts/auth_pesan'); ?>
 
     <div class="form-card">
       <p class="hint mb-4">Masuk untuk menyimpan riwayat belanja dan mengelola tokomu. Belanja tanpa akun tetap bisa.</p>
@@ -32,6 +30,10 @@
         </div>
         <button type="submit" class="btn btn-primary w-100">Masuk</button>
       <?= form_close() ?>
+
+      <a href="<?= site_url('auth/otp') . ($next ? '?next=' . rawurlencode($next) : '') ?>"
+         class="btn btn-outline-secondary w-100 mt-3">Masuk pakai kode WhatsApp</a>
+      <p class="akun-alih mb-0"><a href="<?= site_url('auth/lupa') ?>">Lupa kata sandi?</a></p>
 
       <p class="akun-alih">
         Belum punya akun?

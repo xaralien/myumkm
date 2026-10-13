@@ -24,7 +24,8 @@
   <!-- Tema PALING AKHIR, sesudah order.css. Tema mendefinisikan ulang
        variabel --ord-* milik order.css; kalau urutannya terbalik,
        order.css menimpanya balik dan warnanya kembali hijau Furni. -->
-  <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
+  <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>
+  <link rel="stylesheet" href="<?= aset('assets/css/fitur.css') ?>">">
 </head>
 
 <body>

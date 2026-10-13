@@ -1456,6 +1456,14 @@ class Seller extends Seller_Controller
                 . ($resi ? '. Nomor resi: ' . $resi : '') . '.');
         }
 
+        $this->load->library('notifikasi_lib');
+        $kurir = trim((string) $this->input->post('courier', TRUE));
+        $resi  = trim((string) $this->input->post('tracking_number', TRUE));
+        $this->notifikasi_lib->status_pesanan($order, $baru,
+            ($baru === 'delivering' && ($kurir || $resi))
+                ? trim(($kurir ? 'Kurir: ' . $kurir . '. ' : '') . ($resi ? 'Resi: ' . $resi : ''))
+                : NULL);
+
         $this->session->set_flashdata(
             'sukses',
             'Status ' . $order['order_number'] . ' diperbarui. Salah pencet? '
@@ -1643,6 +1651,9 @@ class Seller extends Seller_Controller
         /* Uang TIDAK dikembalikan otomatis. Duitku tidak menyediakan refund
            lewat API, jadi ini harus ditransfer manual ke pembeli - dan
            penjual perlu diingatkan, bukan dibiarkan mengira sudah beres. */
+        $this->load->library('notifikasi_lib');
+        $this->notifikasi_lib->status_pesanan($order, 'cancelled', 'Alasan dari toko: ' . $alasan);
+
         $pesan = 'Pesanan ' . $order['order_number'] . ' dibatalkan.';
         if ($order['payment_status'] === 'paid') {
             $pesan .= ' PESANAN INI SUDAH DIBAYAR ' . rupiah($order['total'])

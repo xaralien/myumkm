@@ -25,10 +25,11 @@ class Pendapatan_lib {
         $this->CI->load->config('marketplace', TRUE);
     }
 
-    /** Persentase komisi marketplace, dari config. */
+    /** Persentase komisi marketplace: Pengaturan admin, lalu config. */
     public function komisi_persen()
     {
-        $p = $this->CI->config->item('komisi_persen', 'marketplace');
+        $this->CI->load->library('pengaturan_lib');
+        $p = $this->CI->pengaturan_lib->get('komisi_persen');
 
         // Dibatasi 0-50% supaya salah ketik di config tidak menghabiskan
         // pendapatan penjual tanpa ada yang menyadarinya.
