@@ -1,6 +1,7 @@
 <!-- application/views/admin/v_admin_footer.php -->
 </div>
 <script src="<?= aset('assets/js/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= aset('assets/js/panel-menu.js') ?>"></script>
 <?php
   /* Penjual bisa membalas pembeli dari halaman panel mana pun - tidak perlu
      membuka daftar pesanan lebih dulu. */

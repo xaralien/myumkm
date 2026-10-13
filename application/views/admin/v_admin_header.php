@@ -23,39 +23,68 @@
 
   <nav class="panel-nav">
     <div class="container">
-      <a href="<?= site_url($me['role'] === 'admin' ? 'admin' : 'seller') ?>" class="panel-brand">
-        <?= $me['role'] === 'admin' ? 'Admin' : 'Toko' ?>
+      <a href="<?= site_url($me['role'] === 'admin' ? 'admin' : ($me['role'] === 'pendamping' ? 'pendamping' : 'seller')) ?>" class="panel-brand">
+        <?= $me['role'] === 'admin' ? 'Admin' : ($me['role'] === 'pendamping' ? 'Pendamping' : 'Toko') ?>
       </a>
 
+      <?php
+        /* Menu dikelompokkan supaya tetap muat di layar - tiap kelompok
+           <details> (bekerja tanpa JavaScript, bisa dibuka dengan keyboard). */
+        $aktif = function ($awalan) {
+          foreach ((array) $awalan as $a) { if (strpos(uri_string(), $a) === 0) return ' is-aktif'; }
+          return '';
+        };
+        $grup = function ($judul, array $isi, $awalan) use ($aktif) {
+          echo '<details class="panel-grup' . $aktif($awalan) . '"><summary>' . $judul . '</summary><div class="panel-grup-isi">';
+          foreach ($isi as $url => $label) { echo '<a href="' . site_url($url) . '">' . $label . '</a>'; }
+          echo '</div></details>';
+        };
+      ?>
       <div class="panel-links">
         <?php if ($me['role'] === 'admin'): ?>
-          <a href="<?= site_url('admin') ?>">Ringkasan</a>
-          <a href="<?= site_url('admin/stores') ?>">Toko</a>
-          <a href="<?= site_url('admin/categories') ?>">Kategori</a>
-          <a href="<?= site_url('admin/users') ?>">Akun</a>
-          <a href="<?= site_url('admin/keuangan') ?>">Keuangan</a>
-          <a href="<?= site_url('admin/voucher') ?>">Voucher</a>
-          <a href="<?= site_url('admin/pengaturan') ?>">Pengaturan</a>
+          <a href="<?= site_url('admin') ?>" class="<?= trim($aktif(array('admin/dashboard'))) ?>">Ringkasan</a>
+          <?php $grup('Toko', array('admin/stores' => 'Daftar toko', 'admin/verifikasi' => 'Verifikasi legalitas',
+                                    'admin/pendamping' => 'Pendamping', 'pendamping' => 'Panel pendamping', 'admin/peta' => 'Peta sebaran'),
+                      array('admin/stores', 'admin/verifikasi', 'admin/pendamping', 'admin/peta')); ?>
+          <?php $grup('Katalog', array('admin/categories' => 'Kategori', 'admin/moderasi' => 'Moderasi produk',
+                                       'admin/moderasi/ulasan' => 'Moderasi ulasan', 'admin/banner' => 'Banner & promo'),
+                      array('admin/categories', 'admin/moderasi', 'admin/banner')); ?>
+          <?php $grup('Transaksi', array('admin/keuangan' => 'Keuangan & pencairan', 'admin/sengketa' => 'Pusat sengketa',
+                                         'admin/voucher' => 'Voucher platform'),
+                      array('admin/keuangan', 'admin/sengketa', 'admin/voucher')); ?>
+          <a href="<?= site_url('admin/analitik') ?>" class="<?= trim($aktif('admin/analitik')) ?>">Analitik</a>
+          <a href="<?= site_url('admin/akademi') ?>" class="<?= trim($aktif('admin/akademi')) ?>">Akademi</a>
+          <?php $grup('Lainnya', array('admin/users' => 'Akun', 'admin/broadcast' => 'Broadcast', 'admin/pengaturan' => 'Pengaturan',
+                                       'admin/pengaturan/notifikasi' => 'Notifikasi keluar', 'admin/pengaturan/audit' => 'Log audit'),
+                      array('admin/users', 'admin/broadcast', 'admin/pengaturan')); ?>
+        <?php elseif ($me['role'] === 'pendamping'): ?>
+          <a href="<?= site_url('pendamping') ?>">Toko binaan</a>
         <?php else: ?>
-          <a href="<?= site_url('seller') ?>">Produk</a>
-          <a href="<?= site_url('seller/orders') ?>" class="panel-link-notif">
+          <a href="<?= site_url('seller') ?>" class="<?= uri_string() === 'seller' || strpos(uri_string(), 'seller/form') === 0 ? 'is-aktif' : '' ?>">Produk</a>
+          <a href="<?= site_url('seller/orders') ?>" class="panel-link-notif<?= $aktif(array('seller/orders', 'seller/cetak')) ?>">
             Pesanan
             <!-- Lencana diisi panel-notif.js, berjalan di semua halaman
                  panel. Disembunyikan sampai ada isinya supaya tidak ada
                  titik kosong di menu. -->
             <span class="panel-lencana" data-notif="pesanan" hidden>0</span>
           </a>
-          <a href="<?= site_url('seller/pesan') ?>" class="panel-link-notif">
+          <a href="<?= site_url('seller/pesan') ?>" class="panel-link-notif<?= $aktif('seller/pesan') ?>">
             Pesan
             <span class="panel-lencana" data-notif="pesan" hidden>0</span>
           </a>
-          <a href="<?= site_url('seller/ulasan') ?>">Ulasan</a>
-          <a href="<?= site_url('seller/pendapatan') ?>">Pendapatan</a>
-          <a href="<?= site_url('seller/refund') ?>">Refund</a>
-          <a href="<?= site_url('seller/voucher') ?>">Voucher</a>
-          <a href="<?= site_url('seller/profile') ?>">Profil Toko</a>
+          <?php $grup('Keuangan', array('seller/pendapatan' => 'Pendapatan & pencairan', 'seller/pembukuan' => 'Pembukuan',
+                                        'seller/laporan' => 'Laporan penjualan', 'seller/refund' => 'Refund'),
+                      array('seller/pendapatan', 'seller/pembukuan', 'seller/laporan', 'seller/refund')); ?>
+          <?php $grup('Promosi', array('seller/voucher' => 'Voucher toko', 'seller/qr' => 'QR code toko', 'seller/template' => 'Balasan cepat chat'),
+                      array('seller/voucher', 'seller/qr', 'seller/template')); ?>
+          <?php $grup('Naik Kelas', array('seller/mulai' => 'Langkah awal', 'seller/naik_kelas' => 'Skor naik kelas',
+                                          'seller/legalitas' => 'Legalitas', 'seller/akademi' => 'Akademi UMKM'),
+                      array('seller/mulai', 'seller/naik_kelas', 'seller/legalitas', 'seller/akademi')); ?>
+          <?php $grup('Toko', array('seller/profile' => 'Profil toko', 'seller/libur' => 'Mode libur', 'seller/ulasan' => 'Ulasan',
+                                    'seller/massal' => 'Unggah massal', 'toko/' . (isset($store['slug']) ? $store['slug'] : '') => 'Lihat tokoku'),
+                      array('seller/profile', 'seller/libur', 'seller/ulasan', 'seller/massal')); ?>
         <?php endif; ?>
-        <a href="<?= site_url('shop') ?>">Lihat katalog</a>
+        <a href="<?= site_url('shop') ?>">Katalog</a>
         <a href="<?= site_url('auth/logout') ?>" class="panel-keluar">Keluar</a>
       </div>
     </div>

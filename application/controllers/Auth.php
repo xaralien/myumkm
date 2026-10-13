@@ -28,6 +28,9 @@ class Auth extends CI_Controller
         if ($this->auth_lib->is_admin()) {
             return 'admin/stores';
         }
+        if ($this->auth_lib->is('pendamping') && ! $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE))) {
+            return 'pendamping';
+        }
         $next = $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE));
         return $next ?: '';
     }

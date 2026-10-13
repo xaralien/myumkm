@@ -217,3 +217,71 @@
 .grafik-svg { height: 180px; }
 .grafik-sumbu-x { position: relative; height: 18px; margin-top: 4px; }
 .grafik-sumbu-x span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--wn-samar); white-space: nowrap; }
+
+/* ---- Naik kelas & langkah awal ------------------------------------------ */
+.nk-kepala { display: grid; grid-template-columns: minmax(200px, 280px) 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 767px) { .nk-kepala { grid-template-columns: 1fr; } }
+.nk-level { display: flex; align-items: center; gap: 14px; border-radius: 18px; padding: 18px; background: var(--wn-dasar-2); border: 1px solid var(--wn-garis); }
+.nk-level strong { display: block; font-size: 26px; font-family: var(--wn-serif); color: var(--wn-tua); }
+.nk-ikon { font-size: 40px; }
+.nk-berkembang { background: #E7F5EC; border-color: #BFE3CB; }
+.nk-unggul { background: #FFF6DA; border-color: #F0DC9C; }
+.nk-skor { background: #fff; border: 1px solid var(--wn-garis); border-radius: 18px; padding: 18px; }
+.nk-angka { font-size: 15px; color: var(--wn-samar); } .nk-angka strong { font-size: 32px; color: var(--wn-tua); }
+.nk-bar { position: relative; height: 14px; background: var(--wn-dasar-2); border-radius: 999px; overflow: hidden; margin: 8px 0; }
+.nk-bar i { display: block; height: 100%; background: var(--wn-gradien); border-radius: 999px; }
+.nk-bar span { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; }
+.nk-saran { text-decoration: none; color: inherit; }
+.nk-saran:hover { border-color: var(--wn-biru); }
+.nk-cek { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--wn-garis-2);
+  margin-right: 6px; font-size: 13px; vertical-align: middle; }
+.nk-cek.is-ok { background: #1E6B3A; border-color: #1E6B3A; color: #fff; }
+.mulai-daftar { list-style: none; padding: 0; margin: 0 0 20px; display: flex; flex-direction: column; gap: 10px; }
+.mulai-daftar li { display: flex; gap: 14px; background: #fff; border: 1px solid var(--wn-garis); border-radius: 16px; padding: 16px; }
+.mulai-daftar li.is-ok { opacity: .65; }
+.mulai-daftar li.is-aktif { border: 2px solid var(--wn-biru); box-shadow: 0 6px 18px rgba(34,70,108,.08); }
+.mulai-no { flex: 0 0 auto; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%;
+  background: var(--wn-dasar-2); font-weight: 800; color: var(--wn-tua); font-size: 17px; }
+.mulai-daftar li.is-ok .mulai-no { background: #1E6B3A; color: #fff; }
+.mulai-daftar li.is-aktif .mulai-no { background: var(--wn-tua); color: #fff; }
+.mulai-isi h3 { font-size: 18px; margin: 4px 0; }
+.mulai-kemajuan .nk-bar { max-width: 420px; }
+.mulai-spanduk { display: grid; grid-template-columns: 1fr 160px auto; gap: 14px; align-items: center; text-decoration: none; color: var(--wn-tua);
+  background: #EAF3F8; border: 1px solid var(--wn-garis-2); border-radius: 14px; padding: 12px 16px; }
+.mulai-spanduk .nk-bar { margin: 0; }
+@media (max-width: 767px) { .mulai-spanduk { grid-template-columns: 1fr; } }
+.modul-kartu.is-ok { background: #F4FBF6; }
+.video-bingkai { position: relative; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #000; }
+.video-bingkai iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.modul-isi { font-size: 16px; line-height: 1.7; }
+.kuis-pilihan { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--wn-garis); border-radius: 10px; margin-bottom: 6px; cursor: pointer; }
+.kuis-pilihan:has(input:checked) { border-color: var(--wn-biru); background: #EAF3F8; }
+fieldset legend { font-size: 15px; font-weight: 700; float: none; }
+.pdm-baris { text-decoration: none; color: inherit; }
+.pdm-baris:hover { background: var(--wn-dasar-2); }
+.tolak-detail { display: inline-block; }
+.tolak-detail[open] form { margin-top: 6px; }
+.dok-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+/* ---- Menu panel berkelompok -------------------------------------------- */
+.panel-grup { position: relative; display: inline-block; }
+.panel-grup > summary { list-style: none; cursor: pointer; color: inherit; padding: inherit; white-space: nowrap; }
+.panel-grup > summary::-webkit-details-marker { display: none; }
+.panel-grup > summary::after { content: '▾'; margin-left: 4px; font-size: .75em; opacity: .8; }
+.panel-grup.is-aktif > summary, .panel-links a.is-aktif { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.panel-grup-isi { position: absolute; top: calc(100% + 10px); left: -10px; z-index: 60; min-width: 220px; background: #fff;
+  border-radius: 14px; box-shadow: 0 14px 32px rgba(25,52,79,.18); padding: 8px; display: flex; flex-direction: column; }
+.panel-grup-isi a { color: var(--wn-tua) !important; padding: 9px 12px !important; border-radius: 9px; white-space: nowrap; text-decoration: none; }
+.panel-grup-isi a:hover { background: var(--wn-dasar-2); }
+/* HP: menu panel digeser mendatar (overflow), jadi isi kelompok tidak bisa
+   menggantung di bawahnya - ditampilkan sebagai lembar tetap di bawah
+   bilah menu. */
+@media (max-width: 767.98px) {
+  .panel-grup { flex: 0 0 auto; }
+  .panel-grup > summary { display: inline-block; padding: 9px 14px; border-radius: 999px;
+    background: rgba(255,255,255,.12); font-size: 13.5px; }
+  .panel-grup[open] > summary { background: rgba(255,255,255,.28); }
+  .panel-grup-isi { position: fixed; left: 12px; right: 12px; top: 112px; min-width: 0; }
+}
+.panel-grup > summary { color: #fff; opacity: .92; }
+.panel-grup > summary:hover, .panel-grup[open] > summary { opacity: 1; }
