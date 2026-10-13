@@ -19,10 +19,10 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 | Kelompok | Total fitur | ✅ Ada | ❌ Belum |
 |---|---|---|---|
-| Pembeli | 36 | 22 | 14 |
+| Pembeli | 35 | 22 | 13 |
 | Penjual / UMKM | 41 | 21 | 20 |
 | Admin | 22 | 9 | 13 |
-| **Total** | **99** | **52** | **47** |
+| **Total** | **98** | **52** | **46** |
 
 ---
 
@@ -60,7 +60,6 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ❌ **Voucher & promo** — *Pain:* pembeli mencari potongan harga → *Fungsi:* kode voucher toko/platform.
 - ❌ ⭐ **Checkout multi-toko** — *Pain:* keranjang saat ini hanya untuk satu toko → *Fungsi:* beli dari beberapa toko dalam satu pembayaran.
 - ❌ ⭐ **Pre-order fleksibel (DP, tanggal ambil, kuota)** — *Pain:* kue, katering, kerajinan dibuat berdasarkan pesanan → *Fungsi:* pilih tanggal kirim/ambil, bayar DP, kuota harian. (Repo baru punya `waktu_proses_hari` di level toko)
-- ❌ ⭐ **Ambil sendiri di toko (pickup)** — *Pain:* tetangga satu kecamatan lebih suka mengambil sendiri → *Fungsi:* opsi ongkir 0 + jam ambil.
 
 ### D. Pasca-Pembelian
 
@@ -185,6 +184,6 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 ## Rekomendasi Prioritas (Roadmap)
 
 1. **Quick win (1–2 sprint):** notifikasi WhatsApp (pembeli & penjual), lupa sandi mandiri, tombol share WA (kodenya sudah ada, tinggal diaktifkan), peringatan stok menipis, mode libur toko, template balasan chat.
-2. **Pembeda utama (2–4 sprint):** pembukuan sederhana + laporan penjualan, pre-order fleksibel per produk (DP & kalender), pickup di toko.
+2. **Pembeda utama (2–4 sprint):** pembukuan sederhana + laporan penjualan, pre-order fleksibel per produk (DP & kalender).
 3. **Naik kelas (jangka menengah):** Akademi UMKM, skor "Naik Kelas", bantuan legalitas + lencana verifikasi, laporan siap KUR, manajemen pendamping.
 4. **Skala (jangka panjang):** integrasi agregator ekspedisi, checkout multi-toko, voucher platform, POS offline, PWA.
