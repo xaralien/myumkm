@@ -78,6 +78,10 @@ class Stok_lib {
         $item = $this->butuh($order_id);
         $gagal = array();
 
+        // Hitungan terjual ikut naik di sini - fungsi ini dipanggil tepat
+        // sekali per pesanan, saat pembayaran diterima.
+        $this->ubah_terjual($item, +1);
+
         foreach ($item as $pid => $qty) {
             /* CAST ke SIGNED wajib: kolom stock bertipe UNSIGNED, dan MySQL
                menghitung 'stock - 2' sebagai bilangan tak bertanda. Begitu
@@ -120,6 +124,8 @@ class Stok_lib {
      */
     public function kembalikan($order_id)
     {
+        $this->ubah_terjual($this->butuh($order_id), -1);
+
         foreach ($this->butuh($order_id) as $pid => $qty) {
             $this->CI->db
                 ->set('stock', 'CAST(stock AS SIGNED) + ' . (int) $qty, FALSE)
@@ -127,6 +133,24 @@ class Stok_lib {
                 ->where('id', (int) $pid)
                 ->where('stock IS NOT NULL', NULL, FALSE)
                 ->update('products');
+        }
+    }
+
+    /**
+     * Naikkan/turunkan products.terjual_count (urutan "Terlaris").
+     * Kolomnya dari 25_wishlist_ikuti_label.sql - dilewati kalau belum ada.
+     */
+    protected function ubah_terjual(array $item, $arah)
+    {
+        if ( ! $item || ! $this->CI->db->field_exists('terjual_count', 'products')) {
+            return;
+        }
+        foreach ($item as $pid => $qty) {
+            $nilai = $arah > 0
+                ? 'terjual_count + ' . (int) $qty
+                : 'GREATEST(CAST(terjual_count AS SIGNED) - ' . (int) $qty . ', 0)';
+            $this->CI->db->set('terjual_count', $nilai, FALSE)
+                ->where('id', (int) $pid)->update('products');
         }
     }
 

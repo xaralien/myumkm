@@ -130,6 +130,8 @@
       </div>
     </div>
 
+    <?php $this->load->view('seller/parts/produk_form_tambahan'); ?>
+
   </div>
 
   <div class="col-lg-4">

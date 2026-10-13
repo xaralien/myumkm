@@ -175,6 +175,7 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
           <!-- ---------- menu ---------- -->
           <nav class="nt-akun-menu" aria-label="Menu akun">
             <a href="<?= site_url('akun/pesanan') ?>">Pesanan saya</a>
+            <a href="<?= site_url('favorit') ?>">Favorit &amp; toko diikuti</a>
           <a href="<?= site_url('akun/alamat') ?>">Alamat saya</a>
             <a href="<?= site_url('akun/pesan') ?>">Pesan</a>
             <!-- <a href="<?= site_url('track') ?>">Lacak pesanan</a> -->

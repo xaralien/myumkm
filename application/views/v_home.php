@@ -226,6 +226,8 @@
   </div>
 </section>
 
+<?php $this->load->view('parts/beranda_deret'); ?>
+
 <!-- =========================== TOKO DEKAT ============================ -->
 <?php if ($toko_dekat): ?>
 <section class="nt-pita">

@@ -46,6 +46,8 @@
     <?php if (count($variants) > 1): ?><em id="hargaKet">harga ukuran terkecil</em><?php endif; ?>
   </p>
 
+  <?php $this->load->view('parts/produk_info_tambahan'); ?>
+
   <div class="mb-detail-toko">
     <!-- Seluruh bagian ini tautan ke halaman toko; panah di ujung menandai
          bahwa ia bisa ditekan. -->

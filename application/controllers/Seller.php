@@ -155,6 +155,28 @@ class Seller extends Seller_Controller
         $this->render('seller/v_product_form', $data);
     }
 
+    /**
+     * Kolom produk dari kartu tambahan formulir (label UMKM, dll). Kolom
+     * yang belum ada di database (migrasinya belum dijalankan) dilewati,
+     * supaya menyimpan produk tidak gagal karena "Unknown column".
+     */
+    protected function data_tambahan_produk()
+    {
+        $teks = function ($k, $maks) {
+            $v = trim((string) $this->input->post($k, TRUE));
+            return $v === '' ? NULL : mb_substr($v, 0, $maks);
+        };
+        $d = array(
+            'buatan_tangan' => $this->input->post('buatan_tangan') ? 1 : 0,
+            'bahan_lokal'   => $this->input->post('bahan_lokal') ? 1 : 0,
+            'halal_no'      => $teks('halal_no', 60),
+            'pirt_no'       => $teks('pirt_no', 60),
+        );
+
+        $ada = $this->db->list_fields('products');
+        return array_intersect_key($d, array_flip($ada));
+    }
+
     protected function ai_aktif()
     {
         $this->load->library('ai_lib');
@@ -222,6 +244,7 @@ class Seller extends Seller_Controller
             'price' => (int) $this->input->post('price'),
             'image' => $gambar,
         );
+        $data = array_merge($data, $this->data_tambahan_produk());
 
         if ($id) {
             $this
@@ -1640,6 +1663,13 @@ class Seller extends Seller_Controller
             'status' => 'cancelled',
             'note' => 'Dibatalkan toko: ' . $alasan,
         ));
+
+        // Pesanan lunas sudah memotong stok - dikembalikan supaya barangnya
+        // bisa dijual lagi. Pesanan belum lunas tidak pernah memotong stok.
+        if ($order['payment_status'] === 'paid') {
+            $this->load->library('stok_lib');
+            $this->stok_lib->kembalikan($order['id']);
+        }
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();

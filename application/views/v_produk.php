@@ -114,6 +114,8 @@ foreach ($addons as $a) {
                     <?php endif; ?>
                 </p>
 
+                <?php $this->load->view('parts/produk_info_tambahan'); ?>
+
                 <!-- ---------- TOKO ---------- -->
                 <div class="produk-toko">
                     <!-- Seluruh bagian kiri jadi satu tautan ke halaman toko:

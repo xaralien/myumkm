@@ -138,13 +138,17 @@ class Product_model extends CI_Model
            tidak pantas mengalahkan 4,8 dari dua ratus ulasan. Jumlah
            ulasan jadi penentu kedua. */
         'ulasan' => array('rating_avg', 'DESC'),
+
+        // Kolom dari 25_wishlist_ikuti_label.sql, dinaikkan Stok_lib.
+        'terlaris' => array('terjual_count', 'DESC'),
     );
 
     public function sort_options()
     {
         return array(
-            'baru'   => 'Terbaru',
-            'ulasan' => 'Ulasan terbaik',
+            'baru'     => 'Terbaru',
+            'terlaris' => 'Terlaris',
+            'ulasan'   => 'Ulasan terbaik',
             'mahal'  => 'Harga tertinggi',
             'murah'  => 'Harga terendah',
             'nama' => 'Nama A-Z',

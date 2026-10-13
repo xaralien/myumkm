@@ -49,6 +49,17 @@ class Home extends CI_Controller
             'brand'      => $this->config->item('nama_brand') ?: 'Sapa UMKM',
         );
 
+        /* Deret tambahan: terlaris untuk semua pengunjung, rekomendasi dan
+           produk toko langganan untuk yang sudah masuk. */
+        $this->load->model('pembeli_model');
+        $this->load->library('auth_lib');
+        $uid = $this->auth_lib->id();
+        $data['deret'] = array(
+            'terlaris'    => $this->pembeli_model->terlaris($lokasi, 10),
+            'rekomendasi' => $uid ? $this->pembeli_model->rekomendasi($uid, $lokasi, 10) : NULL,
+            'langganan'   => $uid ? $this->pembeli_model->baru_dari_langganan($uid, 10) : array(),
+        );
+
         $data['pages'] = 'v_home';
         $this->load->view('index', $data);
     }

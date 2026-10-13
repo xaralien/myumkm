@@ -24,7 +24,7 @@ class Produk extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->library(array('cart_lib', 'session', 'location_lib'));
+        $this->load->library(array('cart_lib', 'session', 'location_lib', 'auth_lib'));
         $this->load->model('product_model');
         $this->load->helper(array('url', 'money'));
     }
@@ -135,8 +135,36 @@ class Produk extends CI_Controller
         $data['ulasan_filter']  = $f_ulasan;
         $data['ulasan_cocok']   = $this->review_model->hitung('produk', $p['id'], $f_ulasan);
 
+        $data['ekstra'] = $this->ekstra($p);
+
         $data['pages'] = 'v_produk';
         $this->load->view('index', $data);
+    }
+
+    /**
+     * Data tambahan halaman produk: favorit, lencana terverifikasi, dsb.
+     * Dikumpulkan di satu tempat supaya tampilan desktop & HP sama.
+     */
+    protected function ekstra(array $p)
+    {
+        $this->load->model('pembeli_model');
+        $uid = $this->auth_lib->id();
+
+        return array(
+            'favorit' => $uid ? $this->pembeli_model->favorit($uid, $p['id']) : FALSE,
+            'verif'   => $this->dokumen_terverifikasi($p['store_id']),
+        );
+    }
+
+    /** Jenis dokumen legalitas toko yang sudah diperiksa admin. */
+    protected function dokumen_terverifikasi($store_id)
+    {
+        if ( ! $this->db->table_exists('store_documents')) {
+            return array();
+        }
+        return array_column($this->db->select('jenis')
+            ->where('store_id', (int) $store_id)->where('status', 'terverifikasi')
+            ->get('store_documents')->result_array(), 'jenis');
     }
 
     protected function ringkas($teks, $maks)
