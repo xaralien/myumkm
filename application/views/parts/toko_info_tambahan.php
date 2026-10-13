@@ -4,6 +4,12 @@
 $e = isset($toko_ekstra) ? $toko_ekstra : array();
 ?>
 <div class="toko-ekstra">
+  <?php if ( ! empty($e['libur'])): ?>
+    <div class="alert-box alert-warn mb-2">
+      Toko sedang libur sampai <strong><?= tgl_id($e['libur']) ?></strong><?= ! empty($toko['libur_pesan']) ? ' &mdash; ' . html_escape($toko['libur_pesan']) : '' ?>.
+      Pesanan baru bisa dibuat setelah toko buka.
+    </div>
+  <?php endif; ?>
   <?php if ( ! empty($e['lencana'])): ?>
     <div class="lencana-baris mb-2">
       <?php foreach ($e['lencana'] as $l): ?>

@@ -7,3 +7,7 @@
     <button type="submit" class="btn btn-sm btn-black-hover-outline">Ingatkan pelunasan</button>
   <?= form_close() ?>
 <?php endif; ?>
+<?php if ($o['payment_status'] === 'paid' && $o['order_status'] !== 'cancelled'): ?>
+  <a href="<?= site_url('seller/cetak/label?id[]=' . (int) $o['id']) ?>" target="_blank" class="link-btn">Label</a>
+  <a href="<?= site_url('seller/cetak/nota?id[]=' . (int) $o['id']) ?>" target="_blank" class="link-btn">Nota</a>
+<?php endif; ?>

@@ -45,6 +45,7 @@ $tampil = function ($peta, $kode) {
     <h1>Pesanan Masuk</h1>
     <p class="hint"><?= html_escape($store['name']) ?></p>
   </div>
+  <a href="<?= site_url('seller/cetak') ?>" class="btn btn-black-hover-outline">🖨 Cetak label &amp; nota</a>
 </div>
 
 <!-- Pencarian lewat GET: hasilnya bisa di-bookmark dan tidak memunculkan

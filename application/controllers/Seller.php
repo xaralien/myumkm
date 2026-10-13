@@ -112,7 +112,18 @@ class Seller extends Seller_Controller
             ->get()
             ->result_array();
 
+        $this->load->library('pengaturan_lib');
+        $ambang = (int) $this->pengaturan_lib->get('stok_menipis');
+
         $data = array(
+            'ambang_stok' => $ambang,
+            'stok_tipis'  => $this->db->select('id, name, stock')
+                ->where('store_id', (int) $this->store['id'])
+                ->where('stock IS NOT NULL', NULL, FALSE)
+                ->where('stock <=', $ambang)
+                ->where('is_active', 1)
+                ->order_by('stock', 'ASC')->limit(20)
+                ->get('products')->result_array(),
             'products' => $products,
             'cari' => $cari,
             'urut' => $urut,
@@ -449,6 +460,12 @@ class Seller extends Seller_Controller
     public function toggle($id)
     {
         $p = $this->milik($id);
+
+        // Draf dari unggahan Excel belum punya foto - jangan tayang tanpa foto.
+        if ( ! $p['is_active'] && empty($p['image'])) {
+            $this->session->set_flashdata('error', 'Tambahkan foto ' . $p['name'] . ' dulu (tekan Ubah), baru bisa ditayangkan.');
+            return redirect('seller');
+        }
         $this
             ->db
             ->where('id', $p['id'])

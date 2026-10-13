@@ -145,3 +145,38 @@
 .toko-voucher-item { flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px; min-width: 190px;
   background: #FFFBEF; border: 1px dashed #E3C567; border-radius: 12px; padding: 8px 12px; font-size: 13px; }
 .toko-voucher-item .voucher-kode { align-self: flex-start; cursor: pointer; margin-top: 4px; }
+
+/* ---- Libur & balasan cepat --------------------------------------------- */
+.libur-aktif { background: #FFF8E6; border-color: #F0DC9C; }
+.tpl-chips { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
+.tpl-chips button { flex: 0 0 auto; border: 1px solid var(--wn-garis-2); background: #fff; color: var(--wn-tua);
+  border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tpl-chips button:hover { background: var(--wn-dasar-2); }
+.pintas-baris { display: flex; flex-wrap: wrap; gap: 8px; }
+.langkah-baris { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.langkah-no { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--wn-tua); color: #fff; font-weight: 800; margin-bottom: 6px; }
+.foto-kosong { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 10px;
+  background: var(--wn-abu); border: 1px dashed var(--wn-garis-2); font-size: 20px; }
+
+/* ---- Kartu QR toko ------------------------------------------------------ */
+.qr-kartu { max-width: 360px; margin: 0 auto; text-align: center; background: #fff; border: 2px solid var(--wn-tua);
+  border-radius: 24px; padding: 24px; }
+.qr-kartu h2 { font-size: 26px; margin: 4px 0 12px; }
+.qr-gambar svg { width: 100%; height: auto; display: block; }
+.qr-url { font-weight: 700; color: var(--wn-tua); word-break: break-all; margin: 10px 0 4px; }
+.qr-ajak { font-size: 13px; color: var(--wn-samar); margin: 0; }
+@media print {
+  .panel-nav, .no-print, .ib-tombol, .ib-panel { display: none !important; }
+  .qr-kartu { border-width: 3px; }
+}
+
+/* Kolom aksi daftar produk/pesanan penjual: tombol tambahan (Duplikat,
+   Label, Nota) membungkus ke baris berikutnya, tidak meluber. */
+.gt__cell--aksi { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.gt__cell--aksi .inline-form { margin: 0; }
+@media (min-width: 992px) {
+  .gt:not(.gt--orders) .gt__head, .gt:not(.gt--orders) .gt__row {
+    grid-template-columns: 64px minmax(160px, 2fr) 1fr 130px 150px 170px;
+  }
+}

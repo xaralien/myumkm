@@ -67,6 +67,6 @@ $route['toko/(:any)'] = 'toko/index/$1';
 
 /* Halaman panel penjual tambahan tinggal di controllers/penjual/ supaya
    Seller.php tidak terus membengkak - alamatnya tetap seller/... */
-$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)'] = 'penjual/$1';
-$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)/(:any)'] = 'penjual/$1/$2';
-$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)/(:any)/(:any)'] = 'penjual/$1/$2/$3';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak)'] = 'penjual/$1';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak)/(:any)'] = 'penjual/$1/$2';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak)/(:any)/(:any)'] = 'penjual/$1/$2/$3';
