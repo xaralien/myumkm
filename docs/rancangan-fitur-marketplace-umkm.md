@@ -19,10 +19,10 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 | Kelompok | Total fitur | ✅ Ada | ❌ Belum |
 |---|---|---|---|
-| Pembeli | 37 | 22 | 15 |
+| Pembeli | 36 | 22 | 14 |
 | Penjual / UMKM | 41 | 21 | 20 |
 | Admin | 22 | 9 | 13 |
-| **Total** | **100** | **52** | **48** |
+| **Total** | **99** | **52** | **47** |
 
 ---
 
@@ -57,7 +57,6 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ **Buku alamat** — *Pain:* mengetik alamat berulang; penerima sering bukan pembeli → *Fungsi:* simpan banyak alamat ("Rumah", "Rumah Ibu"), pilih saat checkout. (`22_buku_alamat.sql`, `Akun::alamat`)
 - ✅ **Ongkir otomatis berdasarkan wilayah** — *Pain:* ongkir tidak jelas sebelum bayar → *Fungsi:* tarif kecamatan/kota/provinsi/luar provinsi dari toko, plus gratis ongkir minimal belanja. (`Cart_lib::shipping_fee`)
 - ✅ **Pembayaran online (VA/QRIS/e-wallet via Duitku)** — *Pain:* transfer manual rawan salah & lama dicek → *Fungsi:* pembayaran terverifikasi otomatis via callback. (`Payment.php`, `libraries/Duitku.php`)
-- ❌ 🧓 **COD / bayar di tempat** — *Pain:* banyak pembeli daerah belum percaya bayar di muka → *Fungsi:* opsi COD dengan batas nominal per toko. (Ada sisa logika `cod` di `Payment.php`, tetapi `Checkout::place` selalu memakai Duitku)
 - ❌ **Voucher & promo** — *Pain:* pembeli mencari potongan harga → *Fungsi:* kode voucher toko/platform.
 - ❌ ⭐ **Checkout multi-toko** — *Pain:* keranjang saat ini hanya untuk satu toko → *Fungsi:* beli dari beberapa toko dalam satu pembayaran.
 - ❌ ⭐ **Pre-order fleksibel (DP, tanggal ambil, kuota)** — *Pain:* kue, katering, kerajinan dibuat berdasarkan pesanan → *Fungsi:* pilih tanggal kirim/ambil, bayar DP, kuota harian. (Repo baru punya `waktu_proses_hari` di level toko)
@@ -186,6 +185,6 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 ## Rekomendasi Prioritas (Roadmap)
 
 1. **Quick win (1–2 sprint):** notifikasi WhatsApp (pembeli & penjual), lupa sandi mandiri, tombol share WA (kodenya sudah ada, tinggal diaktifkan), peringatan stok menipis, mode libur toko, template balasan chat.
-2. **Pembeda utama (2–4 sprint):** pembukuan sederhana + laporan penjualan, pre-order fleksibel per produk (DP & kalender), COD dengan batas nominal, pickup di toko.
+2. **Pembeda utama (2–4 sprint):** pembukuan sederhana + laporan penjualan, pre-order fleksibel per produk (DP & kalender), pickup di toko.
 3. **Naik kelas (jangka menengah):** Akademi UMKM, skor "Naik Kelas", bantuan legalitas + lencana verifikasi, laporan siap KUR, manajemen pendamping.
 4. **Skala (jangka panjang):** integrasi agregator ekspedisi, checkout multi-toko, voucher platform, POS offline, PWA.
