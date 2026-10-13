@@ -18,8 +18,12 @@
       <div class="col-lg-6">
 
         <div class="form-card text-center">
-          <p class="hint mb-1">Nomor pesanan</p>
+          <p class="hint mb-1"><?= isset($tagihan) ? 'Nomor tagihan' : 'Nomor pesanan' ?></p>
           <p class="order-number"><?= html_escape($order['order_number']) ?></p>
+
+          <?php if ( ! empty($orders)): ?>
+            <?php $this->load->view('parts/tagihan_rincian'); ?>
+          <?php endif; ?>
 
           <div class="summary-row summary-total mb-4">
             <span>Total tagihan</span>
@@ -54,7 +58,7 @@
      callback butuh URL yang bisa diakses dari internet, halaman ini tidak. -->
 <script>
   window.PAY_STATUS = {
-    url: '<?= site_url('payment/status/' . $order['order_number'] . '/' . $order['access_token']) ?>',
+    url: '<?= isset($status_url) ? $status_url : site_url('payment/status/' . $order['order_number'] . '/' . $order['access_token']) ?>',
     awal: <?= (int) $poll_awal ?>,
     akhir: <?= (int) $poll_akhir ?>,
     maks: <?= (int) $poll_maks ?>

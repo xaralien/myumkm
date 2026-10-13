@@ -124,4 +124,13 @@ class Seller_Controller extends CI_Controller {
            bisa menyiapkan produk sambil menunggu. Produknya tidak tampil di
            katalog, karena semua query katalog mensyaratkan s.is_active = 1. */
     }
+
+    protected function render($view, $data = array())
+    {
+        $data['me'] = $this->me;
+        $data['store'] = $this->store;
+        $this->load->view('admin/v_admin_header', $data);
+        $this->load->view($view, $data);
+        $this->load->view('admin/v_admin_footer');
+    }
 }

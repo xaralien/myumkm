@@ -67,6 +67,24 @@ class Product_model extends CI_Model
         return $out;
     }
 
+    /**
+     * Tingkat harga grosir: [product_id => [[min_qty, harga], ...]].
+     * Tabel dari 26_promo_preorder_multitoko.sql - kosong kalau belum ada.
+     */
+    public function tiers_by_products(array $ids)
+    {
+        $ids = array_filter(array_map('intval', $ids));
+        if ( ! $ids || ! $this->db->table_exists('product_tiers')) {
+            return array();
+        }
+        $out = array();
+        foreach ($this->db->where_in('product_id', $ids)->order_by('min_qty', 'ASC')
+                     ->get('product_tiers')->result_array() as $t) {
+            $out[(int) $t['product_id']][] = $t;
+        }
+        return $out;
+    }
+
     public function listing($limit = 24, $offset = 0)
     {
         return $this

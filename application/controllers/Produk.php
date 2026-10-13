@@ -150,9 +150,16 @@ class Produk extends CI_Controller
         $this->load->model('pembeli_model');
         $uid = $this->auth_lib->id();
 
+        $tiers = $this->product_model->tiers_by_products(array($p['id']));
+
+        $this->load->library('rincian_lib');
+        $libur = $this->rincian_lib->libur($this->db->where('id', (int) $p['store_id'])->get('stores')->row_array() ?: array());
+
         return array(
             'favorit' => $uid ? $this->pembeli_model->favorit($uid, $p['id']) : FALSE,
             'verif'   => $this->dokumen_terverifikasi($p['store_id']),
+            'grosir'  => isset($tiers[$p['id']]) ? $tiers[$p['id']] : array(),
+            'libur'   => $libur,
         );
     }
 

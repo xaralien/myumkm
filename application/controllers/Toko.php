@@ -181,7 +181,10 @@ class Toko extends CI_Controller {
             $lencana = $this->naik_kelas_lib->lencana_toko($toko['id']);
         }
 
+        $this->load->library('voucher_lib');
+
         return array(
+            'voucher'   => $this->voucher_lib->aktif_toko($toko['id']),
             'mengikuti' => $uid ? $this->pembeli_model->mengikuti($uid, $toko['id']) : FALSE,
             'pengikut'  => $this->pembeli_model->jumlah_pengikut($toko['id']),
             'lencana'   => $lencana,

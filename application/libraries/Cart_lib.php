@@ -112,25 +112,12 @@ class Cart_lib
             }
         }
 
-        /* ---- SATU TOKO PER KERANJANG ---------------------------------
-         | Marketplace: tiap toko punya ongkir, jadwal, dan penjual sendiri.
-         | Mencampur dua toko dalam satu pesanan menuntut pemecahan pesanan,
-         | pembagian pembayaran ke tiap penjual, dan refund sebagian - jauh
-         | lebih rumit daripada nilainya untuk kasus toko bunga.
-         |
-         | Yang dikembalikan bukan sekadar penolakan: nama toko lama ikut
-         | dikirim supaya antarmuka bisa menawarkan "kosongkan keranjang".
+        /* ---- BEBERAPA TOKO DALAM SATU KERANJANG -----------------------
+         | Dulu keranjang dibatasi satu toko. Sekarang checkout memecah
+         | keranjang per toko menjadi beberapa pesanan yang dibayar dengan
+         | SATU tagihan (lihat Checkout::place & Tagihan_lib). Ongkir, waktu
+         | proses, dan voucher toko tetap dihitung per toko.
          | -------------------------------------------------------------- */
-        $toko_kini = $this->store_id();
-        if ($toko_kini !== NULL && (int) $product['store_id'] !== $toko_kini) {
-            return array(
-                'ok'          => FALSE,
-                'code'        => 'beda_toko',
-                'message'     => 'Keranjangmu berisi produk dari toko lain.',
-                'store_lama'  => $this->store_name(),
-                'store_baru'  => $product['store_name'],
-            );
-        }
 
         $raw = $this->raw();
         $key = $this->line_key($product_id, $variant_id, $addon_ids);
@@ -257,6 +244,13 @@ class Cart_lib
         $items   = array();
         $changed = FALSE;
 
+        $jml_produk = array();
+        foreach ($raw as $line) {
+            $pid = (int) $line['product_id'];
+            $jml_produk[$pid] = (isset($jml_produk[$pid]) ? $jml_produk[$pid] : 0) + (int) $line['qty'];
+        }
+        $tiers = $this->CI->product_model->tiers_by_products(array_keys($jml_produk));
+
         foreach ($raw as $key => $line) {
             if (! isset($products[$line['product_id']])) {
                 unset($raw[$key]);
@@ -264,7 +258,13 @@ class Cart_lib
                 continue;
             }
             $p          = $products[$line['product_id']];
-            $unit       = (int) $p['price'];
+            $normal     = (int) $p['price'];
+
+            /* Harga grosir: dipilih dari JUMLAH SEMUA BARIS produk yang
+               sama - pembeli yang mengambil 6 ukuran M dan 6 ukuran L
+               tetap dihitung membeli 12. */
+            $dasar      = $this->harga_grosir($p['id'], $normal, $jml_produk[$p['id']], $tiers);
+            $unit       = $dasar;
             $variant_nm = NULL;
 
             if ($line['variant_id'] && isset($variants[$line['variant_id']])) {
@@ -302,6 +302,12 @@ class Cart_lib
                 'unit_price'   => $unit,
                 'qty'          => (int) $line['qty'],
                 'line_total'   => $unit * (int) $line['qty'],
+                'harga_catatan' => $dasar < $normal ? 'Harga grosir' : NULL,
+                'harga_normal'  => $normal,
+                'is_preorder'   => ! empty($p['is_preorder']) ? 1 : 0,
+                'po_hari'       => isset($p['po_hari']) ? (int) $p['po_hari'] : 0,
+                'po_kuota'      => isset($p['po_kuota_harian']) && $p['po_kuota_harian'] !== NULL ? (int) $p['po_kuota_harian'] : NULL,
+                'po_dp_persen'  => isset($p['po_dp_persen']) ? (int) $p['po_dp_persen'] : 0,
             );
         }
 
@@ -309,6 +315,54 @@ class Cart_lib
             $this->save($raw);
         }
         return $items;
+    }
+
+    /**
+     * Harga satuan dasar menurut tingkat grosir. Tingkat dengan min_qty
+     * terbesar yang sudah tercapai yang dipakai.
+     */
+    protected function harga_grosir($product_id, $normal, $qty, array $tiers)
+    {
+        $harga = $normal;
+        $min_terpakai = 0;
+        if ( ! empty($tiers[$product_id])) {
+            foreach ($tiers[$product_id] as $t) {
+                if ($qty >= (int) $t['min_qty'] && (int) $t['min_qty'] > $min_terpakai) {
+                    $harga = (int) $t['harga'];
+                    $min_terpakai = (int) $t['min_qty'];
+                }
+            }
+        }
+        return min($harga, $normal);
+    }
+
+    /**
+     * Isi keranjang dikelompokkan per toko: [store_id => [items]].
+     * Urutan toko mengikuti urutan barang pertama kali dimasukkan.
+     */
+    public function per_toko()
+    {
+        $out = array();
+        foreach ($this->items() as $key => $it) {
+            $out[$it['store_id']][$key] = $it;
+        }
+        return $out;
+    }
+
+    /** Data toko lengkap untuk satu id - versi berparameter dari store(). */
+    public function toko($store_id)
+    {
+        return $this->CI->db
+            ->select('s.*,
+                d.name AS district_name,
+                r.name AS regency_name,
+                p.name AS province_name', FALSE)
+            ->from('stores s')
+            ->join('districts d', 'd.id = s.district_id', 'left')
+            ->join('regencies r', 'r.id = s.regency_id', 'left')
+            ->join('provinces p', 'p.id = s.province_id', 'left')
+            ->where('s.id', (int) $store_id)
+            ->get()->row_array();
     }
 
     public function subtotal()
@@ -352,9 +406,9 @@ class Cart_lib
      *   sama dengan "ongkir nol" - dan kalau dipaksa jadi angka, pesanan
      *   ke luar jangkauan akan lolos dengan ongkir 0.
      */
-    public function shipping_fee($district_id, $subtotal = NULL)
+    public function shipping_fee($district_id, $subtotal = NULL, $toko = NULL)
     {
-        $toko = $this->store();
+        $toko = $toko ?: $this->store();
         if (! $toko) {
             return array(
                 'ok' => FALSE,

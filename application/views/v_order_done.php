@@ -41,6 +41,8 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
             <span class="badge-status"><?= label_status($order['order_status']) ?></span>
           </p>
 
+          <?php $this->load->view('parts/order_info_tambahan'); ?>
+
           <?php if ($order['order_status'] === 'cancelled'): ?>
             <p>Pesanan ini dibatalkan.</p>
 
@@ -189,7 +191,16 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
 
           <div class="summary-row mt-3"><span>Subtotal</span><strong><?= rupiah($order['subtotal']) ?></strong></div>
           <div class="summary-row"><span>Ongkos kirim</span><strong><?= rupiah($order['shipping_fee']) ?></strong></div>
+          <?php foreach (array('diskon_toko' => 'Voucher toko', 'diskon_platform' => 'Voucher platform', 'subsidi_ongkir' => 'Subsidi ongkir') as $kol => $lbl): ?>
+            <?php if ( ! empty($order[$kol])): ?>
+              <div class="summary-row is-potongan"><span><?= $lbl ?><?= $kol === 'diskon_toko' && $order['voucher_toko'] ? ' (' . html_escape($order['voucher_toko']) . ')' : '' ?><?= $kol === 'diskon_platform' && $order['voucher_platform'] ? ' (' . html_escape($order['voucher_platform']) . ')' : '' ?></span><strong>&minus;<?= rupiah($order[$kol]) ?></strong></div>
+            <?php endif; ?>
+          <?php endforeach; ?>
           <div class="summary-row summary-total"><span>Total</span><strong><?= rupiah($order['total']) ?></strong></div>
+          <?php if ( ! empty($order['dp_jumlah'])): ?>
+            <div class="summary-row"><span>Uang muka (DP)</span><strong><?= rupiah($order['dp_jumlah']) ?></strong></div>
+            <div class="summary-row"><span>Sisa <?= empty($order['lunas_at']) ? 'yang harus dilunasi' : '(sudah lunas)' ?></span><strong><?= rupiah($order['total'] - $order['dp_jumlah']) ?></strong></div>
+          <?php endif; ?>
         </div>
 
         <!-- Guest tidak punya akun, jadi link ini SATU-SATUNYA cara mereka

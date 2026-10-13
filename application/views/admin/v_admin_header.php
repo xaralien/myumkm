@@ -34,6 +34,7 @@
           <a href="<?= site_url('admin/categories') ?>">Kategori</a>
           <a href="<?= site_url('admin/users') ?>">Akun</a>
           <a href="<?= site_url('admin/keuangan') ?>">Keuangan</a>
+          <a href="<?= site_url('admin/voucher') ?>">Voucher</a>
           <a href="<?= site_url('admin/pengaturan') ?>">Pengaturan</a>
         <?php else: ?>
           <a href="<?= site_url('seller') ?>">Produk</a>
@@ -51,6 +52,7 @@
           <a href="<?= site_url('seller/ulasan') ?>">Ulasan</a>
           <a href="<?= site_url('seller/pendapatan') ?>">Pendapatan</a>
           <a href="<?= site_url('seller/refund') ?>">Refund</a>
+          <a href="<?= site_url('seller/voucher') ?>">Voucher</a>
           <a href="<?= site_url('seller/profile') ?>">Profil Toko</a>
         <?php endif; ?>
         <a href="<?= site_url('shop') ?>">Lihat katalog</a>
@@ -62,6 +64,9 @@
   <div class="container panel-isi">
     <?php if ($this->session->flashdata('sukses')): ?>
       <div class="alert-box alert-ok mb-4"><?= html_escape($this->session->flashdata('sukses')) ?></div>
+    <?php endif; ?>
+    <?php if ($this->session->flashdata('info')): ?>
+      <div class="alert-box alert-warn mb-4"><?= html_escape($this->session->flashdata('info')) ?></div>
     <?php endif; ?>
     <?php if ($this->session->flashdata('error')): ?>
       <div class="alert-box alert-error mb-4"><?= html_escape($this->session->flashdata('error')) ?></div>

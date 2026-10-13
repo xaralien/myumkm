@@ -23,3 +23,15 @@ $e = isset($toko_ekstra) ? $toko_ekstra : array();
     )); ?>
   </div>
 </div>
+
+<?php if ( ! empty($e['voucher'])): ?>
+  <div class="toko-voucher">
+    <?php foreach ($e['voucher'] as $v): ?>
+      <div class="toko-voucher-item">
+        <strong><?= html_escape($this->voucher_lib->keterangan($v)) ?></strong>
+        <span><?= (int) $v['min_belanja'] ? 'Min. belanja ' . rupiah($v['min_belanja']) : 'Tanpa minimal belanja' ?></span>
+        <button type="button" class="voucher-kode" data-salin="<?= html_escape($v['kode']) ?>" title="Salin kode"><?= html_escape($v['kode']) ?></button>
+      </div>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>

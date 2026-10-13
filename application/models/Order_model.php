@@ -36,7 +36,7 @@ class Order_model extends CI_Model
                 'unit_price'   => $it['unit_price'],
                 'qty'          => $it['qty'],
                 'line_total'   => $it['line_total'],
-            ));
+            ) + $this->kolom_item_tambahan($it));
         }
 
         $this->db->insert('order_logs', array(
@@ -55,6 +55,20 @@ class Order_model extends CI_Model
 
         $order['id'] = $order_id;
         return $order;
+    }
+
+    /** Kolom order_items dari migrasi 26 - dilewati kalau belum ada. */
+    protected function kolom_item_tambahan(array $it)
+    {
+        static $ada = NULL;
+        if ($ada === NULL) {
+            $ada = array_flip($this->db->list_fields('order_items'));
+        }
+        $d = array(
+            'harga_catatan' => isset($it['harga_catatan']) ? $it['harga_catatan'] : NULL,
+            'is_preorder'   => ! empty($it['is_preorder']) ? 1 : 0,
+        );
+        return array_intersect_key($d, $ada);
     }
 
     /**
@@ -153,15 +167,22 @@ class Order_model extends CI_Model
             return FALSE;   // sudah pernah diproses, tidak apa-apa
         }
 
+        $ubah = array(
+            'payment_status'   => 'paid',
+            'order_status'     => 'confirmed',
+            'paid_at'          => date('Y-m-d H:i:s'),
+            'duitku_reference' => $reference ?: $order['duitku_reference'],
+            'duitku_va_number' => $va ?: $order['duitku_va_number'],
+        );
+        /* Dibayar penuh = langsung lunas. Pesanan pre-order ber-DP baru lunas
+           setelah tagihan pelunasannya dibayar (Tagihan_lib::lunasi). */
+        if (array_key_exists('lunas_at', $order) && empty($order['dp_jumlah'])) {
+            $ubah['lunas_at'] = $ubah['paid_at'];
+        }
+
         $this->db->where('id', $order['id'])
             ->where('payment_status !=', 'paid')   // pengaman balapan
-            ->update('orders', array(
-                'payment_status'   => 'paid',
-                'order_status'     => 'confirmed',
-                'paid_at'          => date('Y-m-d H:i:s'),
-                'duitku_reference' => $reference ?: $order['duitku_reference'],
-                'duitku_va_number' => $va ?: $order['duitku_va_number'],
-            ));
+            ->update('orders', $ubah);
 
         if ($this->db->affected_rows() < 1) {
             return FALSE;
@@ -332,6 +353,9 @@ class Order_model extends CI_Model
             'status'   => ($status === 'expired') ? 'cancelled' : $status,
             'note'     => $note ?: 'Pembayaran tidak selesai',
         ));
+        if ($status === 'expired') {
+            $this->lepas_voucher($order['id']);
+        }
         return TRUE;
     }
 
@@ -406,8 +430,16 @@ class Order_model extends CI_Model
         ));
 
         $this->catat_pembatalan($order, $oleh, $alasan);
+        $this->lepas_voucher($order['id']);
 
         return array('ok' => TRUE, 'pesan' => 'Pesanan dibatalkan.');
+    }
+
+    /** Kembalikan kuota voucher pesanan yang batal/kedaluwarsa. */
+    public function lepas_voucher($order_id)
+    {
+        $this->load->library('voucher_lib');
+        $this->voucher_lib->lepas($order_id);
     }
 
     /** Pesan sistem di percakapan pesanan, supaya kedua pihak tahu. */
@@ -474,6 +506,7 @@ class Order_model extends CI_Model
         ));
  
         foreach ($rows as $r) {
+            $this->lepas_voucher($r['id']);
             $this->db->insert('order_logs', array(
                 'order_id' => $r['id'],
                 'status'   => 'cancelled',

@@ -110,3 +110,38 @@
 .fav-sel { display: flex; flex-direction: column; gap: 8px; }
 .fav-sel-bawah { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .toko-ekstra { margin: 8px 0 12px; }
+
+/* ---- Tagihan gabungan -------------------------------------------------- */
+.tg-rincian { text-align: left; margin: 12px 0 16px; border-top: 1px solid var(--wn-garis); }
+.tg-baris { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--wn-garis); }
+.tg-baris span { display: flex; flex-direction: column; }
+.tg-baris em { font-style: normal; font-size: 13px; color: var(--wn-samar); }
+
+/* ---- Checkout: per toko, voucher, pre-order ---------------------------- */
+.ck-toko { border-bottom: 1px dashed var(--wn-garis-2); padding-bottom: 12px; margin-bottom: 14px; }
+.ck-toko .summary-row { font-size: 14px; }
+.summary-row.is-potongan strong { color: #1E6B3A; }
+.ck-pesan.is-error, #pesanVoucher.is-error { color: var(--ord-red, #B3261E); }
+.ck-po { background: #FFF8E6; border: 1px solid #F0DC9C; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+.ck-voucher { background: var(--wn-dasar-2); border-radius: 12px; padding: 12px; }
+.ck-voucher-daftar { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.ck-voucher-daftar li { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--wn-garis); border-radius: 10px; padding: 6px 10px; }
+.ck-voucher-daftar li span { display: flex; flex-direction: column; font-size: 14px; }
+.ck-voucher-daftar li em { font-style: normal; font-size: 12.5px; color: var(--wn-samar); }
+.ck-voucher-daftar li.is-ok { border-color: #BFE3CB; }
+.ck-voucher-daftar li.is-bad em { color: var(--ord-red, #B3261E); }
+.ck-voucher-daftar button { border: 0; background: none; font-size: 20px; line-height: 1; color: var(--wn-samar); cursor: pointer; }
+
+/* ---- Produk: pre-order & grosir ---------------------------------------- */
+.po-info { background: #FFF8E6; border: 1px solid #F0DC9C; border-radius: 12px; padding: 10px 14px; font-size: 14px; color: #5A4300; }
+.grosir-tabel { background: var(--wn-dasar-2); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+.grosir-tabel table { width: 100%; margin: 6px 0; border-collapse: collapse; }
+.grosir-tabel td { padding: 4px 0; border-bottom: 1px solid var(--wn-garis); }
+.grosir-tabel td:last-child { text-align: right; }
+.voucher-kode { font-family: ui-monospace, Menlo, Consolas, monospace; background: #FFF6DA; color: var(--wn-emas);
+  padding: 1px 8px; border-radius: 6px; margin-right: 6px; border: 1px dashed #E3C567; }
+.toko-voucher { display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; padding-bottom: 4px; }
+.toko-voucher-item { flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px; min-width: 190px;
+  background: #FFFBEF; border: 1px dashed #E3C567; border-radius: 12px; padding: 8px 12px; font-size: 13px; }
+.toko-voucher-item .voucher-kode { align-self: flex-start; cursor: pointer; margin-top: 4px; }

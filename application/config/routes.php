@@ -64,3 +64,9 @@ $route['admin'] = 'admin/dashboard';
 /* Halaman toko: toko/{slug}. Tanpa rute ini, CodeIgniter menganggap slug
    sebagai nama method dan mengembalikan 404. */
 $route['toko/(:any)'] = 'toko/index/$1';
+
+/* Halaman panel penjual tambahan tinggal di controllers/penjual/ supaya
+   Seller.php tidak terus membengkak - alamatnya tetap seller/... */
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)'] = 'penjual/$1';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)/(:any)'] = 'penjual/$1/$2';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur)/(:any)/(:any)'] = 'penjual/$1/$2/$3';

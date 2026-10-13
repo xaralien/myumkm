@@ -16,13 +16,14 @@ defined('BASEPATH') or exit('No direct script access allowed');
  */
 class Checkout extends CI_Controller
 {
-    protected $toko;
     protected $langsung = FALSE;
+
+    const KUNCI_VOUCHER = 'checkout_voucher';
 
     public function __construct()
     {
         parent::__construct();
-        $this->load->library(array('cart_lib', 'session', 'form_validation', 'duitku', 'auth_lib'));
+        $this->load->library(array('cart_lib', 'session', 'form_validation', 'duitku', 'auth_lib', 'rincian_lib'));
         $this->load->model(array('order_model', 'region_model'));
         $this->load->helper(array('url', 'form', 'money'));
 
@@ -33,27 +34,21 @@ class Checkout extends CI_Controller
         if ($this->langsung) {
             $this->cart_lib->mode('langsung');
         }
-
-        // Pengaturan ongkir diambil dari TOKO pemilik keranjang.
-        $this->toko = $this->cart_lib->store();
     }
 
     /* ------------------------------------------------------------ formulir */
 
     public function index()
     {
-        if ($this->cart_lib->is_empty() || ! $this->toko) {
+        $per_toko = $this->cart_lib->per_toko();
+        if ( ! $per_toko) {
             return redirect($this->langsung ? 'shop' : 'cart');
         }
 
-        $subtotal = $this->cart_lib->subtotal();
-        $t        = $this->toko;
-        $akun     = $this->auth_lib->row();
+        $akun = $this->auth_lib->row();
 
         $data = array(
             'items'     => $this->cart_lib->items(),
-            'subtotal'  => $subtotal,
-            'toko'      => $t,
             'akun'      => $akun,
             'langsung'  => $this->langsung,
             'provinces' => $this->region_model->provinces(),
@@ -67,21 +62,9 @@ class Checkout extends CI_Controller
                 'district' => $akun ? (int) $akun['district_id'] : 0,
             ),
 
-            'free_above'  => (int) $t['gratis_ongkir_min'],
-            'ongkir_json' => json_encode(array(
-                'kecamatan'  => (int) $t['ongkir_kecamatan'],
-                'kota'       => (int) $t['ongkir_kota'],
-                'provinsi'   => $t['ongkir_provinsi'] === NULL ? NULL : (int) $t['ongkir_provinsi'],
-                'luar'       => $t['ongkir_luar'] === NULL ? NULL : (int) $t['ongkir_luar'],
-                'toko_dis'   => (int) $t['district_id'],
-                'toko_reg'   => (int) $t['regency_id'],
-                'toko_prov'  => (int) $t['province_id'],
-                'gratis_min' => (int) $t['gratis_ongkir_min'],
-                'subtotal'   => $subtotal,
-                'nama_toko'  => $t['name'],
-                'nama_kota'  => $t['regency_name'],
-                'nama_prov'  => $t['province_name'],
-            )),
+            // Rincian awal tanpa wilayah: daftar toko, barang, dan voucher.
+            'rincian'   => $this->rincian(0, (array) $this->input->post('tanggal_kirim')),
+            'kode_voucher' => $this->kode_voucher(),
         );
 
         /* Buku alamat, hanya untuk yang sudah login. Tamu tetap mengisi
@@ -108,11 +91,129 @@ class Checkout extends CI_Controller
         $this->load->view('index', $data);
     }
 
+    /**
+     * Hitung ulang rincian.  POST checkout/hitung  [AJAX]
+     *
+     * Dipanggil setiap wilayah, tanggal kirim, atau voucher berubah. Angka
+     * yang tampil di halaman berasal dari fungsi yang SAMA dengan yang
+     * dipakai saat menyimpan pesanan.
+     */
+    public function hitung()
+    {
+        $r = $this->rincian((int) $this->input->post('district_id'), (array) $this->input->post('tanggal_kirim'));
+        return $this->json($this->untuk_json($r));
+    }
+
+    /**
+     * Pasang / lepas voucher.  POST checkout/voucher  [AJAX atau form]
+     * aksi=pasang&kode=...  |  aksi=lepas&kode=...
+     */
+    public function voucher()
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+        $this->load->library('voucher_lib');
+
+        $kode  = $this->voucher_lib->rapikan_kode($this->input->post('kode', TRUE));
+        $daftar = $this->kode_voucher();
+
+        if ($this->input->post('aksi') === 'lepas') {
+            $daftar = array_values(array_diff($daftar, array($kode)));
+        } elseif ($kode !== '') {
+            if ( ! $this->voucher_lib->cari($kode)) {
+                return $this->json(array('ok' => FALSE, 'pesan' => 'Kode ' . $kode . ' tidak ditemukan.'), 422);
+            }
+            $daftar[] = $kode;
+            $daftar = array_values(array_unique($daftar));
+        }
+        $this->session->set_userdata(self::KUNCI_VOUCHER, array_slice($daftar, 0, 5));
+
+        $r = $this->rincian((int) $this->input->post('district_id'), (array) $this->input->post('tanggal_kirim'));
+        $j = $this->untuk_json($r);
+
+        // Voucher yang baru dipasang tapi ditolak langsung dilepas lagi,
+        // supaya tidak terus muncul sebagai galat di setiap hitungan.
+        if ($this->input->post('aksi') !== 'lepas' && $kode !== '' && isset($r['voucher'][$kode]) && ! $r['voucher'][$kode]['ok']) {
+            $this->session->set_userdata(self::KUNCI_VOUCHER, array_values(array_diff($daftar, array($kode))));
+            $j['ok'] = FALSE;
+            $j['pesan'] = $r['voucher'][$kode]['pesan'];
+            return $this->json($j, 422);
+        }
+        return $this->json($j);
+    }
+
+    protected function kode_voucher()
+    {
+        $v = $this->session->userdata(self::KUNCI_VOUCHER);
+        return is_array($v) ? $v : array();
+    }
+
+    protected function rincian($district, array $tanggal = array())
+    {
+        $akun = $this->auth_lib->row();
+        return $this->rincian_lib->hitung(
+            $this->cart_lib->per_toko(),
+            (int) $district,
+            $this->kode_voucher(),
+            array(
+                'user_id' => $this->auth_lib->id(),
+                'phone'   => $akun ? $akun['phone'] : NULL,
+            ),
+            $tanggal
+        );
+    }
+
+    /** Rincian dalam bentuk yang aman dikirim ke browser (tanpa baris DB). */
+    protected function untuk_json(array $r)
+    {
+        $kel = array();
+        foreach ($r['kelompok'] as $sid => $k) {
+            $kel[] = array(
+                'store_id'       => (int) $sid,
+                'nama'           => $k['toko']['name'],
+                'subtotal'       => $k['subtotal'],
+                'ongkir'         => $k['ongkir'],
+                'ongkir_ok'      => $k['ongkir_ok'],
+                'ongkir_pesan'   => $k['ongkir_pesan'],
+                'diskon_toko'    => $k['diskon_toko'],
+                'diskon_platform' => $k['diskon_platform'],
+                'subsidi_ongkir' => $k['subsidi_ongkir'],
+                'total'          => $k['total'],
+                'preorder'       => $k['preorder']['ada'],
+                'tanggal_min'    => $k['tanggal_min'],
+                'dp_persen'      => $k['dp_persen'],
+                'dp_jumlah'      => $k['dp_jumlah'],
+                'galat'          => $k['galat'],
+            );
+        }
+        return array(
+            'ok'       => $r['ok'],
+            'kelompok' => $kel,
+            'subtotal' => $r['subtotal'],
+            'ongkir'   => $r['ongkir'],
+            'potongan' => $r['potongan'],
+            'total'    => $r['total'],
+            'bayar_sekarang' => $r['bayar_sekarang'],
+            'voucher'  => $r['voucher'],
+            'pesan'    => $r['pesan'],
+            'csrf_name' => $this->security->get_csrf_token_name(),
+            'csrf_hash' => $this->security->get_csrf_hash(),
+        );
+    }
+
+    protected function json($data, $kode = 200)
+    {
+        return $this->output->set_status_header($kode)
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
+    }
+
     /* -------------------------------------------------------- simpan pesanan */
 
     public function place()
     {
-        if ($this->cart_lib->is_empty() || ! $this->toko) {
+        if ($this->cart_lib->is_empty()) {
             return redirect($this->langsung ? 'shop' : 'cart');
         }
 
@@ -128,23 +229,25 @@ class Checkout extends CI_Controller
             return $this->index();
         }
 
-        $items    = $this->cart_lib->items();
-        $subtotal = $this->cart_lib->subtotal();
-        $akun     = $this->auth_lib->row();
+        $r = $this->rincian($kec_id, (array) $this->input->post('tanggal_kirim'));
 
-        /* "Toko tidak melayani wilayah ini" BUKAN sama dengan "ongkir nol".
-           Kalau dipaksa jadi angka, pesanan ke luar jangkauan lolos dengan
-           ongkir 0 dan penjual baru sadar setelah harus mengirimnya. */
-        $kirim = $this->cart_lib->shipping_fee($kec_id, $subtotal);
-        if ( ! $kirim['ok']) {
-            $this->session->set_flashdata('error', $kirim['pesan']);
-            return $this->index();
+        /* Voucher yang ditolak (kedaluwarsa sejak dipasang, kuota habis)
+           TIDAK diam-diam dilewati - pembeli harus tahu harganya berubah. */
+        foreach ($r['voucher'] as $kd => $v) {
+            if ( ! $v['ok']) {
+                $r['ok'] = FALSE;
+                $r['pesan'][] = $v['pesan'];
+            }
+        }
+        if ( ! $r['ok']) {
+            $this->session->set_flashdata('error', implode(' ', array_unique($r['pesan'])) ?: 'Periksa lagi isian checkout.');
+            return redirect('checkout' . ($this->langsung ? '?langsung=1' : ''));
         }
 
-        $ongkir = (int) $kirim['ongkir'];
+        $akun  = $this->auth_lib->row();
+        $phone = $this->normalize_phone($this->input->post('customer_phone', TRUE) ?: $this->input->post('recipient_phone', TRUE));
 
-        $order = array(
-            'store_id'          => $this->cart_lib->store_id(),
+        $dasar = array(
             'user_id'           => $this->auth_lib->id(),
 
             /* Data pemesan diambil dari penerima kalau kolomnya tidak
@@ -153,10 +256,7 @@ class Checkout extends CI_Controller
                kosong berarti pesanan tanpa identitas pemesan sama sekali. */
             'customer_name'     => $this->input->post('customer_name', TRUE)
                                     ?: $this->input->post('recipient_name', TRUE),
-            'customer_phone'    => $this->normalize_phone(
-                                     $this->input->post('customer_phone', TRUE)
-                                     ?: $this->input->post('recipient_phone', TRUE)
-                                   ),
+            'customer_phone'    => $phone,
             'customer_email'    => $this->input->post('customer_email', TRUE)
                                     ?: ($akun ? $akun['email'] : NULL),
 
@@ -171,19 +271,60 @@ class Checkout extends CI_Controller
             // Catatan untuk penjual: warna, ukuran, patokan rumah, dsb.
             'recipient_notes'   => $this->input->post('recipient_notes', TRUE) ?: NULL,
 
-            'subtotal'          => $subtotal,
-            'shipping_fee'      => $ongkir,
-            'total'             => $subtotal + $ongkir,
             'payment_method'    => 'duitku',
             'payment_status'    => 'unpaid',
             'order_status'      => 'pending',
         );
 
-        $saved = $this->order_model->create($order, $items);
-        if ( ! $saved) {
-            $this->session->set_flashdata('error', 'Pesanan gagal disimpan. Coba lagi sebentar lagi.');
-            return $this->index();
+        $kolom_order = array_flip($this->db->list_fields('orders'));
+        $this->load->library('voucher_lib');
+
+        /* Semua pesanan (satu per toko) dan pemakaian vouchernya disimpan
+           dalam SATU transaksi: kalau kuota voucher ternyata baru saja habis
+           direbut pembeli lain, tidak ada pesanan setengah jadi. */
+        $this->db->trans_begin();
+        $tersimpan = array();
+        $gagal = NULL;
+        $grup = bin2hex(random_bytes(8));   // penanda checkout untuk kuota voucher
+
+        foreach ($r['kelompok'] as $sid => $k) {
+            $order = $dasar + array(
+                'store_id'        => (int) $sid,
+                'subtotal'        => $k['subtotal'],
+                'shipping_fee'    => $k['ongkir'],
+                'diskon_toko'     => $k['diskon_toko'],
+                'diskon_platform' => $k['diskon_platform'],
+                'subsidi_ongkir'  => $k['subsidi_ongkir'],
+                'voucher_toko'    => $k['voucher_toko'] ? $k['voucher_toko']['kode'] : NULL,
+                'voucher_platform' => $k['voucher_platform'] ? $k['voucher_platform']['kode'] : NULL,
+                'total'           => $k['total'],
+                'tanggal_kirim'   => $k['tanggal_kirim'],
+                'dp_jumlah'       => $k['dp_jumlah'],
+            );
+            $order = array_intersect_key($order, $kolom_order);
+
+            $saved = $this->order_model->create($order, array_values($k['items']));
+            if ( ! $saved) {
+                $gagal = 'Pesanan gagal disimpan. Coba lagi sebentar lagi.';
+                break;
+            }
+
+            foreach (array('voucher_toko' => 'diskon_toko', 'voucher_platform' => 'diskon_platform') as $vk => $dk) {
+                if ($k[$vk] && $k[$dk] > 0
+                    && ! $this->voucher_lib->pakai($k[$vk], $saved['id'], $k[$dk], $dasar['user_id'], $phone, $grup)) {
+                    $gagal = 'Kuota voucher ' . $k[$vk]['kode'] . ' baru saja habis. Lepas vouchernya lalu coba lagi.';
+                    break 2;
+                }
+            }
+            $tersimpan[] = $saved;
         }
+
+        if ($gagal || $this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', $gagal ?: 'Pesanan gagal disimpan. Coba lagi sebentar lagi.');
+            return redirect('checkout' . ($this->langsung ? '?langsung=1' : ''));
+        }
+        $this->db->trans_commit();
 
         /* Keranjang dikosongkan DI SINI, begitu pesanan tersimpan - bukan
            menunggu invoice Duitku berhasil dibuat.
@@ -196,10 +337,31 @@ class Checkout extends CI_Controller
            tombol "Bayar sekarang" selama belum lunas, dan Payment::pay
            membuat ulang invoice-nya. Keranjang tidak perlu ditahan lagi. */
         $this->cart_lib->clear();
+        $this->session->unset_userdata(self::KUNCI_VOUCHER);
 
+        $orders = array();
+        foreach ($tersimpan as $t) {
+            $orders[] = $this->order_model->get_by_number($t['order_number']);
+        }
+
+        /* Beberapa toko, atau ada uang muka pre-order: satu TAGIHAN yang
+           mencakup semuanya. Satu toko dibayar penuh: alur lama. */
+        $pakai_tagihan = count($orders) > 1 || ! empty($orders[0]['dp_jumlah']);
+
+        if ($pakai_tagihan) {
+            $this->load->library('tagihan_lib');
+            $tg = $this->tagihan_lib->buat(count($orders) > 1 ? 'grup' : 'dp', $orders);
+            if ( ! $tg) {
+                $this->session->set_flashdata('error', 'Pesanan tersimpan, tapi tagihan gagal dibuat. Buka pesananmu untuk membayar.');
+                return redirect('checkout/done/' . $orders[0]['order_number'] . '/' . $orders[0]['access_token']);
+            }
+            return redirect('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']);
+        }
+
+        $saved = $orders[0];
         $done = 'checkout/done/' . $saved['order_number'] . '/' . $saved['access_token'];
 
-        $inv = $this->duitku->create_invoice($saved, $this->baris_duitku($items));
+        $inv = $this->duitku->create_invoice($saved, $this->baris_duitku(array_values(reset($r['kelompok'])['items'])));
 
         if (isset($inv['error']) || empty($inv['reference'])) {
             $this->order_model->mark_failed(
@@ -383,6 +545,43 @@ class Checkout extends CI_Controller
         $this->session->set_flashdata($hasil['ok'] ? 'sukses' : 'error', $hasil['pesan']);
 
         return redirect('checkout/done/' . $order_number . '/' . $token);
+    }
+
+    /**
+     * Bayar sisa pre-order.  POST checkout/lunasi/{nomor}/{token}
+     * Membuat (atau memakai ulang) tagihan pelunasan, lalu ke halaman bayar.
+     */
+    public function lunasi($order_number = NULL, $token = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+        $order = $this->order_model->find_by_token($order_number, $token);
+        if ( ! $order) {
+            show_404();
+        }
+        $done = 'checkout/done/' . $order['order_number'] . '/' . $order['access_token'];
+
+        if (empty($order['dp_jumlah']) || ! empty($order['lunas_at'])
+            || $order['payment_status'] !== 'paid' || $order['order_status'] === 'cancelled') {
+            $this->session->set_flashdata('error', 'Pesanan ini tidak punya sisa pembayaran.');
+            return redirect($done);
+        }
+
+        $this->load->library('tagihan_lib');
+        $tg = $this->tagihan_lib->pelunasan_aktif($order['id']);
+        if ($tg && $tg['status'] === 'failed') {
+            $this->tagihan_lib->buat_invoice($tg);
+            $tg = $this->tagihan_lib->ambil($tg['kode']);
+        }
+        if ( ! $tg) {
+            $tg = $this->tagihan_lib->buat('pelunasan', array($order));
+        }
+        if ( ! $tg || $tg['status'] !== 'unpaid') {
+            $this->session->set_flashdata('error', 'Tagihan pelunasan belum bisa dibuat. Coba lagi sebentar lagi.');
+            return redirect($done);
+        }
+        return redirect('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']);
     }
 
     public function terima($order_number = NULL, $token = NULL)

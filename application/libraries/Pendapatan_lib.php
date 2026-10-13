@@ -46,14 +46,20 @@ class Pendapatan_lib {
      */
     public function catat(array $order)
     {
-        $barang = (int) $order['subtotal'];
         $ongkir = (int) $order['shipping_fee'];
+
+        /* Voucher TOKO mengurangi bagian toko (toko yang memberi potongan).
+           Voucher platform dan subsidi ongkir TIDAK - itu ditanggung
+           marketplace, toko tetap menerima harga barang & ongkir utuh.
+           Komisi dihitung dari nilai barang setelah voucher toko. */
+        $diskon = isset($order['diskon_toko']) ? (int) $order['diskon_toko'] : 0;
+        $barang = max(0, (int) $order['subtotal'] - $diskon);
 
         $komisi = (int) round($barang * $this->komisi_persen() / 100);
 
         $this->CI->db->where('id', (int) $order['id'])->update('orders', array(
             'fee_platform' => $komisi,
-            'net_store'    => max(0, $barang - $komisi + $ongkir),
+            'net_store'    => max(0, (int) $order['subtotal'] + $ongkir - $diskon - $komisi),
         ));
     }
 

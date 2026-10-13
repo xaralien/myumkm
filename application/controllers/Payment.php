@@ -58,6 +58,15 @@ class Payment extends CI_Controller
         if ($order['payment_status'] === 'paid' || $order['payment_method'] === 'cod') {
             return redirect($done);
         }
+
+        /* Pesanan yang dibayar lewat tagihan gabungan (beberapa toko, atau
+           uang muka pre-order) dibayar di halaman tagihannya. */
+        if ( ! empty($order['tagihan_id'])) {
+            $tg = $this->db->where('id', (int) $order['tagihan_id'])->get('tagihan')->row_array();
+            if ($tg) {
+                return redirect('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']);
+            }
+        }
         /* Belum punya reference, atau pembuatannya pernah gagal -> coba lagi.
            Sebelumnya di sini jalan buntu: pesanan sudah tersimpan tapi tidak
            ada cara membuat pembayarannya, dan pembeli hanya diminta
@@ -84,6 +93,109 @@ class Payment extends CI_Controller
 
         $data['pages'] = 'v_pay';
         $this->load->view('index', $data);
+    }
+
+    /* ---------------------------------------------------------- TAGIHAN ---
+     |  Satu pembayaran untuk beberapa pesanan (checkout multi-toko), uang
+     |  muka, atau pelunasan pre-order. Lihat Tagihan_lib.
+     | -------------------------------------------------------------------- */
+
+    /** GET payment/tagihan/{kode}/{token} */
+    public function tagihan($kode = NULL, $token = NULL)
+    {
+        $this->load->library('tagihan_lib');
+        $tg = $this->tagihan_lib->ambil_token($kode, $token);
+        if ( ! $tg) {
+            show_404();
+        }
+
+        if ($tg['status'] === 'failed' || ($tg['status'] === 'unpaid' && empty($tg['duitku_reference']))) {
+            if ( ! $this->tagihan_lib->buat_invoice($tg)) {
+                $this->session->set_flashdata('error', 'Sistem pembayaran masih bermasalah. Coba lagi sebentar lagi.');
+            }
+            $tg = $this->tagihan_lib->ambil($tg['kode']);
+        }
+
+        $url = site_url('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']);
+        $data = array(
+            'tagihan'   => $tg,
+            'orders'    => $this->tagihan_lib->orders($tg['id']),
+            'order'     => array(        // dibaca v_pay.php
+                'order_number'     => $tg['kode'],
+                'total'            => $tg['jumlah'],
+                'access_token'     => $tg['access_token'],
+                'duitku_reference' => $tg['duitku_reference'],
+            ),
+            'status_url' => site_url('payment/status_tagihan/' . $tg['kode'] . '/' . $tg['access_token']),
+            'reference' => $tg['duitku_reference'],
+            'js_url'    => $this->duitku->js_url(),
+            'language'  => $this->duitku->language(),
+            'done_url'  => $url,
+            'fallback'  => $tg['duitku_payment_url'],
+            'poll_awal' => $this->cfg('poll_awal', 3),
+            'poll_akhir' => $this->cfg('poll_akhir', 12),
+            'poll_maks' => $this->cfg('poll_maks_detik', 600),
+        );
+
+        $data['pages'] = $tg['status'] === 'unpaid' && $tg['duitku_reference'] ? 'v_pay' : 'v_tagihan';
+        $this->load->view('index', $data);
+    }
+
+    /** GET payment/status_tagihan/{kode}/{token} - pemantau berkala. */
+    public function status_tagihan($kode = NULL, $token = NULL)
+    {
+        $this->load->library('tagihan_lib');
+        $tg = $this->tagihan_lib->ambil_token($kode, $token);
+        if ( ! $tg) {
+            return $this->json(array('ok' => FALSE, 'pesan' => 'Tagihan tidak ditemukan.'), 404);
+        }
+
+        $berubah = FALSE;
+        if ($tg['status'] === 'unpaid') {
+            $kunci = 'cek_' . $tg['kode'];
+            $lalu  = (int) $this->session->userdata($kunci);
+            if ( ! $lalu || (time() - $lalu) >= (int) $this->cfg('jeda_cek_detik', 3)) {
+                $this->session->set_userdata($kunci, time());
+                $berubah = $this->tanya_tagihan($tg);
+                $tg = $this->tagihan_lib->ambil($tg['kode']);
+            }
+        }
+
+        $st = $tg['status'];
+        return $this->json(array(
+            'ok'             => TRUE,
+            'berubah'        => (bool) $berubah,
+            'payment_status' => $st,
+            'selesai'        => $st !== 'unpaid',
+            'lunas'          => $st === 'paid',
+            'gagal'          => in_array($st, array('failed', 'expired'), TRUE),
+            'bisa_ulang'     => $st === 'failed',
+            'url_ulang'      => site_url('payment/tagihan/' . $tg['kode'] . '/' . $tg['access_token']),
+            'label_bayar'    => label_bayar($st),
+            'label_status'   => label_bayar($st),
+        ));
+    }
+
+    /** Tanya status tagihan ke Duitku. @return bool TRUE kalau jadi lunas */
+    protected function tanya_tagihan(array $tg)
+    {
+        $res = $this->duitku->check_transaction($tg['kode']);
+        if ( ! isset($res['statusCode'])) {
+            return FALSE;
+        }
+        if ($res['statusCode'] === '00') {
+            if (isset($res['amount']) && (int) $res['amount'] !== (int) $tg['jumlah']) {
+                $this->order_model->log_callback($tg['kode'], json_encode($res), FALSE, 'Nominal tagihan beda saat cek status');
+                return FALSE;
+            }
+            $berubah = $this->tagihan_lib->tandai_lunas($tg['kode'], isset($res['reference']) ? $res['reference'] : NULL);
+            $this->order_model->log_callback($tg['kode'], json_encode($res), TRUE, 'Tagihan lunas (cek status)');
+            return $berubah;
+        }
+        if ($res['statusCode'] === '02') {
+            $this->tagihan_lib->tandai_gagal($tg['kode'], 'expired');
+        }
+        return FALSE;
     }
 
     /**
@@ -234,6 +346,18 @@ class Payment extends CI_Controller
             usleep(200000);   // 0,2 detik
         }
 
+        // Tagihan gabungan diperiksa dengan cara yang sama.
+        if ($this->db->table_exists('tagihan')) {
+            $this->load->library('tagihan_lib');
+            foreach ($this->tagihan_lib->belum_lunas($jam_periksa, 50) as $tg) {
+                if ($this->tanya_tagihan($tg)) {
+                    $lunas++;
+                }
+                usleep(200000);
+            }
+            $this->tagihan_lib->kedaluwarsa($jam_expired);
+        }
+
         // Dijalankan SETELAH pengecekan, supaya pembayaran yang masuk di
         // menit terakhir tidak keburu dibatalkan.
         $kedaluwarsa = $this->order_model->tandai_kedaluwarsa($jam_expired);
@@ -369,6 +493,13 @@ class Payment extends CI_Controller
             return $this->plain('Invalid signature', 400);
         }
 
+        /* Tagihan gabungan (awalan TG-): satu pembayaran untuk beberapa
+           pesanan, uang muka, atau pelunasan. */
+        $this->load->library('tagihan_lib');
+        if (Tagihan_lib::kode_tagihan($nomor)) {
+            return $this->callback_tagihan($nomor, $post, $raw);
+        }
+
         $order = $this->order_model->get_by_number($nomor);
         if (! $order) {
             $this->order_model->log_callback($nomor, $raw, FALSE, 'Pesanan tidak ditemukan');
@@ -406,6 +537,28 @@ class Payment extends CI_Controller
 
         // 3. Duitku menganggap callback berhasil hanya kalau isi balasannya
         //    persis "SUCCESS". Kalau tidak, callback akan terus diulang.
+        return $this->plain('SUCCESS', 200);
+    }
+
+    protected function callback_tagihan($kode, array $post, $raw)
+    {
+        $tg = $this->tagihan_lib->ambil($kode);
+        if ( ! $tg) {
+            $this->order_model->log_callback($kode, $raw, FALSE, 'Tagihan tidak ditemukan');
+            return $this->plain('Order not found', 404);
+        }
+        if ((int) $post['amount'] !== (int) $tg['jumlah']) {
+            $this->order_model->log_callback($kode, $raw, FALSE,
+                'Nominal beda: callback ' . $post['amount'] . ' vs tagihan ' . $tg['jumlah']);
+            return $this->plain('Amount mismatch', 400);
+        }
+
+        if ((isset($post['resultCode']) ? $post['resultCode'] : '') === '00') {
+            $this->tagihan_lib->tandai_lunas($kode, isset($post['reference']) ? $post['reference'] : NULL);
+            $this->order_model->log_callback($kode, $raw, TRUE, 'Tagihan lunas');
+        } else {
+            $this->order_model->log_callback($kode, $raw, TRUE, 'Tagihan gagal, resultCode ' . $post['resultCode']);
+        }
         return $this->plain('SUCCESS', 200);
     }
 

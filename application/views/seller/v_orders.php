@@ -30,6 +30,7 @@ $label_alasan = array(
   'dibatalkan'  => 'Pesanan dibatalkan',
   'selesai'     => 'Sudah selesai',
   'belum_bayar' => 'Menunggu pembayaran',
+  'belum_lunas' => 'Menunggu pelunasan',
 );
 
 // Kode yang tidak dikenal ditampilkan apa adanya, bukan string kosong -
@@ -159,6 +160,12 @@ $tampil = function ($peta, $kode) {
 
         <span class="gt__cell gt__cell--status" role="cell" data-label="Status">
           <?= html_escape($tampil($label_status, $o['order_status'])) ?>
+          <?php if ( ! empty($o['tanggal_kirim'])): ?>
+            <em class="lencana lencana-emas">Pre-order &middot; kirim <?= tgl_id($o['tanggal_kirim']) ?></em>
+          <?php endif; ?>
+          <?php if ( ! empty($o['dp_jumlah'])): ?>
+            <em class="hint d-block"><?= empty($o['lunas_at']) ? 'DP ' . rupiah($o['dp_jumlah']) . ', sisa ' . rupiah($o['total'] - $o['dp_jumlah']) : 'DP & pelunasan diterima' ?></em>
+          <?php endif; ?>
         </span>
 
         <span class="gt__cell gt__cell--aksi" role="cell">
@@ -202,6 +209,8 @@ $tampil = function ($peta, $kode) {
           <?php if (! $o['boleh_maju'] && ! $o['boleh_undo']): ?>
             <span class="hint"><?= html_escape($tampil($label_alasan, $o['alasan'])) ?></span>
           <?php endif; ?>
+
+          <?php $this->load->view('seller/parts/order_aksi_tambahan', array('o' => $o)); ?>
         </span>
 
       </div>

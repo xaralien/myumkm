@@ -112,6 +112,25 @@ class Duitku
             $cek += (int) $order['shipping_fee'];
         }
 
+        /* Potongan (voucher toko/platform, subsidi ongkir) dikurangkan dari
+           baris yang ada: ongkir lebih dulu untuk potongan ongkir, sisanya
+           dari baris barang terakhir ke depan. Duitku tidak menerima baris
+           berharga negatif, jadi potongan tidak bisa dikirim sebagai baris
+           tersendiri - dan jumlah baris tetap harus sama dengan total. */
+        $potong = (int) ($order['diskon_toko'] ?? 0) + (int) ($order['diskon_platform'] ?? 0)
+                + (int) ($order['subsidi_ongkir'] ?? 0);
+        if ($potong > 0 && $cek - $potong === (int) $order['total']) {
+            for ($i = count($item_details) - 1; $i >= 0 && $potong > 0; $i--) {
+                $kurang = min($potong, (int) $item_details[$i]['price']);
+                $item_details[$i]['price'] -= $kurang;
+                $potong -= $kurang;
+                $cek    -= $kurang;
+            }
+            $item_details = array_values(array_filter($item_details, function ($b) {
+                return (int) $b['price'] > 0;
+            }));
+        }
+
         if ($cek !== (int) $order['total']) {
             // Selisihnya disebutkan supaya ketahuan bagian mana yang meleset,
             // bukan sekadar "tidak cocok".

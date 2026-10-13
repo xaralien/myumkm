@@ -132,6 +132,7 @@ class Seller extends Seller_Controller
             'product' => NULL,
             'variants' => array(),
             'addons' => array(),
+            'grosir' => array(),
             'categories' => $this->product_model->categories_simple(),
             'ai_aktif' => $this->ai_aktif(),
             'ai_kuota' => $this->ai_aktif() ? $this->ai_lib->kuota() : NULL,
@@ -151,6 +152,8 @@ class Seller extends Seller_Controller
                 ->order_by('sort_order', 'ASC')
                 ->get('product_addons')
                 ->result_array();
+            $tiers = $this->product_model->tiers_by_products(array($id));
+            $data['grosir'] = isset($tiers[(int) $id]) ? $tiers[(int) $id] : array();
         }
         $this->render('seller/v_product_form', $data);
     }
@@ -166,15 +169,63 @@ class Seller extends Seller_Controller
             $v = trim((string) $this->input->post($k, TRUE));
             return $v === '' ? NULL : mb_substr($v, 0, $maks);
         };
+        $kuota = trim((string) $this->input->post('po_kuota_harian'));
+        $dp    = (int) $this->input->post('po_dp_persen');
         $d = array(
             'buatan_tangan' => $this->input->post('buatan_tangan') ? 1 : 0,
             'bahan_lokal'   => $this->input->post('bahan_lokal') ? 1 : 0,
             'halal_no'      => $teks('halal_no', 60),
             'pirt_no'       => $teks('pirt_no', 60),
+
+            'is_preorder'     => $this->input->post('is_preorder') ? 1 : 0,
+            'po_hari'         => max(1, min(60, (int) $this->input->post('po_hari') ?: 3)),
+            'po_kuota_harian' => $kuota === '' ? NULL : max(1, min(9999, (int) $kuota)),
+            // Hanya pilihan yang ada di formulir - DP 100% bukan DP.
+            'po_dp_persen'    => in_array($dp, array(0, 30, 50, 70), TRUE) ? $dp : 0,
         );
 
         $ada = $this->db->list_fields('products');
         return array_intersect_key($d, array_flip($ada));
+    }
+
+    /**
+     * Harga grosir: baris "mulai jumlah" + "harga per pcs". Baris yang tidak
+     * masuk akal (harga tidak lebih murah, jumlah < 2) dibuang diam-diam
+     * dan penjual diberi tahu lewat pesan.
+     */
+    protected function simpan_grosir($product_id, $harga_normal)
+    {
+        if ( ! $this->db->table_exists('product_tiers')) {
+            return;
+        }
+        $min   = (array) $this->input->post('grosir_min');
+        $harga = (array) $this->input->post('grosir_harga');
+
+        $baris = array();
+        $buang = 0;
+        foreach ($min as $i => $m) {
+            $m = (int) $m;
+            $h = (int) preg_replace('/[^0-9]/', '', isset($harga[$i]) ? $harga[$i] : '');
+            if ($m === 0 && $h === 0) {
+                continue;   // baris kosong
+            }
+            if ($m < 2 || $h <= 0 || $h >= $harga_normal || isset($baris[$m])) {
+                $buang++;
+                continue;
+            }
+            $baris[$m] = $h;
+        }
+        ksort($baris);
+
+        $this->db->where('product_id', (int) $product_id)->delete('product_tiers');
+        foreach ($baris as $m => $h) {
+            $this->db->insert('product_tiers', array('product_id' => (int) $product_id, 'min_qty' => $m, 'harga' => $h));
+        }
+
+        if ($buang) {
+            $this->session->set_flashdata('info', $buang . ' baris harga grosir diabaikan: jumlah minimal 2 '
+                . 'dan harganya harus lebih murah dari harga normal.');
+        }
     }
 
     protected function ai_aktif()
@@ -259,6 +310,7 @@ class Seller extends Seller_Controller
 
         $this->simpan_varian($id);
         $this->simpan_addons($id);
+        $this->simpan_grosir($id, (int) $this->input->post('price'));
 
         $this->session->set_flashdata('sukses', 'Produk tersimpan.');
         return redirect('seller');
@@ -1332,6 +1384,9 @@ class Seller extends Seller_Controller
             } elseif ($o['payment_status'] !== 'paid') {
                 // Pesanan tidak diproses sebelum uangnya masuk.
                 $o['alasan'] = 'belum_bayar';
+            } elseif ($alur[$o['order_status']] === 'delivering' && $this->tunggu_pelunasan($o)) {
+                // Pre-order ber-DP: dibuat boleh, dikirim tunggu lunas.
+                $o['alasan'] = 'belum_lunas';
             } else {
                 $o['boleh_maju'] = TRUE;
                 $o['status_baru'] = $alur[$o['order_status']];
@@ -1427,6 +1482,12 @@ class Seller extends Seller_Controller
 
         // Status tujuan dari alur di SERVER, tidak dikirim lewat form.
         $baru = $alur[$order['order_status']];
+
+        if ($baru === 'delivering' && $this->tunggu_pelunasan($order)) {
+            $this->session->set_flashdata('error',
+                'Pesanan pre-order ini baru dibayar uang mukanya. Kirim setelah pembeli melunasi sisanya.');
+            return redirect('seller/orders');
+        }
 
         $this->db->trans_begin();
 
@@ -1608,6 +1669,41 @@ class Seller extends Seller_Controller
         $this->load->view('admin/v_admin_footer');
     }
 
+    /** Pre-order ber-DP yang sisanya belum dilunasi. */
+    protected function tunggu_pelunasan(array $o)
+    {
+        return ! empty($o['dp_jumlah']) && empty($o['lunas_at']);
+    }
+
+    /**
+     * Ingatkan pembeli melunasi pre-order.  POST seller/ingatkan_lunas/{id}
+     * Dikirim lewat WhatsApp dan percakapan pesanan, dengan tautan langsung
+     * ke halaman pesanan - pembeli tinggal menekan "Lunasi".
+     */
+    public function ingatkan_lunas($id = NULL)
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+        $o = $this->pesanan_milik($id);
+        if ( ! $this->tunggu_pelunasan($o) || $o['payment_status'] !== 'paid') {
+            $this->session->set_flashdata('error', 'Pesanan ini tidak menunggu pelunasan.');
+            return redirect('seller/orders');
+        }
+
+        $sisa = (int) $o['total'] - (int) $o['dp_jumlah'];
+        $url  = site_url('checkout/done/' . $o['order_number'] . '/' . $o['access_token']);
+        $isi  = 'Pesanan pre-order ' . $o['order_number'] . ' dari ' . $this->store['name']
+              . ' sudah siap. Mohon lunasi sisa ' . rupiah($sisa) . ' supaya bisa segera dikirim: ' . $url;
+
+        $this->chat_model->sistem($o['id'], 'Penjual meminta pelunasan sisa ' . rupiah($sisa) . '.');
+        $this->load->library('notifikasi_lib');
+        $this->notifikasi_lib->wa($o['customer_phone'], $isi, 'minta_pelunasan');
+
+        $this->session->set_flashdata('sukses', 'Pengingat pelunasan dikirim ke pembeli.');
+        return redirect('seller/orders');
+    }
+
     public function batal_pesanan($id = NULL)
     {
         if ($this->input->method() !== 'post') {
@@ -1670,6 +1766,7 @@ class Seller extends Seller_Controller
             $this->load->library('stok_lib');
             $this->stok_lib->kembalikan($order['id']);
         }
+        $this->order_model->lepas_voucher($order['id']);
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
