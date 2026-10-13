@@ -8,10 +8,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *   GET/POST auth/register   ?next=jalur/tujuan
  *   GET/POST auth/logout
  *
- *   GET/POST auth/lupa              minta tautan reset sandi
+ *   GET/POST auth/lupa              minta tautan reset sandi (email atau WhatsApp)
  *   GET/POST auth/reset/{token}     pasang sandi baru
  *   GET      auth/verifikasi/{token} tandai email terverifikasi
  *   POST     auth/kirim_verifikasi  kirim ulang email verifikasi
+ *   GET/POST auth/otp               masuk dengan kode WhatsApp
  */
 class Auth extends CI_Controller
 {
@@ -29,6 +30,9 @@ class Auth extends CI_Controller
         // rute itu tidak ada, jadi admin mendarat di halaman 404.
         if ($this->auth_lib->is_admin()) {
             return 'admin/stores';
+        }
+        if ($this->auth_lib->is('pendamping') && ! $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE))) {
+            return 'pendamping';
         }
         $next = $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE));
         return $next ?: '';
@@ -146,17 +150,17 @@ class Auth extends CI_Controller
         }
 
         if ($this->input->method() === 'post') {
-            $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
-            $this->form_validation->set_message('valid_email', 'Email tidak valid.');
+            /* Boleh email ATAU nomor WhatsApp. Banyak pelaku UMKM jarang
+               membuka email - bahkan lupa sandi emailnya sendiri - tapi
+               WhatsApp selalu terbuka. Nomor hanya diterima kalau dipakai
+               tepat satu akun; lihat cari_akun(). */
+            $this->form_validation->set_rules('email', 'Email atau nomor WhatsApp', 'required|trim|callback_email_atau_wa');
             $this->form_validation->set_error_delimiters('<p class="field-error">', '</p>');
 
             if ($this->form_validation->run()) {
                 $email = strtolower(trim((string) $this->input->post('email', TRUE)));
 
-                $user = $this->db->select('id, name, email')
-                                 ->where('email', $email)
-                                 ->where('is_active', 1)
-                                 ->get('users')->row_array();
+                $user = $this->cari_akun($email);
 
                 /* Pesannya SAMA, ada akunnya atau tidak.
 
@@ -175,7 +179,7 @@ class Auth extends CI_Controller
                    tanda kutip dan & tampil sebagai &amp;. */
                 $this->session->set_flashdata('sukses',
                     'Kalau ' . $email . ' terdaftar, tautan untuk mengganti sandi '
-                    . 'sudah dikirim ke sana. Cek juga folder spam.');
+                    . 'sudah dikirim ke email dan WhatsApp akun itu. Cek juga folder spam.');
 
                 return redirect('auth/lupa');
             }
@@ -316,6 +320,18 @@ class Auth extends CI_Controller
             return;
         }
 
+        /* Tautan yang sama juga dikirim ke WhatsApp akun (kalau gerbang WA
+           sudah diaktifkan di Admin > Pengaturan; kalau belum, Notifikasi_lib
+           diam saja). */
+        if ( ! empty($user['phone'])) {
+            $this->load->library('notifikasi_lib');
+            $this->notifikasi_lib->wa($user['phone'],
+                'Halo ' . $user['name'] . ', ada permintaan ganti sandi akun ' . $this->config->item('nama_brand') . '.' . "\n\n"
+                . 'Buka tautan ini dalam ' . (int) (Token_model::UMUR_RESET / 3600) . ' jam: '
+                . site_url('auth/reset/' . $t['token']) . "\n\n"
+                . 'Abaikan pesan ini kalau kamu tidak memintanya.', 'reset_sandi');
+        }
+
         $this->surat_lib->kirim(
             $user['email'],
             'Ganti sandi Sapa UMKM',
@@ -388,6 +404,105 @@ class Auth extends CI_Controller
                 return 'Tautan ' . $apa . ' tidak dikenali. '
                      . 'Pastikan tautannya tersalin lengkap, atau minta yang baru di bawah.';
         }
+    }
+
+    /* ========================================================= OTP WA ===
+     |  Masuk cukup dengan nomor WhatsApp + kode 6 angka. Untuk pengguna
+     |  yang sering lupa kata sandi - dan WhatsApp selalu mereka buka.
+     | ================================================================== */
+
+    public function otp()
+    {
+        if ($this->auth_lib->user()) {
+            return redirect($this->sesudah_masuk());
+        }
+
+        $tahap = $this->session->userdata('otp_uid') ? 'kode' : 'nomor';
+
+        if ($this->input->method() === 'post' && $this->input->post('aksi') === 'kirim') {
+            $nomor = $this->normalize_phone($this->input->post('phone', TRUE));
+            $akun  = $this->db->where('phone', $nomor)->where('is_active', 1)
+                ->order_by('last_login_at', 'DESC')->get('users')->result_array();
+
+            if (count($akun) > 1) {
+                $this->session->set_flashdata('error', 'Nomor ini dipakai lebih dari satu akun. Masuk dengan email.');
+                return redirect('auth/login');
+            }
+
+            /* Nomor tidak terdaftar tetap "seolah-olah" dikirimi kode, supaya
+               halaman ini tidak bisa dipakai mengecek nomor siapa yang
+               punya akun. Kodenya memang tidak akan pernah cocok. */
+            $uid = $akun ? (int) $akun[0]['id'] : 0;
+            if ($uid) {
+                $t = $this->auth_lib->buat_otp($uid, 5);
+                if ( ! $t['ok']) {
+                    $this->session->set_flashdata('error', $t['pesan']);
+                    return redirect('auth/otp' . $this->query_next());
+                }
+                $this->load->library('notifikasi_lib');
+                $this->notifikasi_lib->wa($nomor,
+                    'Kode masuk ' . $this->config->item('nama_brand') . ': ' . $t['token'] . "\n"
+                    . 'Berlaku 5 menit. JANGAN berikan kode ini kepada siapa pun, termasuk yang mengaku petugas.',
+                    'otp');
+            }
+            $this->session->set_userdata(array('otp_uid' => $uid, 'otp_nomor' => $nomor));
+            $this->session->set_flashdata('sukses', 'Kode 6 angka sudah dikirim ke WhatsApp ' . $this->samarkan($nomor) . '.');
+            return redirect('auth/otp' . $this->query_next());
+        }
+
+        if ($this->input->method() === 'post' && $this->input->post('aksi') === 'cek') {
+            $uid  = (int) $this->session->userdata('otp_uid');
+            $kode = preg_replace('/[^0-9]/', '', (string) $this->input->post('kode'));
+            if ($uid && $this->auth_lib->pakai_otp($uid, $kode) && $this->auth_lib->masuk_id($uid)) {
+                $this->session->unset_userdata(array('otp_uid', 'otp_nomor'));
+                return redirect($this->sesudah_masuk());
+            }
+            $this->session->set_flashdata('error', 'Kode salah atau sudah kedaluwarsa.');
+            return redirect('auth/otp' . $this->query_next());
+        }
+
+        if ($this->input->get('ulang')) {
+            $this->session->unset_userdata(array('otp_uid', 'otp_nomor'));
+            return redirect('auth/otp' . $this->query_next());
+        }
+
+        $this->load->view('index', array(
+            'pages' => 'v_otp',
+            'tahap' => $tahap,
+            'nomor' => $this->samarkan((string) $this->session->userdata('otp_nomor')),
+            'next'  => $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE)),
+        ));
+    }
+
+    /** Validasi isian lupa sandi: email yang sah, atau nomor HP. */
+    public function email_atau_wa($str)
+    {
+        $str = trim((string) $str);
+        if (strpos($str, '@') !== FALSE ? filter_var($str, FILTER_VALIDATE_EMAIL) : preg_match('/^(\+?62|0)8\d{7,12}$/', preg_replace('/[\s-]/', '', $str))) {
+            return TRUE;
+        }
+        $this->form_validation->set_message('email_atau_wa', 'Tulis email atau nomor WhatsApp yang benar.');
+        return FALSE;
+    }
+
+    /** Email, atau nomor WA yang hanya dipakai satu akun. */
+    protected function cari_akun($isian)
+    {
+        if ($isian === '') {
+            return NULL;
+        }
+        if (strpos($isian, '@') !== FALSE) {
+            return $this->db->where('email', strtolower($isian))->where('is_active', 1)
+                ->get('users')->row_array() ?: NULL;
+        }
+        $akun = $this->db->where('phone', $this->normalize_phone($isian))->where('is_active', 1)
+            ->get('users')->result_array();
+        return count($akun) === 1 ? $akun[0] : NULL;
+    }
+
+    protected function samarkan($nomor)
+    {
+        return strlen($nomor) > 6 ? substr($nomor, 0, 4) . str_repeat('•', strlen($nomor) - 7) . substr($nomor, -3) : $nomor;
     }
 
     /* ------------------------------------------------------------------ */

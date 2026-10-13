@@ -17,14 +17,14 @@
 
     <div class="form-card">
       <p class="hint mb-4">
-        Masukkan email yang kamu pakai mendaftar. Kami kirimkan tautan untuk
+        Masukkan email atau nomor WhatsApp yang kamu pakai mendaftar. Kami kirimkan tautan untuk
         memasang sandi baru - tautannya berlaku satu jam.
       </p>
 
       <?= form_open('auth/lupa') ?>
         <div class="mb-4">
-          <label class="form-label" for="email">Email</label>
-          <input type="email" id="email" name="email" class="form-control" autocomplete="email"
+          <label class="form-label" for="email">Email atau nomor WhatsApp</label>
+          <input type="text" id="email" name="email" class="form-control" autocomplete="username" placeholder="nama@email.com atau 0812..."
                  value="<?= set_value('email') ?>" required autofocus>
           <?= form_error('email') ?>
         </div>
@@ -32,7 +32,7 @@
       <?= form_close() ?>
 
       <p class="akun-alih">
-        Ingat sandinya? <a href="<?= site_url('auth/login') ?>">Masuk</a>
+        Ingat sandinya? <a href="<?= site_url('auth/login') ?>">Masuk</a> &middot; <a href="<?= site_url('auth/otp') ?>">Masuk pakai kode WhatsApp</a>
       </p>
     </div>
 

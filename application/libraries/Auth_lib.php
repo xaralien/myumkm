@@ -144,6 +144,91 @@ class Auth_lib
         return $row['email_verified_at'] !== NULL;
     }
 
+    /* ============================================================ OTP WA ===
+     |  Kode 6 angka untuk masuk lewat WhatsApp (Auth::otp). Disimpan di
+     |  tabel auth_tokens yang sama dengan reset sandi & verifikasi email
+     |  (Token_model), dengan jenis 'otp'.
+     |
+     |  Hash-nya DIBERI GARAM user_id + waktu kedaluwarsa. token_hash di tabel
+     |  itu UNIQUE dan barisnya tidak pernah dihapus, sedangkan kode 6 angka
+     |  hanya punya sejuta kemungkinan - tanpa garam, dua orang yang kebetulan
+     |  mendapat kode sama membuat insert-nya gagal.
+     | ===================================================================== */
+
+    protected function hash_otp($user_id, $kode, $expires_at)
+    {
+        return hash('sha256', 'otp|' . (int) $user_id . '|' . $expires_at . '|' . $kode);
+    }
+
+    /**
+     * @return array ['ok' => bool, 'token' => string, 'pesan' => string]
+     */
+    public function buat_otp($user_id, $menit = 5)
+    {
+        // Satu permintaan per menit per akun - tanpa ini, tombol "kirim
+        // ulang" bisa dipakai membanjiri WhatsApp seseorang.
+        $baru = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
+            ->where('created_at >', date('Y-m-d H:i:s', time() - 60))
+            ->count_all_results('auth_tokens');
+        if ($baru) {
+            return array('ok' => FALSE, 'token' => '', 'pesan' => 'Tunggu satu menit sebelum meminta kode lagi.');
+        }
+
+        $kode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $exp  = date('Y-m-d H:i:s', time() + $menit * 60);
+
+        // Kode lama yang belum terpakai dimatikan: hanya yang terbaru berlaku.
+        $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
+            ->where('used_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('used_at' => date('Y-m-d H:i:s')));
+
+        $this->CI->db->insert('auth_tokens', array(
+            'user_id'    => (int) $user_id,
+            'jenis'      => 'otp',
+            'token_hash' => $this->hash_otp($user_id, $kode, $exp),
+            'expires_at' => $exp,
+            'ip'         => $this->CI->input->ip_address(),
+        ));
+        return array('ok' => TRUE, 'token' => $kode, 'pesan' => '');
+    }
+
+    /**
+     * Cocokkan kode lalu memakainya. Dibatasi 5 kali salah - enam angka
+     * hanya punya sejuta kemungkinan, jadi tebakan harus dihentikan.
+     */
+    public function pakai_otp($user_id, $kode)
+    {
+        $row = $this->CI->db->where('user_id', (int) $user_id)->where('jenis', 'otp')
+            ->where('used_at IS NULL', NULL, FALSE)
+            ->where('expires_at >', date('Y-m-d H:i:s'))
+            ->order_by('id', 'DESC')->limit(1)->get('auth_tokens')->row_array();
+        if ( ! $row || (int) $row['percobaan'] >= 5) {
+            return FALSE;
+        }
+        if ( ! hash_equals($row['token_hash'], $this->hash_otp($user_id, (string) $kode, $row['expires_at']))) {
+            $this->CI->db->set('percobaan', 'percobaan + 1', FALSE)
+                ->where('id', $row['id'])->update('auth_tokens');
+            return FALSE;
+        }
+        $this->CI->db->where('id', (int) $row['id'])->where('used_at IS NULL', NULL, FALSE)
+            ->update('auth_tokens', array('used_at' => date('Y-m-d H:i:s')));
+        return $this->CI->db->affected_rows() > 0;
+    }
+
+    /** Masuk tanpa kata sandi - hanya setelah OTP terbukti sah. */
+    public function masuk_id($user_id)
+    {
+        $user = $this->CI->db->where('id', (int) $user_id)->where('is_active', 1)
+            ->get('users')->row_array();
+        if ( ! $user) {
+            return FALSE;
+        }
+        $this->masuk($user);
+        $this->CI->db->where('id', $user['id'])
+            ->update('users', array('last_login_at' => date('Y-m-d H:i:s')));
+        return TRUE;
+    }
+
     protected function masuk(array $user)
     {
         // Cegah session fixation: ganti id session setelah login.

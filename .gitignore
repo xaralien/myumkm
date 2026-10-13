@@ -38,6 +38,10 @@ application/config/ai.php
 # Unggahan pengguna
 upload/produk/*
 upload/avatar/*
+upload/banner/*
+# Dokumen legalitas penjual (KTP, NIB) - JANGAN pernah ikut ter-commit.
+application/dokumen_toko/*
+!application/dokumen_toko/index.html
 !upload/**/index.html
 application/config/duitku.php
 application/config/duitku - Copy.php

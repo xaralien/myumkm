@@ -34,3 +34,25 @@ $otomatis = $CI->tampilan_lib->otomatis();
     </a>
   <?php endif; ?>
 </div>
+
+<?php
+  /* Preferensi tambahan: ukuran huruf, hemat kuota, bahasa (cookie). */
+  $balik_pref = rawurlencode(uri_string());
+  $baris_pref = array(
+    'huruf'  => t('Ukuran huruf'),
+    'hemat'  => t('Hemat kuota'),
+    'bahasa' => t('Bahasa'),
+  );
+?>
+<?php foreach ($baris_pref as $k => $label): ?>
+  <div class="tampilan-sakelar pref-baris">
+    <span class="tampilan-label"><?= html_escape($label) ?></span>
+    <div class="tampilan-geser" role="group" aria-label="<?= html_escape($label) ?>">
+      <?php foreach (preferensi_daftar()[$k] as $v => $nama): ?>
+        <a href="<?= site_url('preferensi/atur?k=' . $k . '&v=' . $v . '&balik=' . $balik_pref) ?>"
+           class="<?= preferensi($k) === (string) $v ? 'is-aktif' : '' ?>"
+           <?= preferensi($k) === (string) $v ? 'aria-current="true"' : '' ?>><?= html_escape($nama) ?></a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+<?php endforeach; ?>

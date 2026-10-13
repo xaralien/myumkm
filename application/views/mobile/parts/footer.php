@@ -29,11 +29,11 @@
        pesanan sendiri, jadi tidak perlu lagi mengetik nomor pesanan di
        halaman lacak. */
     $tab = array(
-      array('', 'Beranda', 'M4 11l8-7 8 7v9H4z|M10 20v-6h4v6', array('', 'home')),
-      array('shop', 'Katalog', 'M4 7h16l-1.5 13h-13L4 7z|M9 7V5a3 3 0 0 1 6 0v2', array('shop', 'produk')),
-      array('cart', 'Keranjang', 'M3 4h2l2.4 11h11l2-8H6.2', array('cart', 'checkout')),
+      array('', t('Beranda'), 'M4 11l8-7 8 7v9H4z|M10 20v-6h4v6', array('', 'home')),
+      array('shop', t('Katalog'), 'M4 7h16l-1.5 13h-13L4 7z|M9 7V5a3 3 0 0 1 6 0v2', array('shop', 'produk')),
+      array('cart', t('Keranjang'), 'M3 4h2l2.4 11h11l2-8H6.2', array('cart', 'checkout')),
       $akun
-        ? array('akun/pesanan', 'Pesanan saya', 'M5 4h14v16l-7-4-7 4z', array('akun', 'track'))
+        ? array('akun/pesanan', t('Pesanan saya'), 'M5 4h14v16l-7-4-7 4z', array('akun', 'track'))
         : array('track', 'Lacak', 'M5 4h14v16l-7-4-7 4z', array('track')),
     );
   ?>
@@ -152,7 +152,8 @@
       <?php endif; ?>
 
       <nav class="mb-sheet-menu" aria-label="Menu akun">
-        <a href="<?= site_url('akun/alamat') ?>">Alamat saya</a>
+        <a href="<?= site_url('favorit') ?>"><?= t('Favorit & toko diikuti') ?></a>
+        <a href="<?= site_url('akun/alamat') ?>"><?= t('Alamat saya') ?></a>
         <a href="<?= site_url('akun/pesanan') ?>">
           Pesanan saya
           <span class="mb-sheet-angka" data-akun-notif="pesanan_saya" hidden></span>
@@ -258,6 +259,9 @@
 </script>
 <script src="<?= aset('assets/js/gps.js') ?>"></script>
 
+<script src="<?= aset('assets/js/favorit.js') ?>"></script>
+<script>window.PWA_SW = '<?= base_url('sw.js') ?>';</script>
+<script src="<?= aset('assets/js/pwa.js') ?>"></script>
 </body>
 
 </html>

@@ -135,6 +135,7 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
               </tr>
             <?php endif; ?>
           </table>
+          <?php $this->load->view('parts/lacak_resi', array('lacak' => isset($lacak) ? $lacak : NULL)); ?>
         </div>
 
         <div class="form-card">

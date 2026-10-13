@@ -37,6 +37,8 @@
           <p class="tk-deskripsi"><?= html_escape(mb_substr($toko['description'], 0, 160)) ?></p>
         <?php endif; ?>
 
+        <?php $this->load->view('parts/toko_info_tambahan'); ?>
+
         <div class="tk-aksi">
           <!-- Chat toko tanpa membawa produk: pengunjung di halaman toko
                belum tentu menanyakan satu barang tertentu. Kartu produk

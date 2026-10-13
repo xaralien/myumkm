@@ -67,6 +67,24 @@ class Product_model extends CI_Model
         return $out;
     }
 
+    /**
+     * Tingkat harga grosir: [product_id => [[min_qty, harga], ...]].
+     * Tabel dari 28_promo_preorder_multitoko.sql - kosong kalau belum ada.
+     */
+    public function tiers_by_products(array $ids)
+    {
+        $ids = array_filter(array_map('intval', $ids));
+        if ( ! $ids || ! $this->db->table_exists('product_tiers')) {
+            return array();
+        }
+        $out = array();
+        foreach ($this->db->where_in('product_id', $ids)->order_by('min_qty', 'ASC')
+                     ->get('product_tiers')->result_array() as $t) {
+            $out[(int) $t['product_id']][] = $t;
+        }
+        return $out;
+    }
+
     public function listing($limit = 24, $offset = 0)
     {
         return $this
@@ -138,13 +156,17 @@ class Product_model extends CI_Model
            tidak pantas mengalahkan 4,8 dari dua ratus ulasan. Jumlah
            ulasan jadi penentu kedua. */
         'ulasan' => array('rating_avg', 'DESC'),
+
+        // Kolom dari 27_wishlist_ikuti_label.sql, dinaikkan Stok_lib.
+        'terlaris' => array('terjual_count', 'DESC'),
     );
 
     public function sort_options()
     {
         return array(
-            'baru'   => 'Terbaru',
-            'ulasan' => 'Ulasan terbaik',
+            'baru'     => 'Terbaru',
+            'terlaris' => 'Terlaris',
+            'ulasan'   => 'Ulasan terbaik',
             'mahal'  => 'Harga tertinggi',
             'murah'  => 'Harga terendah',
             'nama' => 'Nama A-Z',

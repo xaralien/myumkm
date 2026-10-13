@@ -35,6 +35,7 @@
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
         <?= html_escape($toko['district_name']) ?>, <?= html_escape($toko['regency_name']) ?>
       </p>
+      <?php $this->load->view('parts/toko_info_tambahan'); ?>
     </div>
   </div>
 

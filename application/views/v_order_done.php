@@ -26,9 +26,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
     <div class="row justify-content-center">
       <div class="col-lg-8">
 
-        <?php if ($this->session->flashdata('error')): ?>
-          <div class="alert-box alert-error mb-4"><?= html_escape($this->session->flashdata('error')) ?></div>
-        <?php endif; ?>
+        <?php $this->load->view('parts/auth_pesan'); ?>
 
         <div class="form-card text-center">
           <p class="hint mb-1">Nomor pesanan</p>
@@ -41,6 +39,8 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
             <span class="badge-status"><?= label_status($order['order_status']) ?></span>
           </p>
 
+          <?php $this->load->view('parts/order_info_tambahan'); ?>
+
           <?php if ($order['order_status'] === 'cancelled'): ?>
             <p>Pesanan ini dibatalkan.</p>
 
@@ -50,9 +50,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
                 <strong><?= $proses ?> hari kerja</strong>, lalu mengirimnya.</p>
             <?php elseif ($order['order_status'] === 'delivering'): ?>
               <p>Pesananmu sedang dikirim<?= $order['courier'] ? ' lewat <strong>' . html_escape($order['courier']) . '</strong>' : '' ?>.</p>
-              <?php if ($order['tracking_number']): ?>
-                <p class="resi">Nomor resi <strong><?= html_escape($order['tracking_number']) ?></strong></p>
-              <?php endif; ?>
+              <?php $this->load->view('parts/lacak_resi', array('lacak' => isset($lacak) ? $lacak : NULL)); ?>
               <!-- Konfirmasi dari pembeli yang menutup transaksi. POST, bukan
                    tautan - tautan bisa terpicu tanpa sengaja oleh pratinjau
                    tautan di aplikasi chat. -->
@@ -138,6 +136,8 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
           <?php endif; ?>
         </div>
 
+        <?php $this->load->view('parts/order_sengketa'); ?>
+
         <div class="form-card">
           <h3 class="form-card-title">Pengiriman</h3>
           <table class="detail-table">
@@ -189,7 +189,16 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
 
           <div class="summary-row mt-3"><span>Subtotal</span><strong><?= rupiah($order['subtotal']) ?></strong></div>
           <div class="summary-row"><span>Ongkos kirim</span><strong><?= rupiah($order['shipping_fee']) ?></strong></div>
+          <?php foreach (array('diskon_toko' => 'Voucher toko', 'diskon_platform' => 'Voucher platform', 'subsidi_ongkir' => 'Subsidi ongkir') as $kol => $lbl): ?>
+            <?php if ( ! empty($order[$kol])): ?>
+              <div class="summary-row is-potongan"><span><?= $lbl ?><?= $kol === 'diskon_toko' && $order['voucher_toko'] ? ' (' . html_escape($order['voucher_toko']) . ')' : '' ?><?= $kol === 'diskon_platform' && $order['voucher_platform'] ? ' (' . html_escape($order['voucher_platform']) . ')' : '' ?></span><strong>&minus;<?= rupiah($order[$kol]) ?></strong></div>
+            <?php endif; ?>
+          <?php endforeach; ?>
           <div class="summary-row summary-total"><span>Total</span><strong><?= rupiah($order['total']) ?></strong></div>
+          <?php if ( ! empty($order['dp_jumlah'])): ?>
+            <div class="summary-row"><span>Uang muka (DP)</span><strong><?= rupiah($order['dp_jumlah']) ?></strong></div>
+            <div class="summary-row"><span>Sisa <?= empty($order['lunas_at']) ? 'yang harus dilunasi' : '(sudah lunas)' ?></span><strong><?= rupiah($order['total'] - $order['dp_jumlah']) ?></strong></div>
+          <?php endif; ?>
         </div>
 
         <!-- Guest tidak punya akun, jadi link ini SATU-SATUNYA cara mereka

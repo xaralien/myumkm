@@ -51,6 +51,7 @@ class Toko extends CI_Controller {
             'tab'       => $tab,
             'statistik' => $this->statistik($toko),
             'pages'     => 'v_toko',
+            'toko_ekstra' => $this->ekstra($toko),
         );
 
         if ($tab === 'ulasan') {
@@ -168,6 +169,32 @@ class Toko extends CI_Controller {
             'total'         => $total,
             'hal'           => $hal,
             'hal_total'     => max(1, (int) ceil($total / self::PER_HAL)),
+        );
+    }
+
+    /**
+     * Data tambahan halaman toko: ikuti, pengikut, lencana. Lencana naik
+     * kelas & dokumen terverifikasi diisi oleh Naik_kelas_lib kalau ada.
+     */
+    protected function ekstra(array $toko)
+    {
+        $this->load->model('pembeli_model');
+        $uid = $this->auth_lib->id();
+
+        $lencana = array();
+        if (is_file(APPPATH . 'libraries/Naik_kelas_lib.php')) {
+            $this->load->library('naik_kelas_lib');
+            $lencana = $this->naik_kelas_lib->lencana_toko($toko['id']);
+        }
+
+        $this->load->library(array('voucher_lib', 'rincian_lib'));
+
+        return array(
+            'libur'     => $this->rincian_lib->libur($toko),
+            'voucher'   => $this->voucher_lib->aktif_toko($toko['id']),
+            'mengikuti' => $uid ? $this->pembeli_model->mengikuti($uid, $toko['id']) : FALSE,
+            'pengikut'  => $this->pembeli_model->jumlah_pengikut($toko['id']),
+            'lencana'   => $lencana,
         );
     }
 }

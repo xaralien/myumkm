@@ -34,6 +34,8 @@ $sortir = function ($kunci, $label, $angka = FALSE) use ($url, $urut, $arah) {
   <a href="<?= site_url('seller/form') ?>" class="btn btn-primary">Tambah produk</a>
 </div>
 
+<?php $this->load->view('seller/parts/produk_daftar_atas'); ?>
+
 <!-- Pencarian lewat GET: hasilnya bisa di-bookmark dan tidak memunculkan
      dialog "kirim ulang formulir" saat halaman di-refresh. -->
 <form method="get" action="<?= site_url('seller') ?>" class="seller-cari">
@@ -93,8 +95,12 @@ $sortir = function ($kunci, $label, $angka = FALSE) use ($url, $urut, $arah) {
       <div class="gt__row" role="row">
 
         <span class="gt__cell gt__cell--img" role="cell">
-          <img src="<?= base_url('upload/produk/' . $p['image']) ?>"
-            alt="" loading="lazy">
+          <?php if ($p['image']): ?>
+            <img src="<?= base_url('upload/produk/' . $p['image']) ?>"
+              alt="" loading="lazy">
+          <?php else: ?>
+            <span class="foto-kosong" title="Belum ada foto">📷</span>
+          <?php endif; ?>
         </span>
 
         <span class="gt__cell gt__cell--nama" role="cell">
@@ -119,10 +125,21 @@ $sortir = function ($kunci, $label, $angka = FALSE) use ($url, $urut, $arah) {
           <span class="badge-status <?= $p['is_active'] ? 'is-ok' : '' ?>">
             <?= $p['is_active'] ? 'Tayang' : 'Disembunyikan' ?>
           </span>
+          <?php if ( ! empty($p['diturunkan_at'])): ?>
+            <span class="lencana lencana-merah" title="<?= html_escape($p['diturunkan_alasan']) ?>">Diturunkan admin</span>
+          <?php endif; ?>
+          <?php if ($p['stock'] !== NULL && (int) $p['stock'] <= $ambang_stok): ?>
+            <span class="lencana <?= (int) $p['stock'] === 0 ? 'lencana-merah' : 'lencana-emas' ?>">
+              <?= (int) $p['stock'] === 0 ? 'Stok habis' : 'Sisa ' . (int) $p['stock'] ?>
+            </span>
+          <?php endif; ?>
         </span>
 
         <span class="gt__cell gt__cell--aksi" role="cell">
           <a href="<?= site_url('seller/form/' . $p['id']) ?>">Ubah</a>
+          <?= form_open('seller/massal/duplikat/' . $p['id'], array('class' => 'inline-form')) ?>
+          <button type="submit" class="link-btn" title="Buat salinan produk ini">Duplikat</button>
+          <?= form_close() ?>
           <?= form_open('seller/toggle/' . $p['id'], array('class' => 'inline-form')) ?>
           <button type="submit" class="link-btn">
             <?= $p['is_active'] ? 'Sembunyikan' : 'Tayangkan' ?>

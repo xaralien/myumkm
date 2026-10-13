@@ -58,6 +58,36 @@ class Admin_Controller extends CI_Controller {
             $this->session->set_flashdata('error', 'Silakan masuk sebagai admin.');
             redirect('auth/login');
         }
+
+        /* Setiap aksi POST admin dicatat otomatis di log audit - termasuk
+           halaman admin yang ditambahkan nanti, tanpa perlu ingat memanggil
+           pencatat di tiap method. Isian rahasia tidak ikut dicatat. */
+        if ($this->input->method() === 'post') {
+            $this->load->library('audit_lib');
+            $seg   = $this->uri->segment_array();
+            $objek = isset($seg[2]) ? $seg[2] : NULL;
+            $id    = NULL;
+            foreach (array_reverse($seg) as $x) {
+                if (ctype_digit((string) $x)) { $id = (int) $x; break; }
+            }
+            $kunci = array();
+            foreach ((array) $this->input->post() as $k => $v) {
+                if (preg_match('/csrf|pass|sandi|token|kunci|secret/i', $k)) {
+                    continue;
+                }
+                $kunci[] = $k . (is_scalar($v) && mb_strlen((string) $v) <= 40 ? '=' . $v : '');
+            }
+            $this->audit_lib->catat(implode('/', array_slice($seg, 1, 2)) ?: 'admin', $objek, $id,
+                                    $kunci ? implode(', ', $kunci) : NULL);
+        }
+    }
+
+    protected function render($view, $data = array())
+    {
+        $data['me'] = $this->me;
+        $this->load->view('admin/v_admin_header', $data);
+        $this->load->view($view, $data);
+        $this->load->view('admin/v_admin_footer');
     }
 }
 
@@ -93,5 +123,14 @@ class Seller_Controller extends CI_Controller {
         /* Toko yang BELUM disetujui admin tetap boleh masuk panel - pemiliknya
            bisa menyiapkan produk sambil menunggu. Produknya tidak tampil di
            katalog, karena semua query katalog mensyaratkan s.is_active = 1. */
+    }
+
+    protected function render($view, $data = array())
+    {
+        $data['me'] = $this->me;
+        $data['store'] = $this->store;
+        $this->load->view('admin/v_admin_header', $data);
+        $this->load->view($view, $data);
+        $this->load->view('admin/v_admin_footer');
     }
 }

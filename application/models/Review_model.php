@@ -149,6 +149,7 @@ class Review_model extends CI_Model {
      */
     public function hitung_ulang($product_id, $store_id)
     {
+        $this->tampil();
         $p = $this->db->select('COUNT(*) AS n, AVG(rating) AS r', FALSE)
                       ->where('product_id', (int) $product_id)
                       ->get('reviews')->row_array();
@@ -158,6 +159,7 @@ class Review_model extends CI_Model {
             'rating_avg'   => $p['n'] ? round($p['r'], 1) : 0,
         ));
 
+        $this->tampil();
         $s = $this->db->select('COUNT(*) AS n, AVG(rating) AS r', FALSE)
                       ->where('store_id', (int) $store_id)
                       ->get('reviews')->row_array();
@@ -181,6 +183,7 @@ class Review_model extends CI_Model {
     {
         $kolom = ($jenis === 'toko') ? 'store_id' : 'product_id';
 
+        $this->tampil();
         $baris = $this->db
             ->select('rating, COUNT(*) AS n', FALSE)
             ->where($kolom, (int) $id)
@@ -195,6 +198,7 @@ class Review_model extends CI_Model {
            satu angka membuat daftar di bawahnya terlihat lebih pendek
            daripada yang dijanjikan. */
         $kolom_i = ($jenis === 'toko') ? 'store_id' : 'product_id';
+        $this->tampil();
         $berisi = (int) $this->db->where($kolom_i, (int) $id)
                                  ->where('isi IS NOT NULL', NULL, FALSE)
                                  ->where("TRIM(isi) !=", '')
@@ -225,6 +229,7 @@ class Review_model extends CI_Model {
     {
         $kolom = ($jenis === 'toko') ? 'r.store_id' : 'r.product_id';
 
+        $this->tampil('r.');
         return (int) $this->db->from('review_media m')
                               ->join('reviews r', 'r.id = m.review_id')
                               ->where($kolom, (int) $id)
@@ -245,6 +250,7 @@ class Review_model extends CI_Model {
                  ->join('products p', 'p.id = r.product_id', 'left')
                  ->join('stores s', 's.id = r.store_id', 'left')
                  ->where($kolom, (int) $id);
+        $this->tampil('r.');
 
         if ( ! empty($opsi['rating'])) {
             $this->db->where('r.rating', (int) $opsi['rating']);
@@ -267,6 +273,7 @@ class Review_model extends CI_Model {
         $kolom = ($jenis === 'toko') ? 'r.store_id' : 'r.product_id';
 
         $this->db->from('reviews r')->where($kolom, (int) $id);
+        $this->tampil('r.');
 
         if ( ! empty($opsi['rating'])) {
             $this->db->where('r.rating', (int) $opsi['rating']);
@@ -285,6 +292,7 @@ class Review_model extends CI_Model {
     {
         $kolom = ($jenis === 'toko') ? 'r.store_id' : 'r.product_id';
 
+        $this->tampil('r.');
         return $this->db
             ->select('m.*, r.id AS review_id', FALSE)
             ->from('review_media m')
@@ -364,5 +372,20 @@ class Review_model extends CI_Model {
         return (int) $this->db->where('store_id', (int) $store_id)
                               ->where('balasan IS NULL', NULL, FALSE)
                               ->count_all_results('reviews');
+    }
+
+    /**
+     * Sembunyikan ulasan yang diturunkan admin (moderasi) dari tampilan
+     * publik dan dari perhitungan rating. Kolomnya dari 32_moderasi_cms.sql.
+     */
+    protected function tampil($alias = '')
+    {
+        static $ada = NULL;
+        if ($ada === NULL) {
+            $ada = $this->db->field_exists('is_hidden', 'reviews');
+        }
+        if ($ada) {
+            $this->db->where($alias . 'is_hidden', 0);
+        }
     }
 }

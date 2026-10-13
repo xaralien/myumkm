@@ -24,6 +24,9 @@ $this->load->view('v_footer');
 <script src="<?= aset('assets/js/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= aset('assets/js/tiny-slider.js') ?>"></script>
 <script src="<?= aset('assets/js/custom.js') ?>"></script>
+<script src="<?= aset('assets/js/favorit.js') ?>"></script>
+<script>window.PWA_SW = '<?= base_url('sw.js') ?>';</script>
+<script src="<?= aset('assets/js/pwa.js') ?>"></script>
 </body>
 
 </html>

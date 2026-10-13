@@ -91,6 +91,9 @@
   <?php endif; ?>
 </section>
 
+<?php $this->load->view('parts/banner_beranda'); ?>
+<?php $this->load->view('parts/beranda_deret'); ?>
+
 <?php if ($toko_dekat): ?>
   <section class="mb-bagian">
     <div class="mb-judul">

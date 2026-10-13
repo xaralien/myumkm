@@ -13,7 +13,7 @@ $lokasi   = $CI->location_lib->has() ? $CI->location_lib->label() : NULL;
 $seg      = $this->uri->segment(1);
 ?>
 <!doctype html>
-<html lang="id">
+<html lang="<?= preferensi('bahasa') === 'id' ? 'id' : preferensi('bahasa') ?>" class="<?= preferensi_kelas() ?>">
 
 <head>
   <meta charset="utf-8">
@@ -24,9 +24,12 @@ $seg      = $this->uri->segment(1);
   <link rel="shortcut icon" href="<?= base_url('favicon.png') ?>">
   <title><?= html_escape($brand) ?></title>
 
+  <?php /* Mode hemat kuota: huruf web tidak diunduh, pakai huruf bawaan HP. */ ?>
+  <?php if (preferensi('hemat') !== '1'): ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <?php endif; ?>
 
   <!-- Hanya token warna & komponen pesanan dari tema desktop yang dipakai;
        tata letaknya punya berkas sendiri. -->
@@ -39,7 +42,12 @@ $seg      = $this->uri->segment(1);
   <link href="<?= aset('assets/css/style.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/order.css') ?>" rel="stylesheet">
   <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
+  <link rel="stylesheet" href="<?= aset('assets/css/fitur.css') ?>">
   <link rel="stylesheet" href="<?= aset('assets/css/mobile.css') ?>">
+  <!-- PWA: bisa dipasang di layar utama HP & tetap terbuka saat sinyal hilang. -->
+  <link rel="manifest" href="<?= site_url('manifest.webmanifest') ?>">
+  <meta name="theme-color" content="#22466C">
+  <link rel="apple-touch-icon" href="<?= aset('assets/images/pwa-192.png') ?>">
 </head>
 
 <?php

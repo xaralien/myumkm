@@ -64,3 +64,16 @@ $route['admin'] = 'admin/dashboard';
 /* Halaman toko: toko/{slug}. Tanpa rute ini, CodeIgniter menganggap slug
    sebagai nama method dan mengembalikan 404. */
 $route['toko/(:any)'] = 'toko/index/$1';
+
+/* Halaman panel penjual tambahan tinggal di controllers/penjual/ supaya
+   Seller.php tidak terus membengkak - alamatnya tetap seller/... */
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak|sengketa|pengumuman|ongkir)'] = 'penjual/$1';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak|sengketa|pengumuman|ongkir)/(:any)'] = 'penjual/$1/$2';
+$route['seller/(voucher|pembukuan|laporan|legalitas|akademi|naik_kelas|mulai|massal|template|qr|libur|cetak|sengketa|pengumuman|ongkir)/(:any)/(:any)'] = 'penjual/$1/$2/$3';
+
+// Halaman kampanye buatan admin.
+$route['promo/(:any)'] = 'promo/index/$1';
+
+// PWA - manifest aplikasi & halaman offline (sw.js berkas statis di akar).
+$route['manifest.webmanifest'] = 'pwa/manifest';
+$route['offline'] = 'pwa/offline';

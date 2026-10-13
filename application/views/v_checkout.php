@@ -12,12 +12,12 @@
   $isi = function ($kolom, $dari_akun) use ($a) {
     return set_value($kolom, isset($a[$dari_akun]) ? $a[$dari_akun] : '');
   };
-  $proses = max(1, (int) $toko['waktu_proses_hari']);
+  $tanggal_post = (array) $this->input->post('tanggal_kirim');
 ?>
 
 <div class="hero hero-page">
   <div class="container"><div class="row"><div class="col-lg-12">
-    <div class="intro-excerpt text-center"><h1>Checkout</h1></div>
+    <div class="intro-excerpt text-center"><h1><?= t('Checkout') ?></h1></div>
   </div></div></div>
 </div>
 
@@ -40,7 +40,7 @@
 
         <!-- ============ 1. ALAMAT PENGIRIMAN ============ -->
         <div class="form-card">
-          <h3 class="form-card-title">Alamat pengiriman</h3>
+          <h3 class="form-card-title"><?= t('Alamat pengiriman') ?></h3>
 
           <?php if (! $alamat_saya && $this->auth_lib->id()): ?>
             <!-- Belum punya alamat tersimpan. Petunjuknya ditaruh di sini,
@@ -206,7 +206,7 @@
 
         <!-- ============ 3. PEMBAYARAN ============ -->
         <div class="form-card">
-          <h3 class="form-card-title">Pembayaran</h3>
+          <h3 class="form-card-title"><?= t('Pembayaran') ?></h3>
           <p class="mb-0">
             Transfer bank (virtual account), e-wallet, atau QRIS. Metodenya dipilih
             di halaman berikutnya.
@@ -217,51 +217,107 @@
 
       <!-- ============ RINGKASAN ============ -->
       <div class="col-lg-5">
-        <div class="cart-summary is-sticky">
-          <h3 class="mb-4">Ringkasan pesanan</h3>
+        <div class="cart-summary is-sticky" id="ringkasan">
+          <h3 class="mb-3"><?= t('Ringkasan pesanan') ?></h3>
           <?php if (! empty($langsung)): ?>
             <p class="hint mb-3">
               Pembelian langsung &mdash; isi keranjangmu tidak berubah.
             </p>
           <?php endif; ?>
+          <?php if (count($rincian['kelompok']) > 1): ?>
+            <p class="hint mb-3">
+              Barangmu dari <?= count($rincian['kelompok']) ?> toko. Tiap toko mengirim sendiri-sendiri,
+              tapi kamu cukup membayar <strong>sekali</strong>.
+            </p>
+          <?php endif; ?>
 
-          <p class="ringkasan-toko">
-            <?= html_escape($toko['name']) ?>
-            <em>Dikirim dari <?= html_escape($toko['district_name']) ?>,
-              <?= html_escape($toko['regency_name']) ?></em>
-          </p>
+          <?php foreach ($rincian['kelompok'] as $sid => $k): $t = $k['toko']; ?>
+            <div class="ck-toko" data-toko="<?= (int) $sid ?>">
+              <p class="ringkasan-toko">
+                <?= html_escape($t['name']) ?>
+                <em>Dikirim dari <?= html_escape($t['district_name']) ?>, <?= html_escape($t['regency_name']) ?></em>
+              </p>
 
-          <?php foreach ($items as $it): ?>
-            <div class="summary-item">
-              <span>
-                <?= html_escape($it['product_name']) ?>
-                <?php if ($it['variant_name']): ?><em><?= html_escape($it['variant_name']) ?></em><?php endif; ?>
-                <?php if (! empty($it['addons'])): ?>
-                  <em><?= html_escape(implode(', ', array_column($it['addons'], 'name'))) ?></em>
-                <?php endif; ?>
-                <em><?= (int) $it['qty'] ?> &times; <?= rupiah($it['unit_price']) ?></em>
-              </span>
-              <strong><?= rupiah($it['line_total']) ?></strong>
+              <?php foreach ($k['items'] as $it): ?>
+                <div class="summary-item">
+                  <span>
+                    <?= html_escape($it['product_name']) ?>
+                    <?php if ($it['is_preorder']): ?><span class="lencana lencana-emas">Pre-order</span><?php endif; ?>
+                    <?php if ($it['variant_name']): ?><em><?= html_escape($it['variant_name']) ?></em><?php endif; ?>
+                    <?php if (! empty($it['addons'])): ?>
+                      <em><?= html_escape(implode(', ', array_column($it['addons'], 'name'))) ?></em>
+                    <?php endif; ?>
+                    <em><?= (int) $it['qty'] ?> &times; <?= rupiah($it['unit_price']) ?>
+                      <?php if ($it['harga_catatan']): ?>
+                        <span class="lencana lencana-hijau"><?= html_escape($it['harga_catatan']) ?></span>
+                        <s class="hint"><?= rupiah($it['harga_normal']) ?></s>
+                      <?php endif; ?>
+                    </em>
+                  </span>
+                  <strong><?= rupiah($it['line_total']) ?></strong>
+                </div>
+              <?php endforeach; ?>
+
+              <?php if ($k['preorder']['ada']): ?>
+                <div class="ck-po">
+                  <label class="form-label" for="tgl_<?= (int) $sid ?>">Tanggal kirim pre-order *</label>
+                  <input type="date" class="form-control" id="tgl_<?= (int) $sid ?>" data-tanggal
+                         name="tanggal_kirim[<?= (int) $sid ?>]" min="<?= $k['tanggal_min'] ?>"
+                         max="<?= date('Y-m-d', strtotime('+' . Rincian_lib::PO_MAKS_HARI . ' days')) ?>"
+                         value="<?= html_escape(isset($tanggal_post[$sid]) ? $tanggal_post[$sid] : $k['tanggal_min']) ?>" required>
+                  <p class="hint mb-0">
+                    Dibuat setelah dipesan &mdash; paling cepat <?= tgl_id($k['tanggal_min']) ?>.
+                    <?php if ($k['dp_persen'] > 0): ?>
+                      Bayar uang muka <strong><?= (int) $k['dp_persen'] ?>%</strong> sekarang, sisanya sebelum dikirim.
+                    <?php endif; ?>
+                  </p>
+                </div>
+              <?php else: ?>
+                <p class="ringkasan-proses">
+                  Diproses dalam <strong><?= max(1, (int) $t['waktu_proses_hari']) ?> hari kerja</strong> setelah pembayaran diterima.
+                </p>
+              <?php endif; ?>
+
+              <div class="summary-row"><span>Subtotal</span><strong><?= rupiah($k['subtotal']) ?></strong></div>
+              <div class="summary-row"><span>Ongkos kirim</span><strong data-k="ongkir">Pilih wilayah dulu</strong></div>
+              <div class="summary-row is-potongan" data-baris="diskon_toko" hidden><span>Voucher toko</span><strong data-k="diskon_toko"></strong></div>
+              <div class="summary-row is-potongan" data-baris="diskon_platform" hidden><span>Voucher platform</span><strong data-k="diskon_platform"></strong></div>
+              <div class="summary-row is-potongan" data-baris="subsidi_ongkir" hidden><span>Subsidi ongkir</span><strong data-k="subsidi_ongkir"></strong></div>
+              <p class="hint ck-pesan" data-k="pesan" aria-live="polite"></p>
+
+              <?php if ((int) $t['gratis_ongkir_min'] > 0 && $k['subtotal'] < (int) $t['gratis_ongkir_min']): ?>
+                <p class="hint">Belanja <?= rupiah((int) $t['gratis_ongkir_min'] - $k['subtotal']) ?> lagi di toko ini untuk gratis ongkir.</p>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
 
-          <div class="summary-row mt-3"><span>Subtotal</span><strong><?= rupiah($subtotal) ?></strong></div>
+          <!-- ---------- VOUCHER ---------- -->
+          <div class="ck-voucher">
+            <label class="form-label" for="kodeVoucher">Punya kode voucher?</label>
+            <div class="fitur-baris-form">
+              <input type="text" id="kodeVoucher" class="form-control" maxlength="30" autocomplete="off"
+                     placeholder="Contoh: HEMAT10" style="text-transform:uppercase">
+              <button type="button" class="btn btn-black-hover-outline" id="btnVoucher">Pakai</button>
+            </div>
+            <ul class="ck-voucher-daftar" id="daftarVoucher">
+              <?php foreach ($kode_voucher as $kd): $v = isset($rincian['voucher'][$kd]) ? $rincian['voucher'][$kd] : NULL; ?>
+                <li class="<?= $v && $v['ok'] ? 'is-ok' : 'is-bad' ?>">
+                  <span><strong><?= html_escape($kd) ?></strong>
+                    <em><?= $v ? html_escape($v['ok'] ? $v['ket'] . ($v['toko'] ? ' · ' . $v['toko'] : '') : $v['pesan']) : '' ?></em></span>
+                  <button type="button" data-lepas="<?= html_escape($kd) ?>" aria-label="Lepas voucher">&times;</button>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+            <p class="hint mb-0" id="pesanVoucher" aria-live="polite"></p>
+          </div>
+
+          <div class="summary-row mt-3"><span>Subtotal</span><strong id="rowSubtotal"><?= rupiah($rincian['subtotal']) ?></strong></div>
           <div class="summary-row"><span>Ongkos kirim</span><strong id="rowOngkir">Pilih wilayah dulu</strong></div>
-          <div class="summary-row summary-total"><span>Total</span><strong id="rowTotal"><?= rupiah($subtotal) ?></strong></div>
+          <div class="summary-row is-potongan" id="barisPotongan" hidden><span>Total potongan</span><strong id="rowPotongan"></strong></div>
+          <div class="summary-row summary-total"><span>Total</span><strong id="rowTotal"><?= rupiah($rincian['subtotal']) ?></strong></div>
+          <div class="summary-row" id="barisBayarSekarang" hidden><span>Dibayar sekarang (uang muka)</span><strong id="rowBayarSekarang"></strong></div>
 
-          <?php if ($free_above > 0 && $subtotal < $free_above): ?>
-            <p class="hint mt-2">Belanja <?= rupiah($free_above - $subtotal) ?> lagi untuk gratis ongkir.</p>
-          <?php endif; ?>
-
-          <!-- Perkiraan waktu, bukan janji tanggal. Di marketplace penjual
-               memproses dulu lalu mengirim; pembeli perlu tahu kira-kira
-               kapan, bukan memilih jam antar. -->
-          <p class="ringkasan-proses">
-            Diproses penjual dalam <strong><?= $proses ?> hari kerja</strong> setelah
-            pembayaran diterima, lalu dikirim.
-          </p>
-
-          <button type="submit" class="btn btn-primary w-100 mt-3" id="btnPlace">Buat pesanan</button>
+          <button type="submit" class="btn btn-primary w-100 mt-3" id="btnPlace"><?= t('Buat pesanan') ?></button>
           <?php if (empty($akun)): ?>
             <p class="hint text-center mt-2">
               Tanpa perlu akun &mdash; atau <a href="<?= site_url('auth/login') ?>?next=checkout">masuk</a>
@@ -278,7 +334,10 @@
 </div>
 
 <script>
-  window.TOKO = <?= $ongkir_json ?>;
+  window.CHECKOUT = {
+    hitung: '<?= site_url('checkout/hitung' . (! empty($langsung) ? '?langsung=1' : '')) ?>',
+    voucher: '<?= site_url('checkout/voucher' . (! empty($langsung) ? '?langsung=1' : '')) ?>'
+  };
   window.REGION_URLS = {
     regencies: '<?= site_url('region/regencies') ?>',
     districts: '<?= site_url('region/districts') ?>'

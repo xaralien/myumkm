@@ -72,10 +72,10 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
     </a>
 
     <nav class="nt-menu" id="ntMenu" aria-label="Menu utama">
-      <a href="<?= base_url() ?>" <?= $aktif('beranda') ?>>Beranda</a>
-      <a href="<?= site_url('shop') ?>" <?= $aktif('shop') ?>>Katalog</a>
-      <a href="<?= site_url('shop') ?>?dekat=1&amp;radius=10">Toko Terdekat</a>
-      <a href="<?= site_url('track') ?>" <?= $aktif('track') ?>>Lacak Pesanan</a>
+      <a href="<?= base_url() ?>" <?= $aktif('beranda') ?>><?= t('Beranda') ?></a>
+      <a href="<?= site_url('shop') ?>" <?= $aktif('shop') ?>><?= t('Katalog') ?></a>
+      <a href="<?= site_url('shop') ?>?dekat=1&amp;radius=10"><?= t('Toko Terdekat') ?></a>
+      <a href="<?= site_url('track') ?>" <?= $aktif('track') ?>><?= t('Lacak Pesanan') ?></a>
     </nav>
 
     <form class="nt-cari" action="<?= site_url('shop') ?>" method="get" role="search">
@@ -174,9 +174,10 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
 
           <!-- ---------- menu ---------- -->
           <nav class="nt-akun-menu" aria-label="Menu akun">
-            <a href="<?= site_url('akun/pesanan') ?>">Pesanan saya</a>
-          <a href="<?= site_url('akun/alamat') ?>">Alamat saya</a>
-            <a href="<?= site_url('akun/pesan') ?>">Pesan</a>
+            <a href="<?= site_url('akun/pesanan') ?>"><?= t('Pesanan saya') ?></a>
+            <a href="<?= site_url('favorit') ?>"><?= t('Favorit & toko diikuti') ?></a>
+          <a href="<?= site_url('akun/alamat') ?>"><?= t('Alamat saya') ?></a>
+            <a href="<?= site_url('akun/pesan') ?>"><?= t('Pesan') ?></a>
             <!-- <a href="<?= site_url('track') ?>">Lacak pesanan</a> -->
 
             <?php if ($toko): ?>
