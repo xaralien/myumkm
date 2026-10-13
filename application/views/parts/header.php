@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="<?= preferensi('bahasa') === 'id' ? 'id' : preferensi('bahasa') ?>" class="<?= preferensi_kelas() ?>">
 
 <head>
   <meta charset="utf-8">
@@ -17,15 +17,22 @@
        chat tampil tanpa gaya sama sekali di halaman pembeli. -->
   <link href="<?= aset('assets/css/order.css') ?>" rel="stylesheet">
 
+  <?php /* Mode hemat kuota: huruf web tidak diunduh, pakai huruf bawaan HP. */ ?>
+  <?php if (preferensi('hemat') !== '1'): ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <?php endif; ?>
 
   <!-- Tema PALING AKHIR, sesudah order.css. Tema mendefinisikan ulang
        variabel --ord-* milik order.css; kalau urutannya terbalik,
        order.css menimpanya balik dan warnanya kembali hijau Furni. -->
   <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
   <link rel="stylesheet" href="<?= aset('assets/css/fitur.css') ?>">
+  <!-- PWA: bisa dipasang di layar utama HP & tetap terbuka saat sinyal hilang. -->
+  <link rel="manifest" href="<?= site_url('manifest.webmanifest') ?>">
+  <meta name="theme-color" content="#22466C">
+  <link rel="apple-touch-icon" href="<?= aset('assets/images/pwa-192.png') ?>">
 </head>
 
 <body>

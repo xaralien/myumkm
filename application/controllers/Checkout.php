@@ -485,6 +485,10 @@ class Checkout extends CI_Controller
             $data['boleh_sengketa'] = $this->sengketa_model->boleh_dibuka($order);
         }
 
+        $this->load->library('ekspedisi_lib');
+        $data['lacak'] = $order['order_status'] === 'delivering'
+            ? $this->ekspedisi_lib->lacak($order['courier'], $order['tracking_number']) : NULL;
+
         $data['pages'] = 'v_order_done';
         $this->load->view('index', $data);
     }

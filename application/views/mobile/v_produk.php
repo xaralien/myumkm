@@ -151,15 +151,15 @@
     <span class="qty-num" id="qtyTampil">1</span>
     <button type="button" class="qty-btn" data-qty="1" aria-label="Tambah">+</button>
   </div>
-  <button type="button" class="mb-beli-btn is-garis" data-act="add" aria-label="Tambah ke keranjang">
+  <button type="button" class="mb-beli-btn is-garis" data-act="add" aria-label="<?= t('Tambah ke keranjang') ?>">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-8H6.2"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
   </button>
   <button type="button" class="mb-beli-btn" data-act="buy">
     <!-- Dua label, dipilih CSS menurut lebar layar. Di layar sempit,
          "Beli sekarang" tidak muat bersama harga dan tombol jumlah -
          empat bagian itu butuh ~445px, sedangkan HP kecil hanya 360px. -->
-    <span class="mb-teks-panjang">Beli sekarang</span>
-    <span class="mb-teks-pendek">Beli</span>
+    <span class="mb-teks-panjang"><?= t('Beli sekarang') ?></span>
+    <span class="mb-teks-pendek"><?= t('Beli') ?></span>
   </button>
 </div>
 

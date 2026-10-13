@@ -17,7 +17,7 @@
 
 <div class="hero hero-page">
   <div class="container"><div class="row"><div class="col-lg-12">
-    <div class="intro-excerpt text-center"><h1>Checkout</h1></div>
+    <div class="intro-excerpt text-center"><h1><?= t('Checkout') ?></h1></div>
   </div></div></div>
 </div>
 
@@ -40,7 +40,7 @@
 
         <!-- ============ 1. ALAMAT PENGIRIMAN ============ -->
         <div class="form-card">
-          <h3 class="form-card-title">Alamat pengiriman</h3>
+          <h3 class="form-card-title"><?= t('Alamat pengiriman') ?></h3>
 
           <?php if ($alamat_saya): ?>
             <!-- Alamat tersimpan. Satu ketukan menggantikan enam kolom isian,
@@ -180,7 +180,7 @@
 
         <!-- ============ 3. PEMBAYARAN ============ -->
         <div class="form-card">
-          <h3 class="form-card-title">Pembayaran</h3>
+          <h3 class="form-card-title"><?= t('Pembayaran') ?></h3>
           <p class="mb-0">
             Transfer bank (virtual account), e-wallet, atau QRIS. Metodenya dipilih
             di halaman berikutnya.
@@ -192,7 +192,7 @@
       <!-- ============ RINGKASAN ============ -->
       <div class="col-lg-5">
         <div class="cart-summary is-sticky" id="ringkasan">
-          <h3 class="mb-3">Ringkasan pesanan</h3>
+          <h3 class="mb-3"><?= t('Ringkasan pesanan') ?></h3>
           <?php if (! empty($langsung)): ?>
             <p class="hint mb-3">
               Pembelian langsung &mdash; isi keranjangmu tidak berubah.
@@ -291,7 +291,7 @@
           <div class="summary-row summary-total"><span>Total</span><strong id="rowTotal"><?= rupiah($rincian['subtotal']) ?></strong></div>
           <div class="summary-row" id="barisBayarSekarang" hidden><span>Dibayar sekarang (uang muka)</span><strong id="rowBayarSekarang"></strong></div>
 
-          <button type="submit" class="btn btn-primary w-100 mt-3" id="btnPlace">Buat pesanan</button>
+          <button type="submit" class="btn btn-primary w-100 mt-3" id="btnPlace"><?= t('Buat pesanan') ?></button>
           <?php if (empty($akun)): ?>
             <p class="hint text-center mt-2">
               Tanpa perlu akun &mdash; atau <a href="<?= site_url('auth/login') ?>?next=checkout">masuk</a>

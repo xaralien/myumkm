@@ -8,11 +8,11 @@ $balik = uri_string();
     <?= form_open('favorit/ikuti/' . (int) $toko_id, array('class' => 'fav-form', 'data-ikuti' => '')) ?>
       <input type="hidden" name="balik" value="<?= html_escape($balik) ?>">
       <button type="submit" class="ikuti-tombol<?= $aktif ? ' is-aktif' : '' ?>" aria-pressed="<?= $aktif ? 'true' : 'false' ?>">
-        <span data-fav-teks><?= $aktif ? '✓ Mengikuti' : '+ Ikuti toko' ?></span>
+        <span data-fav-teks><?= $aktif ? t('✓ Mengikuti') : t('+ Ikuti toko') ?></span>
       </button>
     <?= form_close() ?>
   <?php else: ?>
-    <a href="<?= site_url('auth/login?next=' . rawurlencode($balik)) ?>" class="ikuti-tombol">+ Ikuti toko</a>
+    <a href="<?= site_url('auth/login?next=' . rawurlencode($balik)) ?>" class="ikuti-tombol"><?= t('+ Ikuti toko') ?></a>
   <?php endif; ?>
   <span class="ikuti-jumlah"><span data-fav-jumlah><?= (int) $pengikut ?></span> pengikut</span>
 </div>

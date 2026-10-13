@@ -10,7 +10,7 @@ if (empty($deret)) { return; }
 <div class="deret-wrap nt-wrap">
   <?php if ( ! empty($deret['rekomendasi']['produk'])): ?>
     <?php $this->load->view('parts/deret_produk', array(
-        'judul'  => 'Rekomendasi untukmu',
+        'judul'  => t('Rekomendasi untukmu'),
         'sub'    => $deret['rekomendasi']['alasan'] ? 'Karena kamu suka ' . $deret['rekomendasi']['alasan'] : NULL,
         'produk' => $deret['rekomendasi']['produk'],
         'tautan' => NULL,
@@ -25,7 +25,7 @@ if (empty($deret)) { return; }
   )); ?>
 
   <?php $this->load->view('parts/deret_produk', array(
-      'judul'  => $lokasi ? 'Terlaris di sekitarmu' : 'Terlaris',
+      'judul'  => $lokasi ? t('Terlaris di sekitarmu') : t('Terlaris'),
       'sub'    => NULL,
       'produk' => isset($deret['terlaris']) ? $deret['terlaris'] : array(),
       'tautan' => site_url('shop?sort=terlaris'),

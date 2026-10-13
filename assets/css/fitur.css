@@ -320,3 +320,32 @@ fieldset legend { font-size: 15px; font-weight: 700; float: none; }
 .antre { display: flex; align-items: center; gap: 10px; background: #FFF8E6; border: 1px solid #F0DC9C; border-radius: 14px;
   padding: 10px 14px; text-decoration: none; color: var(--wn-tua); }
 .antre strong { font-size: 22px; font-family: var(--wn-serif); }
+
+/* ---- Preferensi: huruf besar & hemat kuota ----------------------------- */
+.pref-baris { margin-top: 6px; }
+/* Huruf besar: semua ukuran berbasis rem/em ikut membesar; tombol & kolom
+   isian dipertebal supaya mudah disentuh pengguna lanjut usia. */
+html.huruf-besar { font-size: 118%; }
+html.huruf-besar body { font-size: 1.08rem; line-height: 1.65; }
+html.huruf-besar .btn, html.huruf-besar .form-control, html.huruf-besar .form-select { font-size: 1.05rem; min-height: 48px; }
+html.huruf-besar .hint, html.huruf-besar .kp-toko, html.huruf-besar .kp-terjual, html.huruf-besar small { font-size: .95rem; }
+html.huruf-besar .lencana { font-size: 13.5px; }
+/* Hemat kuota: huruf bawaan HP dipakai (tidak mengunduh huruf web), dan
+   gambar dekoratif besar disembunyikan. Foto produk tetap tampil. */
+html.hemat-kuota { --wn-serif: Georgia, 'Times New Roman', serif; --wn-sans: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+html.hemat-kuota body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+html.hemat-kuota .nt-hero-foto, html.hemat-kuota .banner-kartu img, html.hemat-kuota .video-bingkai { display: none; }
+
+/* ---- Lacak resi ---------------------------------------------------- */
+.lacak-resi { text-align: left; border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 14px 16px; margin: 12px 0; background: #fff; }
+.lacak-kepala { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.lacak-kepala .hint { display: block; font-size: .85rem; }
+.lacak-nomor { font-size: 1.1rem; letter-spacing: .03em; word-break: break-all; }
+.lacak-garis { list-style: none; padding: 0 0 0 18px; margin: 8px 0 10px; border-left: 2px solid #d1d5db; }
+.lacak-garis li { position: relative; padding: 0 0 12px 8px; font-size: .95rem; }
+.lacak-garis li::before { content: ""; position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; border: 2px solid #fff; }
+.lacak-garis li.is-terbaru::before { background: #16a34a; }
+.lacak-garis li.is-terbaru { font-weight: 600; }
+.lacak-waktu { display: block; font-size: .8rem; color: #6b7280; font-weight: 400; }
+.lacak-tautan { font-weight: 600; }
+.tarif-tabel td, .tarif-tabel th { padding: 8px 10px; }

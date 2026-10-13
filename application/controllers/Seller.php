@@ -2133,6 +2133,10 @@ class Seller extends Seller_Controller
             'toko'     => $toko,
             'items'    => $this->order_model->items($order['id']),
         );
+        $this->load->library('ekspedisi_lib');
+        $data['kurir_daftar'] = $this->ekspedisi_lib->daftar();
+        $data['lacak'] = $order['order_status'] === 'delivering'
+            ? $this->ekspedisi_lib->lacak($order['courier'], $order['tracking_number']) : NULL;
         $this->render('seller/v_chat', $data);
     }
 

@@ -32,8 +32,8 @@
       <?= form_close() ?>
 
       <a href="<?= site_url('auth/otp') . ($next ? '?next=' . rawurlencode($next) : '') ?>"
-         class="btn btn-outline-secondary w-100 mt-3">Masuk pakai kode WhatsApp</a>
-      <p class="akun-alih mb-0"><a href="<?= site_url('auth/lupa') ?>">Lupa kata sandi?</a></p>
+         class="btn btn-outline-secondary w-100 mt-3"><?= t('Masuk pakai kode WhatsApp') ?></a>
+      <p class="akun-alih mb-0"><a href="<?= site_url('auth/lupa') ?>"><?= t('Lupa kata sandi?') ?></a></p>
 
       <p class="akun-alih">
         Belum punya akun?

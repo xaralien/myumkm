@@ -50,9 +50,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
                 <strong><?= $proses ?> hari kerja</strong>, lalu mengirimnya.</p>
             <?php elseif ($order['order_status'] === 'delivering'): ?>
               <p>Pesananmu sedang dikirim<?= $order['courier'] ? ' lewat <strong>' . html_escape($order['courier']) . '</strong>' : '' ?>.</p>
-              <?php if ($order['tracking_number']): ?>
-                <p class="resi">Nomor resi <strong><?= html_escape($order['tracking_number']) ?></strong></p>
-              <?php endif; ?>
+              <?php $this->load->view('parts/lacak_resi', array('lacak' => isset($lacak) ? $lacak : NULL)); ?>
               <!-- Konfirmasi dari pembeli yang menutup transaksi. POST, bukan
                    tautan - tautan bisa terpicu tanpa sengaja oleh pratinjau
                    tautan di aplikasi chat. -->

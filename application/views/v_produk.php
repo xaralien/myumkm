@@ -204,12 +204,12 @@ foreach ($addons as $a) {
 
                     <div class="produk-aksi">
                         <button type="button" class="btn btn-black-hover-outline" data-act="add">
-                            Tambah ke keranjang
+                            <?= t('Tambah ke keranjang') ?>
                         </button>
                         <!-- Beli sekarang: lewat wadah terpisah, jadi isi
                              keranjang yang sudah dikumpulkan tidak terganggu. -->
                         <button type="button" class="btn btn-primary" data-act="buy">
-                            Beli sekarang
+                            <?= t('Beli sekarang') ?>
                         </button>
                     </div>
 
@@ -226,7 +226,7 @@ foreach ($addons as $a) {
 
                 <!-- ---------- PENGIRIMAN ---------- -->
                 <div class="produk-kirim">
-                    <p class="produk-label">Pengiriman</p>
+                    <p class="produk-label"><?= t('Pengiriman') ?></p>
                     <p class="produk-kirim-ok">
                         Dikirim dari <?= html_escape($p['store_district']) ?>,
                         <?= html_escape($p['store_regency']) ?>
@@ -244,7 +244,7 @@ foreach ($addons as $a) {
         <?php if (!empty($p['description'])): ?>
             <div class="row mt-5">
                 <div class="col-lg-8">
-                    <h2 class="produk-sub">Deskripsi</h2>
+                    <h2 class="produk-sub"><?= t('Deskripsi') ?></h2>
                     <!-- Sudah disaring html_aman() saat disimpan, dan disaring lagi di sini
                          sebagai lapis kedua: data lama yang masuk sebelum penyaring
                          dipasang pun ikut aman. -->
@@ -303,7 +303,7 @@ foreach ($addons as $a) {
 <section class="untree_co-section ul-bagian" id="ulasan">
   <div class="container">
     <div class="ul-bagian-kepala">
-      <h2 class="ul-sub">Ulasan</h2>
+      <h2 class="ul-sub"><?= t('Ulasan') ?></h2>
       <a href="<?= site_url('ulasan/produk/' . $p['store_slug'] . '/' . $p['slug']) ?>" class="ul-semua">
         Lihat semua &rarr;
       </a>

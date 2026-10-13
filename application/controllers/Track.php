@@ -85,6 +85,10 @@ class Track extends CI_Controller
                 . '/' . $order['access_token']),
         );
 
+        $this->load->library('ekspedisi_lib');
+        $data['lacak'] = in_array($order['order_status'], array('delivering', 'completed'), TRUE)
+            ? $this->ekspedisi_lib->lacak($order['courier'], $order['tracking_number']) : NULL;
+
         $data['pages'] = 'v_track_result';
         $this->load->view('index', $data);
     }

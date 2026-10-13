@@ -21,5 +21,7 @@
   <script src="<?= aset('assets/js/panel-notif.js') ?>"></script>
   <script src="<?= aset('assets/js/template-chat.js') ?>"></script>
 <?php endif; ?>
+<script>window.PWA_SW = '<?= base_url('sw.js') ?>';</script>
+<script src="<?= aset('assets/js/pwa.js') ?>"></script>
 </body>
 </html>

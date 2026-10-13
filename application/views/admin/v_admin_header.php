@@ -1,6 +1,6 @@
 <!-- application/views/admin/v_admin_header.php -->
 <!doctype html>
-<html lang="id">
+<html lang="<?= preferensi('bahasa') === 'id' ? 'id' : preferensi('bahasa') ?>" class="<?= preferensi_kelas() ?>">
 
 <head>
   <meta charset="utf-8">
@@ -11,12 +11,19 @@
   <link href="<?= aset('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/style.css') ?>" rel="stylesheet">
   <link href="<?= aset('assets/css/order.css') ?>" rel="stylesheet">
+  <?php /* Mode hemat kuota: huruf web tidak diunduh, pakai huruf bawaan HP. */ ?>
+  <?php if (preferensi('hemat') !== '1'): ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <?php endif; ?>
   <!-- Tema sesudah order.css, sama seperti halaman publik. -->
   <link rel="stylesheet" href="<?= aset('assets/css/tema-nusantara.css') ?>">
   <link rel="stylesheet" href="<?= aset('assets/css/fitur.css') ?>">
+  <!-- PWA: bisa dipasang di layar utama HP & tetap terbuka saat sinyal hilang. -->
+  <link rel="manifest" href="<?= site_url('manifest.webmanifest') ?>">
+  <meta name="theme-color" content="#22466C">
+  <link rel="apple-touch-icon" href="<?= aset('assets/images/pwa-192.png') ?>">
 </head>
 
 <body class="panel-body">
@@ -81,8 +88,8 @@
                                           'seller/legalitas' => 'Legalitas', 'seller/akademi' => 'Akademi UMKM'),
                       array('seller/mulai', 'seller/naik_kelas', 'seller/legalitas', 'seller/akademi')); ?>
           <?php $grup('Toko', array('seller/profile' => 'Profil toko', 'seller/libur' => 'Mode libur', 'seller/ulasan' => 'Ulasan',
-                                    'seller/massal' => 'Unggah massal', 'toko/' . (isset($store['slug']) ? $store['slug'] : '') => 'Lihat tokoku'),
-                      array('seller/profile', 'seller/libur', 'seller/ulasan', 'seller/massal')); ?>
+                                    'seller/massal' => 'Unggah massal', 'seller/ongkir' => 'Cek tarif kurir', 'toko/' . (isset($store['slug']) ? $store['slug'] : '') => 'Lihat tokoku'),
+                      array('seller/profile', 'seller/libur', 'seller/ulasan', 'seller/massal', 'seller/ongkir')); ?>
         <?php endif; ?>
         <a href="<?= site_url('shop') ?>">Katalog</a>
         <a href="<?= site_url('auth/logout') ?>" class="panel-keluar">Keluar</a>

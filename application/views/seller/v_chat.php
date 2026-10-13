@@ -71,17 +71,22 @@
         <?= form_open('seller/ubah_status/' . $order['id'], array('class' => 'mt-3')) ?>
           <div class="mb-2">
             <label class="form-label" for="courier">Kurir <span class="hint">(opsional)</span></label>
-            <input type="text" id="courier" name="courier" class="form-control" maxlength="50"
+            <input type="text" id="courier" name="courier" class="form-control" maxlength="50" list="daftarKurir"
                    placeholder="JNE, J&amp;T, GoSend, diantar sendiri...">
+            <datalist id="daftarKurir">
+              <?php foreach ($kurir_daftar as $nama_kurir): ?><option value="<?= html_escape($nama_kurir) ?>"><?php endforeach; ?>
+            </datalist>
           </div>
           <div class="mb-3">
             <label class="form-label" for="tracking_number">Nomor resi <span class="hint">(opsional)</span></label>
             <input type="text" id="tracking_number" name="tracking_number" class="form-control" maxlength="60">
           </div>
           <button type="submit" class="btn btn-primary w-100">Tandai sudah dikirim</button>
+          <a href="<?= site_url('seller/ongkir') ?>" class="hint d-inline-block mt-2">Bandingkan tarif kurir &rarr;</a>
         <?= form_close() ?>
 
       <?php elseif ($st === 'delivering'): ?>
+        <?php $this->load->view('parts/lacak_resi', array('lacak' => $lacak)); ?>
         <p class="hint mt-2">Menunggu pembeli mengonfirmasi pesanan diterima.</p>
         <?= form_open('seller/ubah_status/' . $order['id']) ?>
           <button type="submit" class="btn btn-black-hover-outline w-100">Tandai selesai</button>
