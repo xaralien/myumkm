@@ -84,7 +84,15 @@ class Region_model extends CI_Model {
         $n = preg_replace('/[^a-z0-9\s]/u', ' ', $n);
         $n = trim(preg_replace('/\s+/u', ' ', $n));
 
-        return $n;
+        /* Provinsi yang punya beberapa nama resmi/lama: data Kemendagri
+           "Daerah Khusus Ibukota Jakarta", OSM kini "Daerah Khusus Jakarta",
+           data lama "DKI Jakarta" - semuanya provinsi yang sama. */
+        $sama = array(
+            'khusus ibukota jakarta' => 'jakarta', 'khusus jakarta' => 'jakarta', 'dki jakarta' => 'jakarta',
+            'istimewa yogyakarta' => 'yogyakarta', 'di yogyakarta' => 'yogyakarta',
+            'nanggroe aceh darussalam' => 'aceh',
+        );
+        return isset($sama[$n]) ? $sama[$n] : $n;
     }
 
     /** Cari satu baris yang namanya cocok, dari daftar kandidat. */
@@ -100,6 +108,19 @@ class Region_model extends CI_Model {
             $k = $this->samakan($k);
             if ($k !== '' && isset($rapi[$k])) {
                 return $rapi[$k];
+            }
+        }
+
+        /* Tahap 1b: sama setelah spasi dibuang - data Kemendagri menulis
+           "Pal Merah", OSM "Palmerah"; "Tanjung Pinang" vs "Tanjungpinang". */
+        $rapat = array();
+        foreach ($rapi as $nama => $b) {
+            $rapat[str_replace(' ', '', $nama)] = $b;
+        }
+        foreach ($kandidat as $k) {
+            $k = str_replace(' ', '', $this->samakan($k));
+            if ($k !== '' && isset($rapat[$k])) {
+                return $rapat[$k];
             }
         }
 
