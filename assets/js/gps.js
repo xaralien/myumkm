@@ -100,38 +100,140 @@
     );
   }
 
-  /* Titik -> nama provinsi/kota/kecamatan lewat Nominatim, langsung dari
-     browser. Tidak ditunggu lebih dari 6 detik; gagal = kirim koordinat
-     saja, server mencoba sendiri. */
-  function namaWilayah(lat, lng) {
+  /* ------------------------------------------------ titik -> wilayah
+
+     Titik GPS diterjemahkan ke nama provinsi/kota/kecamatan oleh layanan
+     peta, dicoba berurutan sampai ada yang cocok dengan daftar wilayah:
+
+       1. OpenStreetMap (Nominatim)  - gratis, tanpa kunci
+       2. BigDataCloud               - gratis, tanpa kunci (khusus browser)
+       3. Google Maps Geocoding      - hanya kalau kunci diisi di
+                                       Admin > Pengaturan > Peta
+
+     Semuanya dipanggil dari BROWSER, bukan server: PHP di Windows/XAMPP
+     sering gagal membuka HTTPS karena sertifikat CA-nya belum diatur. Tiap
+     layanan dibatasi 6 detik. Hasilnya dicek ke region/cocok; yang pertama
+     cocok sampai tingkat kecamatan yang dipakai. */
+
+  function ambilJson(url) {
     var ctl = window.AbortController ? new AbortController() : null;
     var t = ctl ? setTimeout(function () { ctl.abort(); }, 6000) : null;
-    return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1'
-                 + '&accept-language=id&lat=' + lat + '&lon=' + lng, ctl ? { signal: ctl.signal } : {})
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (t) { clearTimeout(t); }
-        var a = (d && d.address) || {};
-        // Untuk pemeriksaan: buka Console (F12) kalau kecamatan tidak terbaca.
-        if (window.console) { console.log('[gps] alamat OpenStreetMap:', a); }
-        var gabung = function (k) { return k.map(function (x) { return a[x]; }).filter(Boolean).join('|'); };
-        // Sama dengan kandidat di peta alamat (peta-alamat.js).
-        return {
-          provinsi:  gabung(['state', 'region']),
-          kabupaten: gabung(['city', 'county', 'municipality', 'town', 'state_district']),
-          kecamatan: gabung(['city_district', 'district', 'subdistrict', 'municipality', 'suburb', 'village'])
-        };
-      })
-      .catch(function (e) {
-        if (t) { clearTimeout(t); }
-        if (window.console) { console.warn('[gps] OpenStreetMap tidak bisa dihubungi dari browser:', e); }
-        return null;
-      });
+    return fetch(url, ctl ? { signal: ctl.signal } : {})
+      .then(function (r) { if (t) { clearTimeout(t); } if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+      .catch(function (e) { if (t) { clearTimeout(t); } throw e; });
+  }
+
+  function gabung(arr) {
+    var lihat = {};
+    return arr.filter(function (x) {
+      if (!x || lihat[x]) { return false; }
+      lihat[x] = true;
+      return true;
+    }).join('|');
+  }
+
+  var LAYANAN = [
+    {
+      nama: 'OpenStreetMap',
+      baca: function (lat, lng) {
+        return ambilJson('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1'
+                         + '&accept-language=id&lat=' + lat + '&lon=' + lng)
+          .then(function (d) {
+            var a = (d && d.address) || {};
+            var k = function (ks) { return gabung(ks.map(function (x) { return a[x]; })); };
+            // Sama dengan kandidat di peta alamat (peta-alamat.js).
+            return {
+              provinsi:  k(['state', 'region']),
+              kabupaten: k(['city', 'county', 'municipality', 'town', 'state_district']),
+              kecamatan: k(['city_district', 'district', 'subdistrict', 'municipality', 'suburb', 'village'])
+            };
+          });
+      }
+    },
+    {
+      nama: 'BigDataCloud',
+      baca: function (lat, lng) {
+        return ambilJson('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat
+                         + '&longitude=' + lng + '&localityLanguage=id')
+          .then(function (d) {
+            // Tingkat wilayah Indonesia: 4 provinsi, 5 kab/kota, 6 kecamatan.
+            var adm = ((d && d.localityInfo && d.localityInfo.administrative) || []);
+            var tingkat = function (n) {
+              return adm.filter(function (x) { return x.adminLevel === n; }).map(function (x) { return x.name; });
+            };
+            return {
+              provinsi:  gabung([d.principalSubdivision].concat(tingkat(4))),
+              kabupaten: gabung(tingkat(5).concat([d.city])),
+              kecamatan: gabung(tingkat(6).concat([d.locality]))
+            };
+          });
+      }
+    },
+    {
+      nama: 'Google Maps',
+      aktif: function () { return !!C.gkey; },
+      baca: function (lat, lng) {
+        return ambilJson('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + lat + ',' + lng
+                         + '&language=id&key=' + encodeURIComponent(C.gkey))
+          .then(function (d) {
+            if (!d || d.status !== 'OK') { throw new Error('Google: ' + (d && (d.error_message || d.status))); }
+            var per = { administrative_area_level_1: [], administrative_area_level_2: [], administrative_area_level_3: [] };
+            (d.results || []).forEach(function (r) {
+              (r.address_components || []).forEach(function (c) {
+                Object.keys(per).forEach(function (t) {
+                  if (c.types.indexOf(t) >= 0) { per[t].push(c.long_name); }
+                });
+              });
+            });
+            return {
+              provinsi:  gabung(per.administrative_area_level_1),
+              kabupaten: gabung(per.administrative_area_level_2),
+              kecamatan: gabung(per.administrative_area_level_3)
+            };
+          });
+      }
+    }
+  ];
+
+  function cocok(w) {
+    var q = 'provinsi=' + encodeURIComponent(w.provinsi) + '&kabupaten=' + encodeURIComponent(w.kabupaten)
+          + '&kecamatan=' + encodeURIComponent(w.kecamatan);
+    return fetch((C.cocok || '') + '?' + q, {
+      credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) { return r.json(); });
+  }
+
+  /** @return Promise<{w: kandidat yang cocok | null, catatan: [teks per layanan]}> */
+  function cariWilayah(lat, lng) {
+    var catatan = [];
+    var i = 0;
+    function berikut() {
+      while (i < LAYANAN.length && LAYANAN[i].aktif && !LAYANAN[i].aktif()) { i++; }
+      if (i >= LAYANAN.length) { return Promise.resolve({ w: null, catatan: catatan }); }
+      var L = LAYANAN[i++];
+      return L.baca(lat, lng)
+        .then(function (w) {
+          if (window.console) { console.log('[gps] ' + L.nama + ':', w); }
+          return cocok(w).then(function (h) {
+            if (h && h.district_id) { return { w: w, catatan: catatan }; }
+            catatan.push(L.nama + ' membaca "' + ([w.kecamatan, w.kabupaten, w.provinsi].filter(Boolean).join(', ') || 'kosong')
+                         + '" - belum cocok');
+            return berikut();
+          });
+        })
+        .catch(function (e) {
+          if (window.console) { console.warn('[gps] ' + L.nama + ' gagal:', e); }
+          catatan.push(L.nama + ' tidak bisa dihubungi');
+          return berikut();
+        });
+    }
+    return berikut();
   }
 
   function kirim(lat, lng, btn) {
     pesan('Membaca wilayahmu...');
-    namaWilayah(lat, lng).then(function (w) {
+    cariWilayah(lat, lng).then(function (hasil) {
+      var w = hasil.w;
       var body = new FormData();
       body.append('lat', lat);
       body.append('lng', lng);
@@ -158,14 +260,10 @@
             window.location.reload();
           } else {
             /* Titik tersimpan (toko tetap diurutkan dari yang terdekat), tapi
-               kecamatannya tidak terbaca - beri tahu dulu sebelum memuat ulang,
-               supaya tidak tampak seperti tombol yang tidak bekerja. */
-            var alasan = !w
-              ? 'Peta (OpenStreetMap) tidak bisa dihubungi dari browser - mungkin diblokir ekstensi atau jaringan.'
-              : 'Terbaca: ' + ([j.terbaca_kecamatan || w.kecamatan, j.terbaca_kota || w.kabupaten, w.provinsi]
-                  .filter(Boolean).join(', ') || '(kosong)') + ' - belum cocok dengan daftar wilayah.';
-            pesan('Toko diurutkan dari lokasimu, tapi kecamatannya tidak terbaca. ' + alasan
-                + ' Pilih kecamatan lewat menu lokasi.', 'error');
+               kecamatannya tidak terbaca - beri tahu dulu alasannya sebelum
+               memuat ulang, supaya tidak tampak seperti tombol yang tidak bekerja. */
+            pesan('Toko diurutkan dari lokasimu, tapi kecamatannya tidak terbaca ('
+                + (hasil.catatan.join('; ') || 'tidak ada layanan peta') + '). Pilih kecamatan lewat menu lokasi.', 'error');
             setTimeout(function () { window.location.reload(); }, 9000);
           }
         });

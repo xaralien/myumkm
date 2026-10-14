@@ -74,3 +74,21 @@ if ( ! function_exists('t')) {
         return isset($kamus[$b][$teks]) ? $kamus[$b][$teks] : $teks;
     }
 }
+
+if ( ! function_exists('gps_config_js')) {
+    /**
+     * Konfigurasi tombol lokasi (assets/js/gps.js) sebagai objek JS.
+     * gkey = kunci Google Maps dari Admin > Pengaturan > Peta (opsional);
+     * kosong berarti Google dilewati.
+     */
+    function gps_config_js()
+    {
+        $CI = &get_instance();
+        $CI->load->library('pengaturan_lib');
+        return json_encode(array(
+            'simpan' => site_url('location/titik'),
+            'cocok'  => site_url('region/cocok'),
+            'gkey'   => (string) $CI->pengaturan_lib->get('google_maps_key'),
+        ), JSON_UNESCAPED_SLASHES);
+    }
+}
