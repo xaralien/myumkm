@@ -51,3 +51,4 @@ application/config/database.php
 
 # Pengaturan SMTP - JANGAN di-commit. Salin dari surat.example.php.
 application/config/surat.php
+application/libraries/Api_Whatsapp.php
