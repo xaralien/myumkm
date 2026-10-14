@@ -2,11 +2,11 @@
 
 Disusun dari sudut pandang Product Manager & UI/UX Strategist, lalu dicocokkan
 dengan kode yang ada di repository ini (CodeIgniter 3: `application/controllers`,
-`models`, `libraries`, `views`, dan migrasi `database/15–32`).
+`models`, `libraries`, `views`, dan migrasi `database/15–33`).
 
 Pembaruan: fitur "Tambah produk dari foto saja", "Penjualan offline / kasir mini (POS)",
 COD, dan ambil sendiri di toko dikeluarkan dari rancangan. Semua fitur yang
-tersisa kini sudah dibangun (migrasi `database/24–32`).
+tersisa kini sudah dibangun (migrasi `database/24–33`).
 
 **Keterangan status**
 
@@ -194,7 +194,7 @@ Lembar uji untuk Quality Assurance Engineer ada di `rancangan-fitur-marketplace-
 
 ## Catatan Pemasangan
 
-1. Jalankan migrasi `database/24_*.sql` sampai `database/32_*.sql` berurutan (aman diulang; cadangkan dulu). Urutan penting: `26_pengaturan_notifikasi.sql` menambah kolom ke tabel `auth_tokens` dari `25_reset_sandi_verifikasi.sql`.
+1. Jalankan migrasi `database/24_*.sql` sampai `database/33_*.sql` berurutan (aman diulang; cadangkan dulu). `33_wilayah_indonesia.sql` mengisi data wilayah lengkap (38 provinsi, 514 kab/kota, 7.285 kecamatan, Kepmendagri 2025) tanpa mengubah ID wilayah yang sudah dipakai. Urutan penting: `26_pengaturan_notifikasi.sql` menambah kolom ke tabel `auth_tokens` dari `25_reset_sandi_verifikasi.sql`.
 2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Taruh `application/libraries/Api_Whatsapp.php` (gerbang WA sendiri, tidak ikut di repo) - otomatis di-autoload dan dipakai semua notifikasi WA; server WA dipilih lewat `utility.server_wa` (`bind` / `fast_wa` / `kirimi`) di database Anda. Isi kunci agregator ekspedisi (mis. Biteship) di **Admin > Pengaturan**. Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
 3. Dokumen legalitas penjual disimpan di `application/dokumen_toko/` (tidak bisa diakses publik). Pastikan server web menolak akses langsung ke `/application/`.
 4. Yang masih bisa dikembangkan: tarif ongkir otomatis dari kurir saat checkout pembeli (kini tarif tetap per wilayah yang diatur penjual; perbandingan tarif kurir tersedia untuk penjual).
