@@ -52,17 +52,35 @@ class Notifikasi_lib
 
         // Gerbang WA milik sendiri (application/libraries/Api_Whatsapp.php).
         if (isset($this->CI->api_whatsapp) && method_exists($this->CI->api_whatsapp, 'wa_notif')) {
+            /* Api_Whatsapp membaca tabel `utility` (kolom server_wa) untuk
+               memilih server. Tanpa tabel itu, db->get() di lingkungan
+               pengembangan (db_debug aktif) menampilkan galat database lalu
+               menghentikan SELURUH permintaan - termasuk checkout dan callback
+               pembayaran. Jadi diperiksa dulu di sini. Lihat migrasi 33. */
+            if ( ! $this->CI->db->table_exists('utility')) {
+                $this->catat('wa', $nomor, NULL, $isi, 'gagal', 'Tabel utility (server_wa) belum ada - jalankan database/33_utility_wa.sql', $acara);
+                return FALSE;
+            }
+
+            /* Keluaran dibungkus: peringatan PHP dari dalam gerbang (mis.
+               variabel yang belum didefinisikan) dicetak CodeIgniter langsung
+               ke halaman dan merusak balasan JSON seperti callback Duitku. */
+            ob_start();
             try {
                 $balas = $this->CI->api_whatsapp->wa_notif($isi, $nomor);
-                $ok = $balas !== FALSE;
-                $galat = $ok ? NULL : 'Api_Whatsapp::wa_notif mengembalikan FALSE';
+                $galat = $this->galat_balasan_wa($balas);
             } catch (\Throwable $e) {
                 // Gerbang bermasalah tidak boleh menggagalkan checkout/pembayaran.
-                $ok = FALSE;
-                $galat = mb_substr(get_class($e) . ': ' . $e->getMessage(), 0, 250);
+                $galat = get_class($e) . ': ' . $e->getMessage();
             }
-            $this->catat('wa', $nomor, NULL, $isi, $ok ? 'terkirim' : 'gagal', $galat, $acara);
-            return $ok;
+            $bocor = trim(strip_tags((string) ob_get_clean()));
+            if ($bocor !== '') {
+                log_message('error', 'Api_Whatsapp mencetak keluaran: ' . $bocor);
+            }
+
+            $this->catat('wa', $nomor, NULL, $isi, $galat === NULL ? 'terkirim' : 'gagal',
+                $galat === NULL ? NULL : mb_substr($galat, 0, 250), $acara);
+            return $galat === NULL;
         }
 
         if ( ! $p->get('wa_token')) {
@@ -102,6 +120,35 @@ class Notifikasi_lib
         $this->catat('wa', $nomor, NULL, $isi, $ok ? 'terkirim' : 'gagal',
             $ok ? NULL : mb_substr($galat ?: ($json['reason'] ?? ('HTTP ' . $kode)), 0, 250), $acara);
         return $ok;
+    }
+
+    /**
+     * Baca balasan Api_Whatsapp::wa_notif(). NULL = dianggap terkirim.
+     *
+     * wa_notif() saat ini tidak mengembalikan apa-apa, jadi kegagalan dari
+     * server WA belum bisa diketahui di sini - hanya galat PHP yang
+     * tertangkap. Kalau nanti wa_notif() diberi `return`, balasan berbentuk
+     * array/JSON dengan success/status = false otomatis tercatat 'gagal'.
+     *
+     * @return string|NULL pesan galat, atau NULL kalau tidak ada tanda gagal
+     */
+    protected function galat_balasan_wa($balas)
+    {
+        if ($balas === FALSE) {
+            return 'wa_notif mengembalikan FALSE';
+        }
+        if (is_string($balas)) {
+            $j = json_decode($balas, TRUE);
+            $balas = is_array($j) ? $j : NULL;
+        }
+        if (is_array($balas)) {
+            foreach (array('success', 'status') as $k) {
+                if (array_key_exists($k, $balas) && ($balas[$k] === FALSE || $balas[$k] === 'false' || $balas[$k] === 0)) {
+                    return (string) ($balas['message'] ?? $balas['reason'] ?? 'Server WA menolak');
+                }
+            }
+        }
+        return NULL;
     }
 
     public function email($ke, $judul, $isi, $acara = NULL)
