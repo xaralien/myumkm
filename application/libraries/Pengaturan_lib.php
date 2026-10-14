@@ -48,12 +48,17 @@ class Pengaturan_lib
                 'tahan_hari'    => array('label' => 'Tahan dana setelah selesai (hari)', 'jenis' => 'angka', 'bawaan' => 0),
             ),
             'WhatsApp' => array(
-                // Aktif bawaan kalau Api_Whatsapp milik sendiri terpasang.
-                'wa_aktif'  => array('label' => 'Kirim notifikasi WhatsApp', 'jenis' => 'ya_tidak',
+                /* Ketiganya tidak tampil di formulir umum ('tersembunyi'):
+                   WhatsApp diatur lewat geseran Mati/Bind/FastWA/Kirimi di
+                   Pengaturan (admin/Pengaturan::server_wa), yang menulis
+                   wa_aktif di sini dan utility.server_wa untuk Api_Whatsapp.
+                   wa_url & wa_token = gerbang cadangan format Fonnte, hanya
+                   dipakai bila Api_Whatsapp.php tidak ada. */
+                'wa_aktif'  => array('label' => 'Kirim notifikasi WhatsApp', 'jenis' => 'ya_tidak', 'tersembunyi' => TRUE,
                                      'bawaan' => is_file(APPPATH . 'libraries/Api_Whatsapp.php') ? '1' : '0'),
-                'wa_url'    => array('label' => 'Alamat API gerbang WA', 'jenis' => 'teks', 'bawaan' => 'https://api.fonnte.com/send',
-                                     'catatan' => 'Hanya dipakai kalau application/libraries/Api_Whatsapp.php tidak ada. Format Fonnte.'),
-                'wa_token'  => array('label' => 'Token gerbang WA', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),
+                'wa_url'    => array('label' => 'Alamat API gerbang WA', 'jenis' => 'teks', 'tersembunyi' => TRUE,
+                                     'bawaan' => 'https://api.fonnte.com/send'),
+                'wa_token'  => array('label' => 'Token gerbang WA', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE, 'tersembunyi' => TRUE),
             ),
             'Email' => array(
                 'email_aktif'   => array('label' => 'Kirim notifikasi email', 'jenis' => 'ya_tidak', 'bawaan' => '0'),
