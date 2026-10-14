@@ -517,6 +517,24 @@ $config['time_reference'] = 'local';
 
 /*
 |--------------------------------------------------------------------------
+| Zona waktu aplikasi
+|--------------------------------------------------------------------------
+|
+| Ditetapkan di sini, bukan diserahkan ke php.ini: kalau zona PHP berbeda
+| dengan MySQL, waktu yang ditulis PHP (date()) dan yang diisi MySQL
+| (DEFAULT CURRENT_TIMESTAMP) berselisih beberapa jam. Akibatnya nyata:
+| batas "tunggu satu menit" OTP tertahan berjam-jam, token kedaluwarsa
+| tampak lebih tua dari waktu dibuatnya, dsb.
+|
+| Sesi MySQL ikut diselaraskan ke zona ini setiap kali database dibuka -
+| lihat application/core/MY_Loader.php.
+|
+*/
+$config['zona_waktu'] = 'Asia/Jakarta';
+date_default_timezone_set($config['zona_waktu']);
+
+/*
+|--------------------------------------------------------------------------
 | Rewrite PHP Short Tags
 |--------------------------------------------------------------------------
 |
