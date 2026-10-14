@@ -47,15 +47,19 @@ class Location_lib {
 
         $data = $this->CI->session->userdata(self::KEY);
 
-        if ( ! $data) {
-            // Belum ada di session - coba pulihkan dari cookie.
-            $id = get_cookie(self::COOKIE);
-            if ($id) {
-                $data = $this->CI->region_model->district_full((int) $id);
-                if ($data) {
-                    $this->CI->session->set_userdata(self::KEY, $data);
-                }
-            }
+        /* Session hanya dipercaya untuk ID-nya; nama wilayah diambil ulang
+           dari database (satu query berindeks per permintaan). Dulu salinan
+           nama di session dipakai apa adanya, sehingga setelah data wilayah
+           diperbarui label "Kirim ke" tetap menampilkan nama lama sampai
+           session habis. */
+        $id = ! empty($data['district_id']) ? (int) $data['district_id'] : (int) get_cookie(self::COOKIE);
+        $data = $id ? $this->CI->region_model->district_full($id) : NULL;
+
+        if ($data) {
+            $this->CI->session->set_userdata(self::KEY, $data);
+        } elseif ($id) {
+            // Kecamatannya sudah tidak ada di database: lupakan pilihan itu.
+            $this->CI->session->unset_userdata(self::KEY);
         }
 
         $this->cache = $data ?: FALSE;
