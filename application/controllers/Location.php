@@ -110,7 +110,15 @@ class Location extends CI_Controller
             );
         }
         if ( ! $wilayah || ! $wilayah['district_id']) {
-            $wilayah = $this->wilayah_dari_titik((float) $lat, (float) $lng);
+            if ($wilayah) {
+                log_message('error', 'Location::titik kecamatan tidak cocok. Dari browser: provinsi='
+                    . $this->input->post('provinsi', TRUE) . '; kabupaten=' . $this->input->post('kabupaten', TRUE)
+                    . '; kecamatan=' . $this->input->post('kecamatan', TRUE));
+            }
+            $dari_server = $this->wilayah_dari_titik((float) $lat, (float) $lng);
+            if ($dari_server && ($dari_server['district_id'] || ! $wilayah)) {
+                $wilayah = $dari_server;
+            }
         }
         if ($wilayah && $wilayah['district_id']) {
             $this->location_lib->set($wilayah['district_id']);
@@ -122,6 +130,9 @@ class Location extends CI_Controller
             ->set_output(json_encode(array(
                 'ok' => TRUE,
                 'label' => ($wilayah && $wilayah['district_id']) ? $this->location_lib->label() : NULL,
+                // Untuk pesan di browser bila kecamatan tidak terbaca: sampai tingkat mana yang cocok.
+                'terbaca_kota'      => $wilayah ? $wilayah['regency_name'] : NULL,
+                'terbaca_provinsi'  => $wilayah ? $wilayah['province_name'] : NULL,
                 'csrf_name' => $this->security->get_csrf_token_name(),
                 'csrf_hash' => $this->security->get_csrf_hash(),
             )));

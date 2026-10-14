@@ -267,7 +267,7 @@
      Elemen pesan sudah ada di bilah lokasi di atas; id harus unik, jadi
      tidak digandakan di sini. -->
 <script>
-  window.GPS = { simpan: '<?= site_url('location/titik') ?>' };
+  window.GPS = <?= gps_config_js() ?>;
   window.CSRF = window.CSRF || {
     name: '<?= $this->security->get_csrf_token_name() ?>',
     hash: '<?= $this->security->get_csrf_hash() ?>'

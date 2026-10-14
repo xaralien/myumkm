@@ -69,6 +69,11 @@ class Pengaturan_lib
                 'smtp_user'     => array('label' => 'SMTP user', 'jenis' => 'teks', 'bawaan' => ''),
                 'smtp_pass'     => array('label' => 'SMTP password', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),
             ),
+            'Peta' => array(
+                'google_maps_key' => array('label' => 'Kunci API Google Maps (opsional)', 'jenis' => 'teks', 'bawaan' => '',
+                                           'catatan' => 'Cadangan terakhir untuk membaca kecamatan dari GPS, setelah OpenStreetMap dan BigDataCloud. '
+                                                      . 'Aktifkan Geocoding API dan BATASI kunci ke domain situs ini - kunci terlihat di halaman.'),
+            ),
             'Ekspedisi' => array(
                 'ongkir_api_aktif' => array('label' => 'Cek tarif & resi lewat agregator', 'jenis' => 'ya_tidak', 'bawaan' => '0'),
                 'ongkir_api_url'   => array('label' => 'Alamat API agregator', 'jenis' => 'teks', 'bawaan' => 'https://api.biteship.com'),

@@ -360,7 +360,7 @@
 <p class="gps-info" id="gpsInfo" aria-live="polite"></p>
 
 <script>
-  window.GPS = { simpan: '<?= site_url('location/titik') ?>' };
+  window.GPS = <?= gps_config_js() ?>;
   window.CSRF = window.CSRF || {
     name: '<?= $this->security->get_csrf_token_name() ?>',
     hash: '<?= $this->security->get_csrf_hash() ?>'
