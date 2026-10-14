@@ -350,12 +350,20 @@ html.hemat-kuota .nt-hero-foto, html.hemat-kuota .banner-kartu img, html.hemat-k
 .lacak-tautan { font-weight: 600; }
 .tarif-tabel td, .tarif-tabel th { padding: 8px 10px; }
 
-/* ---- Admin: pilih server WhatsApp --------------------------------- */
-.wa-server { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.wa-server-kartu { display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
-  padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 12px; background: #fff; }
-.wa-server-kartu.is-aktif { border-color: #16a34a; box-shadow: 0 0 0 1px #16a34a inset; background: #f0fdf4; }
-.wa-server-kartu form { margin: 0; }
-.wa-server-kartu .btn { width: 100%; }
-.wa-server-lencana { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px;
-  background: #16a34a; color: #fff; font-size: .75rem; font-weight: 600; vertical-align: middle; }
+/* ---- Admin: geseran server WhatsApp ------------------------------- */
+.wa-geser { position: relative; display: grid; grid-template-columns: repeat(var(--jumlah), 1fr);
+  max-width: 560px; padding: 4px; border-radius: 999px; background: #e5e7eb; }
+.wa-geser-jempol { position: absolute; top: 4px; bottom: 4px; left: 4px;
+  width: calc((100% - 8px) / var(--jumlah)); border-radius: 999px; background: #16a34a;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2); transform: translateX(calc(var(--posisi) * 100%));
+  transition: transform .25s ease, background-color .25s ease; }
+.wa-geser-jempol.is-mati { background: #6b7280; }
+.wa-geser-opsi { position: relative; z-index: 1; margin: 0; cursor: pointer; text-align: center; }
+.wa-geser-opsi input { position: absolute; opacity: 0; pointer-events: none; }
+.wa-geser-opsi span { display: block; padding: 10px 6px; border-radius: 999px; font-weight: 600; font-size: .95rem;
+  color: #374151; transition: color .25s ease; user-select: none; }
+.wa-geser-opsi input:checked + span { color: #fff; }
+.wa-geser-opsi input:focus-visible + span { outline: 2px solid #1f4e78; outline-offset: 2px; }
+.wa-geser-opsi.is-nonaktif { cursor: not-allowed; }
+.wa-geser-opsi.is-nonaktif span { color: #9ca3af; }
+@media (prefers-reduced-motion: reduce) { .wa-geser-jempol, .wa-geser-opsi span { transition: none; } }
