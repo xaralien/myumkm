@@ -56,9 +56,9 @@ class Notifikasi_lib
                memilih server. Tanpa tabel itu, db->get() di lingkungan
                pengembangan (db_debug aktif) menampilkan galat database lalu
                menghentikan SELURUH permintaan - termasuk checkout dan callback
-               pembayaran. Jadi diperiksa dulu di sini. Lihat migrasi 33. */
+               pembayaran. Jadi diperiksa dulu di sini. */
             if ( ! $this->CI->db->table_exists('utility')) {
-                $this->catat('wa', $nomor, NULL, $isi, 'gagal', 'Tabel utility (server_wa) belum ada - jalankan database/33_utility_wa.sql', $acara);
+                $this->catat('wa', $nomor, NULL, $isi, 'gagal', 'Tabel utility (server_wa) untuk Api_Whatsapp tidak ditemukan', $acara);
                 return FALSE;
             }
 
