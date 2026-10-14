@@ -85,7 +85,33 @@ class Location extends CI_Controller
            kecamatan lewat OpenStreetMap, lalu dicocokkan dengan tabel
            wilayah. Gagal (tanpa internet, wilayah tak dikenal) tidak apa-
            apa - pengurutan toko terdekat tetap jalan dari koordinatnya. */
-        $wilayah = $this->wilayah_dari_titik((float) $lat, (float) $lng);
+        /* Nama wilayah dari browser (gps.js menerjemahkan titik lewat
+           Nominatim langsung dari browser) dipakai lebih dulu: server di
+           Windows/XAMPP sering tidak bisa memanggil HTTPS karena sertifikat
+           CA PHP belum diatur. Nama itu hanya dicocokkan ke tabel wilayah,
+           jadi tidak ada yang bisa disusupkan lewat situ. */
+        $pisah = function ($v) {
+            $out = array();
+            foreach (explode('|', (string) $v) as $x) {
+                $x = trim($x);
+                if ($x !== '') {
+                    $out[] = mb_substr($x, 0, 100);
+                }
+            }
+            return array_slice($out, 0, 6);
+        };
+        $wilayah = NULL;
+        if (trim((string) $this->input->post('kecamatan', TRUE)) !== '' || trim((string) $this->input->post('kabupaten', TRUE)) !== '') {
+            $this->load->model('region_model');
+            $wilayah = $this->region_model->cocokkan(
+                $pisah($this->input->post('provinsi', TRUE)),
+                $pisah($this->input->post('kabupaten', TRUE)),
+                $pisah($this->input->post('kecamatan', TRUE))
+            );
+        }
+        if ( ! $wilayah || ! $wilayah['district_id']) {
+            $wilayah = $this->wilayah_dari_titik((float) $lat, (float) $lng);
+        }
         if ($wilayah && $wilayah['district_id']) {
             $this->location_lib->set($wilayah['district_id']);
         }
@@ -131,7 +157,12 @@ class Location extends CI_Controller
             ));
             $balas = curl_exec($ch);
             $kode  = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $galat = curl_error($ch);
             curl_close($ch);
+            if ($balas === FALSE || $kode !== 200) {
+                // Mis. "SSL certificate problem" = curl.cainfo di php.ini belum diisi.
+                log_message('error', 'Location::titik Nominatim gagal: HTTP ' . $kode . ' ' . $galat);
+            }
 
             $j = ($balas !== FALSE && $kode === 200) ? json_decode($balas, TRUE) : NULL;
             $a = (is_array($j) && ! empty($j['address'])) ? $j['address'] : array();

@@ -100,30 +100,69 @@
     );
   }
 
-  function kirim(lat, lng, btn) {
-    var body = new FormData();
-    body.append('lat', lat);
-    body.append('lng', lng);
-    if (window.CSRF) { body.append(window.CSRF.name, window.CSRF.hash); }
-
-    fetch(C.simpan, {
-      method: 'POST', body: body, credentials: 'same-origin',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
+  /* Titik -> nama provinsi/kota/kecamatan lewat Nominatim, langsung dari
+     browser. Tidak ditunggu lebih dari 6 detik; gagal = kirim koordinat
+     saja, server mencoba sendiri. */
+  function namaWilayah(lat, lng) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var t = ctl ? setTimeout(function () { ctl.abort(); }, 6000) : null;
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&addressdetails=1'
+                 + '&accept-language=id&lat=' + lat + '&lon=' + lng, ctl ? { signal: ctl.signal } : {})
       .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (!j.ok) {
-          if (btn) { btn.disabled = false; }
-          return pesan(j.pesan || 'Gagal menyimpan lokasi.', 'error');
-        }
-        // Dimuat ulang supaya urutan dan label "Kirim ke" ikut berubah.
-        if (j.label) { pesan('Lokasi: ' + j.label); }
-        window.location.reload();
+      .then(function (d) {
+        if (t) { clearTimeout(t); }
+        var a = (d && d.address) || {};
+        var gabung = function (k) { return k.map(function (x) { return a[x]; }).filter(Boolean).join('|'); };
+        // Sama dengan kandidat di peta alamat (peta-alamat.js).
+        return {
+          provinsi:  gabung(['state', 'region']),
+          kabupaten: gabung(['city', 'county', 'municipality', 'town', 'state_district']),
+          kecamatan: gabung(['city_district', 'district', 'subdistrict', 'municipality', 'suburb', 'village'])
+        };
       })
-      .catch(function () {
-        if (btn) { btn.disabled = false; }
-        pesan('Koneksi bermasalah. Coba lagi.', 'error');
-      });
+      .catch(function () { if (t) { clearTimeout(t); } return null; });
+  }
+
+  function kirim(lat, lng, btn) {
+    pesan('Membaca wilayahmu...');
+    namaWilayah(lat, lng).then(function (w) {
+      var body = new FormData();
+      body.append('lat', lat);
+      body.append('lng', lng);
+      if (w) {
+        body.append('provinsi', w.provinsi);
+        body.append('kabupaten', w.kabupaten);
+        body.append('kecamatan', w.kecamatan);
+      }
+      if (window.CSRF) { body.append(window.CSRF.name, window.CSRF.hash); }
+
+      return fetch(C.simpan, {
+        method: 'POST', body: body, credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j.ok) {
+            if (btn) { btn.disabled = false; }
+            return pesan(j.pesan || 'Gagal menyimpan lokasi.', 'error');
+          }
+          if (j.label) {
+            // Dimuat ulang supaya urutan dan label "Kirim ke" ikut berubah.
+            pesan('Lokasi: ' + j.label);
+            window.location.reload();
+          } else {
+            /* Titik tersimpan (toko tetap diurutkan dari yang terdekat), tapi
+               kecamatannya tidak terbaca - beri tahu dulu sebelum memuat ulang,
+               supaya tidak tampak seperti tombol yang tidak bekerja. */
+            pesan('Toko diurutkan dari lokasimu, tapi kecamatannya tidak terbaca. '
+                + 'Pilih kecamatan lewat menu lokasi.', 'error');
+            setTimeout(function () { window.location.reload(); }, 3500);
+          }
+        });
+    }).catch(function () {
+      if (btn) { btn.disabled = false; }
+      pesan('Koneksi bermasalah. Coba lagi.', 'error');
+    });
   }
 
   document.addEventListener('click', function (e) {
