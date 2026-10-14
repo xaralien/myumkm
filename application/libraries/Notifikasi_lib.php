@@ -8,11 +8,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * Pakai    : $this->load->library('notifikasi_lib');
  *            $this->notifikasi_lib->pesanan_dibayar($order);
  *
- * Gerbang WhatsApp memakai format Fonnte (POST target + message, header
- * Authorization berisi token) - format ini juga dipakai sebagian besar
- * gerbang WA lokal. Diatur admin di Pengaturan > WhatsApp.
+ * WhatsApp dikirim lewat library Api_Whatsapp milik sendiri
+ * ($this->api_whatsapp->wa_notif($pesan, $nomor), di-autoload bila berkasnya
+ * ada). Kalau library itu tidak ada, dipakai gerbang berformat Fonnte (POST
+ * target + message, header Authorization berisi token) dari Pengaturan >
+ * WhatsApp. Saklar "Kirim notifikasi WhatsApp" berlaku untuk keduanya.
  *
- * Tanpa token, notifikasi DILEWATI dan dicatat sebagai 'dilewati' - tidak
+ * Tanpa gerbang, notifikasi DILEWATI dan dicatat sebagai 'dilewati' - tidak
  * ada halaman yang rusak, dan admin bisa melihat apa yang seharusnya
  * terkirim di Pengaturan > Notifikasi keluar.
  *
@@ -43,7 +45,45 @@ class Notifikasi_lib
         }
 
         $p = $this->CI->pengaturan_lib;
-        if ( ! $p->aktif('wa_aktif') || ! $p->get('wa_token')) {
+        if ( ! $p->aktif('wa_aktif')) {
+            $this->catat('wa', $nomor, NULL, $isi, 'dilewati', 'Notifikasi WA dimatikan di Pengaturan', $acara);
+            return FALSE;
+        }
+
+        // Gerbang WA milik sendiri (application/libraries/Api_Whatsapp.php).
+        if (isset($this->CI->api_whatsapp) && method_exists($this->CI->api_whatsapp, 'wa_notif')) {
+            /* Api_Whatsapp membaca tabel `utility` (kolom server_wa) untuk
+               memilih server. Tanpa tabel itu, db->get() di lingkungan
+               pengembangan (db_debug aktif) menampilkan galat database lalu
+               menghentikan SELURUH permintaan - termasuk checkout dan callback
+               pembayaran. Jadi diperiksa dulu di sini. */
+            if ( ! $this->CI->db->table_exists('utility')) {
+                $this->catat('wa', $nomor, NULL, $isi, 'gagal', 'Tabel utility (server_wa) untuk Api_Whatsapp tidak ditemukan', $acara);
+                return FALSE;
+            }
+
+            /* Keluaran dibungkus: peringatan PHP dari dalam gerbang (mis.
+               variabel yang belum didefinisikan) dicetak CodeIgniter langsung
+               ke halaman dan merusak balasan JSON seperti callback Duitku. */
+            ob_start();
+            try {
+                $balas = $this->CI->api_whatsapp->wa_notif($isi, $nomor);
+                $galat = $this->galat_balasan_wa($balas);
+            } catch (\Throwable $e) {
+                // Gerbang bermasalah tidak boleh menggagalkan checkout/pembayaran.
+                $galat = get_class($e) . ': ' . $e->getMessage();
+            }
+            $bocor = trim(strip_tags((string) ob_get_clean()));
+            if ($bocor !== '') {
+                log_message('error', 'Api_Whatsapp mencetak keluaran: ' . $bocor);
+            }
+
+            $this->catat('wa', $nomor, NULL, $isi, $galat === NULL ? 'terkirim' : 'gagal',
+                $galat === NULL ? NULL : mb_substr($galat, 0, 250), $acara);
+            return $galat === NULL;
+        }
+
+        if ( ! $p->get('wa_token')) {
             $this->catat('wa', $nomor, NULL, $isi, 'dilewati', 'Gerbang WA belum diaktifkan', $acara);
             return FALSE;
         }
@@ -80,6 +120,35 @@ class Notifikasi_lib
         $this->catat('wa', $nomor, NULL, $isi, $ok ? 'terkirim' : 'gagal',
             $ok ? NULL : mb_substr($galat ?: ($json['reason'] ?? ('HTTP ' . $kode)), 0, 250), $acara);
         return $ok;
+    }
+
+    /**
+     * Baca balasan Api_Whatsapp::wa_notif(). NULL = dianggap terkirim.
+     *
+     * wa_notif() saat ini tidak mengembalikan apa-apa, jadi kegagalan dari
+     * server WA belum bisa diketahui di sini - hanya galat PHP yang
+     * tertangkap. Kalau nanti wa_notif() diberi `return`, balasan berbentuk
+     * array/JSON dengan success/status = false otomatis tercatat 'gagal'.
+     *
+     * @return string|NULL pesan galat, atau NULL kalau tidak ada tanda gagal
+     */
+    protected function galat_balasan_wa($balas)
+    {
+        if ($balas === FALSE) {
+            return 'wa_notif mengembalikan FALSE';
+        }
+        if (is_string($balas)) {
+            $j = json_decode($balas, TRUE);
+            $balas = is_array($j) ? $j : NULL;
+        }
+        if (is_array($balas)) {
+            foreach (array('success', 'status') as $k) {
+                if (array_key_exists($k, $balas) && ($balas[$k] === FALSE || $balas[$k] === 'false' || $balas[$k] === 0)) {
+                    return (string) ($balas['message'] ?? $balas['reason'] ?? 'Server WA menolak');
+                }
+            }
+        }
+        return NULL;
     }
 
     public function email($ke, $judul, $isi, $acara = NULL)

@@ -23,10 +23,10 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 | Kelompok | Total fitur | ✅ Ada | ❌ Belum |
 |---|---|---|---|
-| Pembeli | 35 | 35 | 0 |
+| Pembeli | 36 | 36 | 0 |
 | Penjual / UMKM | 39 | 39 | 0 |
 | Admin | 22 | 22 | 0 |
-| **Total** | **96** | **96** | **0** |
+| **Total** | **97** | **97** | **0** |
 
 ---
 
@@ -38,7 +38,8 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ 🧓 **Belanja tanpa akun (guest checkout)** — *Pain:* pembeli lokal malas daftar hanya untuk sekali beli → *Fungsi:* checkout cukup nama + nomor WA; pesanan dibuka lewat token. (`orders.user_id` boleh NULL, `Checkout::done/{token}`)
 - ✅ 🧓 **Lacak pesanan dengan nomor pesanan + nomor WA** — *Pain:* pembeli tamu tidak punya akun untuk mengecek status → *Fungsi:* form lacak sederhana tanpa login. (`Track.php`)
 - ✅ 🧓 **Login OTP WhatsApp / tanpa kata sandi** — *Pain:* pembeli sering lupa sandi → *Fungsi:* masuk cukup dengan kode OTP dikirim ke WA. (`Auth::otp` + `Auth_lib::buat_otp` — kode 6 angka dikirim lewat gerbang WA, terkunci setelah 5 kali salah.)
-- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` + `Token_model` & `Surat_lib` — tautan sekali pakai ke email (SMTP di `config/surat.php`) dan WhatsApp; isian boleh email atau nomor WA. Ditambah verifikasi email, wajib sebelum membuka toko.)
+- ✅ **Lupa kata sandi mandiri** — *Pain:* saat ini reset sandi harus lewat admin → *Fungsi:* tautan/OTP reset sandi sendiri. (`Auth::lupa` / `Auth::reset` + `Token_model` & `Surat_lib` — tautan sekali pakai ke email (SMTP di `config/surat.php`) dan WhatsApp; isian boleh email atau nomor WA. )
+- ✅ **Verifikasi email** — *Pain:* email salah ketik membuat tautan reset sandi & kabar pesanan tidak sampai; penjual yang menerima uang harus bisa dihubungi → *Fungsi:* tautan verifikasi dikirim saat daftar, spanduk pengingat + kirim ulang di halaman akun, wajib sebelum membuka toko. (`Auth::verifikasi`, `Auth::kirim_verifikasi`, `parts/verif_spanduk.php`, kolom `users.email_verified_at` di `25_reset_sandi_verifikasi.sql`.)
 - ✅ **Profil & ubah sandi** — *Pain:* data kontak berubah → *Fungsi:* ubah nama, foto, nomor, sandi. (`Akun::profil`)
 
 ### B. Penemuan Produk
@@ -58,7 +59,7 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 ### C. Keranjang, Checkout & Pembayaran
 
 - ✅ **Keranjang & "Beli Langsung"** — *Pain:* ingin beli cepat satu barang → *Fungsi:* keranjang per toko dan jalur beli langsung. (`Cart.php`, `Cart_lib::mode_langsung`)
-- ✅ **Buku alamat** — *Pain:* mengetik alamat berulang; penerima sering bukan pembeli → *Fungsi:* simpan banyak alamat ("Rumah", "Rumah Ibu"), pilih saat checkout. (`22_buku_alamat.sql`, `Akun::alamat`)
+- ✅ **Buku alamat** — *Pain:* mengetik alamat berulang; penerima sering bukan pembeli → *Fungsi:* simpan banyak alamat ("Rumah", "Rumah Ibu"), pilih saat checkout; alamat baru bisa langsung disimpan dari halaman checkout (centang "Simpan alamat ini"). (`22_buku_alamat.sql`, `Akun::alamat`, `Checkout::simpan_alamat_pembeli`)
 - ✅ **Ongkir otomatis berdasarkan wilayah** — *Pain:* ongkir tidak jelas sebelum bayar → *Fungsi:* tarif kecamatan/kota/provinsi/luar provinsi dari toko, plus gratis ongkir minimal belanja. (`Cart_lib::shipping_fee`)
 - ✅ **Pembayaran online (VA/QRIS/e-wallet via Duitku)** — *Pain:* transfer manual rawan salah & lama dicek → *Fungsi:* pembayaran terverifikasi otomatis via callback. (`Payment.php`, `libraries/Duitku.php`)
 - ✅ **Voucher & promo** — *Pain:* pembeli mencari potongan harga → *Fungsi:* kode voucher toko/platform. (`Voucher_lib` — kode voucher toko & platform di checkout.)
@@ -74,7 +75,7 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ **Ulasan dengan foto/video** — *Pain:* pembeli lain butuh bukti nyata → *Fungsi:* rating bintang + media, hanya dari pembeli asli, filter ulasan. (`Ulasan.php`, `19_ulasan.sql`)
 - ✅ **Chat dengan toko (sebelum & sesudah beli) + lampiran** — *Pain:* ingin bertanya sebelum membeli tanpa pindah ke WA → *Fungsi:* "Tanya ke toko" dan percakapan per pesanan. (`Chat.php`, `18_tanya_toko.sql`)
 - ✅ **Notifikasi di dalam situs** — *Pain:* tidak tahu ada balasan/perubahan status → *Fungsi:* lonceng notifikasi & inbox. (`Akun::notif`, `inbox_json`)
-- ✅ 🧓 **Notifikasi WhatsApp / email otomatis** — *Pain:* pengguna jarang membuka web, tapi selalu membuka WA → *Fungsi:* kabar status pesanan dikirim ke WA. (`Notifikasi_lib` — WA (format Fonnte) & email; aktifkan di Admin > Pengaturan.)
+- ✅ 🧓 **Notifikasi WhatsApp / email otomatis** — *Pain:* pengguna jarang membuka web, tapi selalu membuka WA → *Fungsi:* kabar status pesanan dikirim ke WA. (`Notifikasi_lib` — WA lewat library `Api_Whatsapp` milik sendiri (`wa_notif`), cadangan gerbang format Fonnte; email lewat SMTP. Saklar di Admin > Pengaturan.)
 
 ### E. Pengalaman & Aksesibilitas
 
@@ -183,9 +184,17 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 
 ---
 
+## Pengujian QA
+
+Lembar uji untuk Quality Assurance Engineer ada di `rancangan-fitur-marketplace-umkm.xlsx`:
+
+- **Uji QA** — 128 kasus uji (setiap fitur minimal satu): ID, skenario, jenis (positif/negatif/batas/keamanan), prioritas, prasyarat, langkah, data uji, dan hasil yang diharapkan. Penguji mengisi hasil aktual, status, nama, tanggal, dan ID bug.
+- **Laporan Bug** — templat pencatatan bug yang tertaut ke ID kasus uji.
+- **Ringkasan QA** — rekap otomatis per kelompok, prioritas, dan jenis uji, plus penilaian kesiapan rilis.
+
 ## Catatan Pemasangan
 
 1. Jalankan migrasi `database/24_*.sql` sampai `database/32_*.sql` berurutan (aman diulang; cadangkan dulu). Urutan penting: `26_pengaturan_notifikasi.sql` menambah kolom ke tabel `auth_tokens` dari `25_reset_sandi_verifikasi.sql`.
-2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Isi kunci di **Admin > Pengaturan**: gerbang WhatsApp (mis. Fonnte) dan agregator ekspedisi (mis. Biteship). Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
+2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Taruh `application/libraries/Api_Whatsapp.php` (gerbang WA sendiri, tidak ikut di repo) - otomatis di-autoload dan dipakai semua notifikasi WA; server WA dipilih lewat `utility.server_wa` (`bind` / `fast_wa` / `kirimi`) di database Anda. Isi kunci agregator ekspedisi (mis. Biteship) di **Admin > Pengaturan**. Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
 3. Dokumen legalitas penjual disimpan di `application/dokumen_toko/` (tidak bisa diakses publik). Pastikan server web menolak akses langsung ke `/application/`.
 4. Yang masih bisa dikembangkan: tarif ongkir otomatis dari kurir saat checkout pembeli (kini tarif tetap per wilayah yang diatur penjual; perbandingan tarif kurir tersedia untuk penjual).

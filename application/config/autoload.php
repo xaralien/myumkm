@@ -61,6 +61,15 @@ $autoload['packages'] = array();
 // $autoload['libraries'] = array('session', 'database', 'form_validation', 'upload', 'Api_Whatsapp', 'pagination', 'upload');
 $autoload['libraries'] = array('cart_lib', 'session', 'database', 'form_validation', 'upload', 'pagination');
 
+/* Api_Whatsapp - gerbang WhatsApp milik sendiri ($this->api_whatsapp->wa_notif($pesan, $nomor)).
+   Berkasnya TIDAK ikut di repo (lihat .gitignore), jadi hanya dimuat kalau ada:
+   tanpa pengecekan ini, salinan repo yang belum punya berkasnya langsung mati
+   dengan "Unable to load the requested class". Semua notifikasi WA lewat
+   Notifikasi_lib::wa(), yang memakai library ini bila tersedia. */
+if (is_file(APPPATH . 'libraries/Api_Whatsapp.php')) {
+    $autoload['libraries'][] = 'Api_Whatsapp';
+}
+
 /*
 | -------------------------------------------------------------------
 |  Auto-load Drivers
