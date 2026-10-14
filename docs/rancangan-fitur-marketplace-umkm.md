@@ -75,7 +75,7 @@ Format tiap fitur: **Nama fitur** — *Pain point* → *Fungsi utama* (bukti di 
 - ✅ **Ulasan dengan foto/video** — *Pain:* pembeli lain butuh bukti nyata → *Fungsi:* rating bintang + media, hanya dari pembeli asli, filter ulasan. (`Ulasan.php`, `19_ulasan.sql`)
 - ✅ **Chat dengan toko (sebelum & sesudah beli) + lampiran** — *Pain:* ingin bertanya sebelum membeli tanpa pindah ke WA → *Fungsi:* "Tanya ke toko" dan percakapan per pesanan. (`Chat.php`, `18_tanya_toko.sql`)
 - ✅ **Notifikasi di dalam situs** — *Pain:* tidak tahu ada balasan/perubahan status → *Fungsi:* lonceng notifikasi & inbox. (`Akun::notif`, `inbox_json`)
-- ✅ 🧓 **Notifikasi WhatsApp / email otomatis** — *Pain:* pengguna jarang membuka web, tapi selalu membuka WA → *Fungsi:* kabar status pesanan dikirim ke WA. (`Notifikasi_lib` — WA (format Fonnte) & email; aktifkan di Admin > Pengaturan.)
+- ✅ 🧓 **Notifikasi WhatsApp / email otomatis** — *Pain:* pengguna jarang membuka web, tapi selalu membuka WA → *Fungsi:* kabar status pesanan dikirim ke WA. (`Notifikasi_lib` — WA lewat library `Api_Whatsapp` milik sendiri (`wa_notif`), cadangan gerbang format Fonnte; email lewat SMTP. Saklar di Admin > Pengaturan.)
 
 ### E. Pengalaman & Aksesibilitas
 
@@ -195,6 +195,6 @@ Lembar uji untuk Quality Assurance Engineer ada di `rancangan-fitur-marketplace-
 ## Catatan Pemasangan
 
 1. Jalankan migrasi `database/24_*.sql` sampai `database/32_*.sql` berurutan (aman diulang; cadangkan dulu). Urutan penting: `26_pengaturan_notifikasi.sql` menambah kolom ke tabel `auth_tokens` dari `25_reset_sandi_verifikasi.sql`.
-2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Isi kunci di **Admin > Pengaturan**: gerbang WhatsApp (mis. Fonnte) dan agregator ekspedisi (mis. Biteship). Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
+2. Salin `application/config/surat.example.php` menjadi `surat.php` dan isi SMTP (dipakai email reset sandi, verifikasi, dan notifikasi). Taruh `application/libraries/Api_Whatsapp.php` (gerbang WA sendiri, tidak ikut di repo) - otomatis di-autoload dan dipakai semua notifikasi WA. Isi kunci agregator ekspedisi (mis. Biteship) di **Admin > Pengaturan**. Tanpa kunci, fitur tetap jalan dengan cara manual (tautan WA, tautan lacak resmi kurir).
 3. Dokumen legalitas penjual disimpan di `application/dokumen_toko/` (tidak bisa diakses publik). Pastikan server web menolak akses langsung ke `/application/`.
 4. Yang masih bisa dikembangkan: tarif ongkir otomatis dari kurir saat checkout pembeli (kini tarif tetap per wilayah yang diatur penjual; perbandingan tarif kurir tersedia untuk penjual).

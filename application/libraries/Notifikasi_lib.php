@@ -8,11 +8,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * Pakai    : $this->load->library('notifikasi_lib');
  *            $this->notifikasi_lib->pesanan_dibayar($order);
  *
- * Gerbang WhatsApp memakai format Fonnte (POST target + message, header
- * Authorization berisi token) - format ini juga dipakai sebagian besar
- * gerbang WA lokal. Diatur admin di Pengaturan > WhatsApp.
+ * WhatsApp dikirim lewat library Api_Whatsapp milik sendiri
+ * ($this->api_whatsapp->wa_notif($pesan, $nomor), di-autoload bila berkasnya
+ * ada). Kalau library itu tidak ada, dipakai gerbang berformat Fonnte (POST
+ * target + message, header Authorization berisi token) dari Pengaturan >
+ * WhatsApp. Saklar "Kirim notifikasi WhatsApp" berlaku untuk keduanya.
  *
- * Tanpa token, notifikasi DILEWATI dan dicatat sebagai 'dilewati' - tidak
+ * Tanpa gerbang, notifikasi DILEWATI dan dicatat sebagai 'dilewati' - tidak
  * ada halaman yang rusak, dan admin bisa melihat apa yang seharusnya
  * terkirim di Pengaturan > Notifikasi keluar.
  *
@@ -43,7 +45,27 @@ class Notifikasi_lib
         }
 
         $p = $this->CI->pengaturan_lib;
-        if ( ! $p->aktif('wa_aktif') || ! $p->get('wa_token')) {
+        if ( ! $p->aktif('wa_aktif')) {
+            $this->catat('wa', $nomor, NULL, $isi, 'dilewati', 'Notifikasi WA dimatikan di Pengaturan', $acara);
+            return FALSE;
+        }
+
+        // Gerbang WA milik sendiri (application/libraries/Api_Whatsapp.php).
+        if (isset($this->CI->api_whatsapp) && method_exists($this->CI->api_whatsapp, 'wa_notif')) {
+            try {
+                $balas = $this->CI->api_whatsapp->wa_notif($isi, $nomor);
+                $ok = $balas !== FALSE;
+                $galat = $ok ? NULL : 'Api_Whatsapp::wa_notif mengembalikan FALSE';
+            } catch (\Throwable $e) {
+                // Gerbang bermasalah tidak boleh menggagalkan checkout/pembayaran.
+                $ok = FALSE;
+                $galat = mb_substr(get_class($e) . ': ' . $e->getMessage(), 0, 250);
+            }
+            $this->catat('wa', $nomor, NULL, $isi, $ok ? 'terkirim' : 'gagal', $galat, $acara);
+            return $ok;
+        }
+
+        if ( ! $p->get('wa_token')) {
             $this->catat('wa', $nomor, NULL, $isi, 'dilewati', 'Gerbang WA belum diaktifkan', $acara);
             return FALSE;
         }

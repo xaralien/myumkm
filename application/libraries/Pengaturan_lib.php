@@ -48,9 +48,11 @@ class Pengaturan_lib
                 'tahan_hari'    => array('label' => 'Tahan dana setelah selesai (hari)', 'jenis' => 'angka', 'bawaan' => 0),
             ),
             'WhatsApp' => array(
-                'wa_aktif'  => array('label' => 'Kirim notifikasi WhatsApp', 'jenis' => 'ya_tidak', 'bawaan' => '0'),
+                // Aktif bawaan kalau Api_Whatsapp milik sendiri terpasang.
+                'wa_aktif'  => array('label' => 'Kirim notifikasi WhatsApp', 'jenis' => 'ya_tidak',
+                                     'bawaan' => is_file(APPPATH . 'libraries/Api_Whatsapp.php') ? '1' : '0'),
                 'wa_url'    => array('label' => 'Alamat API gerbang WA', 'jenis' => 'teks', 'bawaan' => 'https://api.fonnte.com/send',
-                                     'catatan' => 'Format Fonnte. Gerbang lain yang menerima target & message juga bisa.'),
+                                     'catatan' => 'Hanya dipakai kalau application/libraries/Api_Whatsapp.php tidak ada. Format Fonnte.'),
                 'wa_token'  => array('label' => 'Token gerbang WA', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),
             ),
             'Email' => array(
