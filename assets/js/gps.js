@@ -116,7 +116,8 @@
           if (btn) { btn.disabled = false; }
           return pesan(j.pesan || 'Gagal menyimpan lokasi.', 'error');
         }
-        // Dimuat ulang supaya urutannya ikut berubah dari server.
+        // Dimuat ulang supaya urutan dan label "Kirim ke" ikut berubah.
+        if (j.label) { pesan('Lokasi: ' + j.label); }
         window.location.reload();
       })
       .catch(function () {

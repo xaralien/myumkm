@@ -81,14 +81,84 @@ class Location extends CI_Controller
             'dari'  => 'gps',
         ));
 
+        /* Titik GPS sekaligus mengisi "Kirim ke": titik diterjemahkan ke
+           kecamatan lewat OpenStreetMap, lalu dicocokkan dengan tabel
+           wilayah. Gagal (tanpa internet, wilayah tak dikenal) tidak apa-
+           apa - pengurutan toko terdekat tetap jalan dari koordinatnya. */
+        $wilayah = $this->wilayah_dari_titik((float) $lat, (float) $lng);
+        if ($wilayah && $wilayah['district_id']) {
+            $this->location_lib->set($wilayah['district_id']);
+        }
+
         return $this
             ->output
             ->set_content_type('application/json')
             ->set_output(json_encode(array(
                 'ok' => TRUE,
+                'label' => ($wilayah && $wilayah['district_id']) ? $this->location_lib->label() : NULL,
                 'csrf_name' => $this->security->get_csrf_token_name(),
                 'csrf_hash' => $this->security->get_csrf_hash(),
             )));
+    }
+
+    /**
+     * Koordinat -> kecamatan di database, lewat reverse geocoding Nominatim
+     * (OpenStreetMap). Hasilnya di-cache per ~100 m supaya tidak memanggil
+     * Nominatim berulang (kebijakannya: maksimal 1 permintaan/detik).
+     *
+     * @return array|NULL hasil Region_model::cocokkan()
+     */
+    protected function wilayah_dari_titik($lat, $lng)
+    {
+        if ( ! function_exists('curl_init')) {
+            return NULL;
+        }
+        $this->load->driver('cache', array('adapter' => 'file'));
+        $kunci = 'wilayah_' . round($lat, 3) . '_' . round($lng, 3);
+        $a = $this->cache->get($kunci);
+
+        if ($a === FALSE) {
+            $url = rtrim((string) ($this->config->item('nominatim_url') ?: 'https://nominatim.openstreetmap.org'), '/')
+                 . '/reverse?format=jsonv2&zoom=14&addressdetails=1&accept-language=id'
+                 . '&lat=' . rawurlencode((string) $lat) . '&lon=' . rawurlencode((string) $lng);
+            $ch = curl_init($url);
+            curl_setopt_array($ch, array(
+                CURLOPT_RETURNTRANSFER => TRUE,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_TIMEOUT        => 5,
+                // Nominatim menolak permintaan tanpa User-Agent yang jelas.
+                CURLOPT_USERAGENT      => $this->config->item('nama_brand') . ' (' . base_url() . ')',
+            ));
+            $balas = curl_exec($ch);
+            $kode  = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            $j = ($balas !== FALSE && $kode === 200) ? json_decode($balas, TRUE) : NULL;
+            $a = (is_array($j) && ! empty($j['address'])) ? $j['address'] : array();
+            $this->cache->save($kunci, $a, $a ? 2592000 : 600);   // 30 hari; gagal: 10 menit
+        }
+        if ( ! $a) {
+            return NULL;
+        }
+
+        /* OSM menaruh tiap tingkat wilayah di kolom yang berbeda-beda
+           tergantung daerahnya - semua kemungkinan dikirim sebagai kandidat,
+           sama seperti peta alamat (assets/js/peta-alamat.js). */
+        $ambil = function (array $kunci) use ($a) {
+            $out = array();
+            foreach ($kunci as $k) {
+                if ( ! empty($a[$k])) {
+                    $out[] = (string) $a[$k];
+                }
+            }
+            return $out;
+        };
+        $this->load->model('region_model');
+        return $this->region_model->cocokkan(
+            $ambil(array('state', 'region')),
+            $ambil(array('city', 'county', 'municipality', 'town', 'state_district')),
+            $ambil(array('city_district', 'district', 'subdistrict', 'municipality', 'suburb', 'village'))
+        );
     }
 
     /**
