@@ -349,3 +349,13 @@ html.hemat-kuota .nt-hero-foto, html.hemat-kuota .banner-kartu img, html.hemat-k
 .lacak-waktu { display: block; font-size: .8rem; color: #6b7280; font-weight: 400; }
 .lacak-tautan { font-weight: 600; }
 .tarif-tabel td, .tarif-tabel th { padding: 8px 10px; }
+
+/* ---- Admin: pilih server WhatsApp --------------------------------- */
+.wa-server { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.wa-server-kartu { display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 12px; background: #fff; }
+.wa-server-kartu.is-aktif { border-color: #16a34a; box-shadow: 0 0 0 1px #16a34a inset; background: #f0fdf4; }
+.wa-server-kartu form { margin: 0; }
+.wa-server-kartu .btn { width: 100%; }
+.wa-server-lencana { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px;
+  background: #16a34a; color: #fff; font-size: .75rem; font-weight: 600; vertical-align: middle; }

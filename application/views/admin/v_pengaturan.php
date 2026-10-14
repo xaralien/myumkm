@@ -47,6 +47,40 @@
 </div>
 <?= form_close() ?>
 
+<div class="panel-bagian" id="server-wa">
+  <h2 class="panel-sub">Server WhatsApp</h2>
+  <?php if ( ! $wa['ada_lib']): ?>
+    <div class="alert-box alert-warn">Library <code>application/libraries/Api_Whatsapp.php</code> belum terpasang di server ini,
+      jadi WA dikirim lewat gerbang di bagian WhatsApp di atas.</div>
+  <?php elseif ( ! $wa['ada_tabel'] || $wa['server'] === NULL): ?>
+    <div class="alert-box alert-warn">Tabel <code>utility</code> (kolom <code>server_wa</code>) belum ada atau masih kosong,
+      jadi server WhatsApp belum bisa dipilih di sini.</div>
+  <?php else: ?>
+    <p class="hint">Pilih layanan yang dipakai untuk semua notifikasi WhatsApp (OTP, reset sandi, pesanan, pengumuman).
+      <?php if ( ! $p->aktif('wa_aktif')): ?><strong>Catatan: "Kirim notifikasi WhatsApp" di atas sedang Tidak - pesan tidak dikirim dari server mana pun.</strong><?php endif; ?></p>
+    <div class="wa-server">
+      <?php foreach ($wa['pilihan'] as $kode => $x): $aktif = $kode === $wa['server']; ?>
+        <div class="wa-server-kartu<?= $aktif ? ' is-aktif' : '' ?>">
+          <div>
+            <strong><?= html_escape($x[0]) ?></strong>
+            <?php if ($aktif): ?><span class="wa-server-lencana">Aktif</span><?php endif; ?>
+            <p class="hint mb-0"><?= html_escape($x[1]) ?></p>
+          </div>
+          <?php if ($aktif): ?>
+            <button type="button" class="btn btn-primary" disabled>Sedang dipakai</button>
+          <?php else: ?>
+            <?= form_open('admin/pengaturan/server_wa') ?>
+              <input type="hidden" name="server_wa" value="<?= $kode ?>">
+              <button type="submit" class="btn btn-outline-secondary"
+                      onclick="return confirm('Pindahkan semua notifikasi WhatsApp ke <?= html_escape($x[0]) ?>?');">Aktifkan</button>
+            <?= form_close() ?>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</div>
+
 <div class="panel-bagian">
   <h2 class="panel-sub">Uji gerbang WhatsApp</h2>
   <?= form_open('admin/pengaturan/tes_wa', array('class' => 'fitur-baris-form')) ?>

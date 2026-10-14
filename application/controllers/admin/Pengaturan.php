@@ -8,6 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   GET  admin/pengaturan             formulir pengaturan
  *   POST admin/pengaturan/simpan      simpan
  *   POST admin/pengaturan/tes_wa      kirim WA uji ke nomor admin
+ *   POST admin/pengaturan/server_wa   pilih server WhatsApp (utility.server_wa)
  *   GET  admin/pengaturan/notifikasi  notifikasi WA/email yang keluar
  *   GET  admin/pengaturan/audit       log aktivitas admin
  */
@@ -26,7 +27,67 @@ class Pengaturan extends Admin_Controller {
             'nilai'  => $this->pengaturan_lib->semua(),
             'p'      => $this->pengaturan_lib,
             'tab'    => 'pengaturan',
+            'wa'     => $this->info_server_wa(),
         ));
+    }
+
+    /** Server WA yang bisa dipilih. Kuncinya = nilai utility.server_wa yang dibaca Api_Whatsapp. */
+    const SERVER_WA = array(
+        'bind'    => array('Bind', 'Server WhatsApp sendiri (bawaan).'),
+        'fast_wa' => array('FastWA', 'Layanan app.fastwa.com.'),
+        'kirimi'  => array('Kirimi', 'Layanan api.kirimi.id.'),
+    );
+
+    /**
+     * Keadaan gerbang WA milik sendiri (application/libraries/Api_Whatsapp.php).
+     * Api_Whatsapp memilih server dari baris pertama tabel `utility`; nilai
+     * selain fast_wa/kirimi berarti server bind.
+     */
+    protected function info_server_wa()
+    {
+        $info = array(
+            'ada_lib'   => is_file(APPPATH . 'libraries/Api_Whatsapp.php'),
+            'ada_tabel' => $this->db->table_exists('utility') && $this->db->field_exists('server_wa', 'utility'),
+            'server'    => NULL,
+            'pilihan'   => self::SERVER_WA,
+        );
+        if ($info['ada_tabel']) {
+            $baris = $this->db->select('server_wa')->limit(1)->get('utility')->row_array();
+            if ($baris) {
+                $info['server'] = isset(self::SERVER_WA[$baris['server_wa']]) ? $baris['server_wa'] : 'bind';
+            }
+        }
+        return $info;
+    }
+
+    public function server_wa()
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+        }
+        $baru = (string) $this->input->post('server_wa', TRUE);
+        $info = $this->info_server_wa();
+
+        if ( ! isset(self::SERVER_WA[$baru])) {
+            $this->session->set_flashdata('error', 'Pilihan server WhatsApp tidak dikenal.');
+        } elseif ( ! $info['ada_tabel'] || $info['server'] === NULL) {
+            $this->session->set_flashdata('error', 'Tabel utility (kolom server_wa) belum ada atau masih kosong di database ini.');
+        } elseif ($baru === $info['server']) {
+            $this->session->set_flashdata('sukses', self::SERVER_WA[$baru][0] . ' sudah aktif.');
+        } else {
+            /* Semua baris diubah, bukan hanya satu: Api_Whatsapp membaca
+               "baris pertama" tanpa urutan, jadi kalau barisnya lebih dari
+               satu, semuanya harus sama supaya hasilnya pasti. */
+            $this->db->update('utility', array('server_wa' => $baru));
+
+            $this->load->library('audit_lib');
+            $this->audit_lib->catat('server_wa', 'utility', NULL,
+                'Server WhatsApp: ' . self::SERVER_WA[$info['server']][0] . ' -> ' . self::SERVER_WA[$baru][0]);
+
+            $this->session->set_flashdata('sukses', 'Server WhatsApp sekarang ' . self::SERVER_WA[$baru][0]
+                . '. Kirim pesan uji untuk memastikan.');
+        }
+        return redirect('admin/pengaturan#server-wa');
     }
 
     public function simpan()
