@@ -106,12 +106,14 @@
   function namaWilayah(lat, lng) {
     var ctl = window.AbortController ? new AbortController() : null;
     var t = ctl ? setTimeout(function () { ctl.abort(); }, 6000) : null;
-    return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&addressdetails=1'
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1'
                  + '&accept-language=id&lat=' + lat + '&lon=' + lng, ctl ? { signal: ctl.signal } : {})
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (t) { clearTimeout(t); }
         var a = (d && d.address) || {};
+        // Untuk pemeriksaan: buka Console (F12) kalau kecamatan tidak terbaca.
+        if (window.console) { console.log('[gps] alamat OpenStreetMap:', a); }
         var gabung = function (k) { return k.map(function (x) { return a[x]; }).filter(Boolean).join('|'); };
         // Sama dengan kandidat di peta alamat (peta-alamat.js).
         return {
@@ -120,7 +122,11 @@
           kecamatan: gabung(['city_district', 'district', 'subdistrict', 'municipality', 'suburb', 'village'])
         };
       })
-      .catch(function () { if (t) { clearTimeout(t); } return null; });
+      .catch(function (e) {
+        if (t) { clearTimeout(t); }
+        if (window.console) { console.warn('[gps] OpenStreetMap tidak bisa dihubungi dari browser:', e); }
+        return null;
+      });
   }
 
   function kirim(lat, lng, btn) {
@@ -154,9 +160,13 @@
             /* Titik tersimpan (toko tetap diurutkan dari yang terdekat), tapi
                kecamatannya tidak terbaca - beri tahu dulu sebelum memuat ulang,
                supaya tidak tampak seperti tombol yang tidak bekerja. */
-            pesan('Toko diurutkan dari lokasimu, tapi kecamatannya tidak terbaca. '
-                + 'Pilih kecamatan lewat menu lokasi.', 'error');
-            setTimeout(function () { window.location.reload(); }, 3500);
+            var alasan = !w
+              ? 'Peta (OpenStreetMap) tidak bisa dihubungi dari browser - mungkin diblokir ekstensi atau jaringan.'
+              : 'Terbaca: ' + ([j.terbaca_kecamatan || w.kecamatan, j.terbaca_kota || w.kabupaten, w.provinsi]
+                  .filter(Boolean).join(', ') || '(kosong)') + ' - belum cocok dengan daftar wilayah.';
+            pesan('Toko diurutkan dari lokasimu, tapi kecamatannya tidak terbaca. ' + alasan
+                + ' Pilih kecamatan lewat menu lokasi.', 'error');
+            setTimeout(function () { window.location.reload(); }, 9000);
           }
         });
     }).catch(function () {
