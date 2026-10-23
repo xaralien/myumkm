@@ -2326,7 +2326,8 @@ class Seller extends Seller_Controller
             ->set_output(json_encode(array(
                 'ok'       => TRUE,
                 'belum'    => (object) $belum,          // {order_id: jumlah}
-                'total'    => array_sum($belum),
+                // Semua percakapan toko, termasuk tanya sebelum beli.
+                'total'    => $this->chat_model->belum_dibaca_toko_total($this->store['id']),
                 'menunggu' => array_column($menunggu, 'id'),
                 'perlu'    => count($menunggu),
                 'terbaru'  => $terbaru ? $terbaru['order_number'] : NULL,
