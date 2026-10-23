@@ -26,6 +26,21 @@ class Chat_model extends CI_Model
         $image = NULL,
         $user_id = NULL
     ) {
+        /* Pesan pesanan masuk ke WADAH percakapan pesanan itu. Dulu hanya
+           order_id yang diisi, padahal kotak masuk penjual (menu Pesan) dan
+           gelembung chat membaca lewat conversation_id - akibatnya pesan
+           pembeli dari halaman pesanannya tidak pernah sampai ke kotak masuk
+           penjual, dan catatan sistem pun tidak. */
+        $o = $this->db->select('store_id, user_id')->where('id', (int) $order_id)
+                      ->get('orders')->row_array();
+        if ($o && ! empty($o['store_id'])) {
+            $cid = $this->conv((int) $o['store_id'], $o['user_id'], (int) $order_id);
+            if ($cid) {
+                return $this->kirim_conv($cid, $pengirim, $tipe, $isi, $image, $user_id);
+            }
+        }
+
+        // Pesanan lama tanpa toko: disimpan seperti dulu, lewat order_id saja.
         $this->db->insert('order_messages', array(
             'order_id' => (int) $order_id,
             'pengirim' => $pengirim,
@@ -82,6 +97,33 @@ class Chat_model extends CI_Model
             $out[(int) $r['order_id']] = (int) $r['jml'];
         }
         return $out;
+    }
+
+    /**
+     * Total pesan belum dibaca penjual di SEMUA percakapan tokonya - termasuk
+     * "tanya sebelum beli" yang tidak punya pesanan. belum_dibaca_toko()
+     * hanya melihat pesan yang terikat pesanan, jadi lencana "Pesan" di panel
+     * tidak pernah menyala untuk pertanyaan calon pembeli.
+     */
+    public function belum_dibaca_toko_total($store_id)
+    {
+        $lewat_wadah = (int) $this->db
+            ->from('order_messages m')
+            ->join('conversations c', 'c.id = m.conversation_id')
+            ->where('c.store_id', (int) $store_id)
+            ->where('m.dibaca_seller', 0)
+            ->count_all_results();
+
+        // Pesan lama yang belum punya wadah (sebelum migrasi 34).
+        $tanpa_wadah = (int) $this->db
+            ->from('order_messages m')
+            ->join('orders o', 'o.id = m.order_id')
+            ->where('o.store_id', (int) $store_id)
+            ->where('m.conversation_id IS NULL', NULL, FALSE)
+            ->where('m.dibaca_seller', 0)
+            ->count_all_results();
+
+        return $lewat_wadah + $tanpa_wadah;
     }
 
     /* =====================================================================
