@@ -491,6 +491,13 @@ class Checkout extends CI_Controller
         $data['lacak'] = $order['order_status'] === 'delivering'
             ? $this->ekspedisi_lib->lacak($order['courier'], $order['tracking_number']) : NULL;
 
+        // Tombol "Beri ulasan" hanya selama masih ada produk yang belum diulas.
+        $data['sisa_ulasan'] = 0;
+        if ($order['order_status'] === 'delivered') {
+            $this->load->model('review_model');
+            $data['sisa_ulasan'] = count($this->review_model->bisa_diulas($order['id']));
+        }
+
         $data['pages'] = 'v_order_done';
         $this->load->view('index', $data);
     }
