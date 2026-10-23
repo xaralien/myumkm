@@ -24,8 +24,9 @@
    Layanan geocoding OpenStreetMap gratis tapi dibatasi: maksimal 1
    permintaan per detik, dan dilarang dipakai massal. Karena itu di sini
    permintaan HANYA dikirim saat pengguna benar-benar bertindak (klik peta,
-   geser penanda, tekan tombol) - tidak pernah otomatis saat mengetik - dan
-   ada jeda minimum antarpermintaan.
+   geser penanda, tekan tombol, memilih kecamatan, selesai mengubah alamat)
+   ditambah satu pemeriksaan saat halaman dibuka - tidak pernah tiap
+   ketikan - dan ada jeda minimum antarpermintaan.
    ========================================================================== */
 (function () {
   'use strict';
@@ -76,6 +77,7 @@
   /* ------------------------------------------------- geocoding terbalik */
 
   var permintaanTerakhir = 0;
+  var dariPeta = 0;
 
   /**
    * Titik -> alamat. Mengisi kolom alamat dan dropdown wilayah.
@@ -144,6 +146,9 @@
           return pesan('Wilayah di titik ini belum ada di daftar. Pilih provinsi, kota, dan kecamatan secara manual.', 'error');
         }
 
+        // 'change' yang dipicu setWilayah() dari sini tidak boleh memindahkan
+        // titik lagi - titiknya justru sumber wilayah ini.
+        dariPeta = Date.now();
         window.setWilayah(w.province_id, w.regency_id, w.district_id);
 
         if (w.district_id) {
@@ -236,6 +241,138 @@
         .catch(function () {
           pesan('Pencarian gagal. Klik langsung di peta saja.', 'error');
         });
+    });
+  }
+
+  /* ------------------------------------------- titik dari alamat & wilayah
+
+     Titik diletakkan otomatis dari isian Alamat & wilayah:
+       - saat pengguna memilih kecamatan,
+       - saat kolom alamat selesai diubah (keluar dari kolom),
+       - sekali saat halaman dibuka, kalau titik belum ada ATAU letaknya
+         lebih dari 30 km dari kecamatan yang dipilih (mis. titik bawaan
+         di Batam padahal wilayahnya Jakarta).
+     Hasilnya hanya memindah penanda & koordinat - kolom alamat dan wilayah
+     TIDAK ditimpa, karena yang mengisinya justru pengguna. Tetap perkiraan:
+     penjual diminta menggeser penanda ke posisi tepat. */
+
+  var elProv = document.getElementById('prov');
+  var elReg  = document.getElementById('reg');
+  var elDis  = document.getElementById('dis');
+
+  function teksPilihan(sel) {
+    return (sel && sel.selectedIndex > 0) ? sel.options[sel.selectedIndex].text : '';
+  }
+
+  // "Kota Administrasi Jakarta Timur" -> "Jakarta Timur": awalan resmi
+  // Kemendagri itu tidak dikenal mesin pencari peta.
+  function rapikan(n) {
+    return n.replace(/^(Kota Administrasi|Kabupaten Administrasi|Kabupaten|Kota|Kecamatan)\s+/i, '')
+            .replace(/^Daerah Khusus Ibukota\s+/i, 'DKI ');
+  }
+
+  function cari(q) {
+    var jeda = Date.now() - permintaanTerakhir;
+    if (jeda < 1100) {
+      return new Promise(function (ok) { setTimeout(ok, 1100 - jeda); }).then(function () { return cari(q); });
+    }
+    permintaanTerakhir = Date.now();
+    return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=id&accept-language=id&q='
+                 + encodeURIComponent(q))
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return (d && d.length) ? { lat: +d[0].lat, lng: +d[0].lon } : null; })
+      .catch(function () { return null; });
+  }
+
+  // Coba beberapa susunan berurutan, dari yang paling rinci.
+  function cariBerurutan(daftar) {
+    if (!daftar.length) { return Promise.resolve(null); }
+    return cari(daftar[0].q).then(function (h) {
+      return h ? { titik: h, tingkat: daftar[0].tingkat } : cariBerurutan(daftar.slice(1));
+    });
+  }
+
+  function jarakKm(a, b) {
+    var R = 6371, rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+          + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+
+  function taruh(t, zoom) {
+    penanda.setLatLng([t.lat, t.lng]);
+    peta.setView([t.lat, t.lng], zoom);
+    simpanKoordinat(t.lat, t.lng);
+  }
+
+  /**
+   * @param pakaiAlamat  sertakan teks alamat (paling rinci) di urutan pertama
+   * @param syarat       fungsi(titikBaru) -> boleh dipindah? (opsional)
+   */
+  function taruhDariIsian(pakaiAlamat, syarat) {
+    var kec = rapikan(teksPilihan(elDis)), kota = rapikan(teksPilihan(elReg)), prov = rapikan(teksPilihan(elProv));
+    if (!kec && !kota) { return; }
+
+    var daftar = [];
+    var alamat = (pakaiAlamat && elAlamat) ? elAlamat.value.trim() : '';
+    if (alamat.length >= 6) {
+      daftar.push({ q: [alamat, kec, kota].filter(Boolean).join(', '), tingkat: 'alamat' });
+    }
+    if (kec) { daftar.push({ q: [kec, kota, prov].filter(Boolean).join(', '), tingkat: 'kecamatan' }); }
+    if (kota) { daftar.push({ q: [kota, prov].filter(Boolean).join(', '), tingkat: 'kota' }); }
+
+    pesan('Menaruh titik dari alamat & wilayah...', '');
+    cariBerurutan(daftar).then(function (h) {
+      if (!h) {
+        return pesan('Titik belum bisa diperkirakan dari alamat. Klik peta atau geser penandanya.', 'error');
+      }
+      if (syarat && !syarat(h.titik)) { return pesan('', ''); }
+      taruh(h.titik, h.tingkat === 'alamat' ? 17 : (h.tingkat === 'kecamatan' ? 15 : 13));
+      pesan(h.tingkat === 'alamat'
+        ? 'Titik diperkirakan dari alamat. Geser penanda kalau kurang tepat.'
+        : 'Titik ditaruh di tengah ' + (h.tingkat === 'kecamatan' ? 'kecamatan' : 'kota')
+          + '. Geser penanda ke lokasi persisnya.', 'ok');
+    });
+  }
+
+  /* Dua sumber 'change' otomatis yang TIDAK boleh dianggap pilihan
+     pengguna: isian awal dari region-select.js saat halaman dibuka, dan
+     setWilayah() dari klik/geser peta. Selebihnya dianggap pilihan pengguna
+     (memilih langsung, atau memilih alamat tersimpan). */
+  var cekAwalSelesai = !(window.PILIHAN_AWAL && window.PILIHAN_AWAL.district);
+
+  if (elDis) {
+    elDis.addEventListener('change', function () {
+      if (!elDis.value) { return; }
+
+      // Dari klik/geser di peta: titiknya sudah benar.
+      if (Date.now() - dariPeta < 5000) { return; }
+
+      if (cekAwalSelesai) { return taruhDariIsian(true); }
+
+      // Isian awal saat halaman dibuka.
+      cekAwalSelesai = true;
+      if (!adaTitik) { return taruhDariIsian(true); }
+
+      var kini = penanda.getLatLng();
+      taruhDariIsian(false, function (baru) {
+        var jauh = jarakKm({ lat: kini.lat, lng: kini.lng }, baru) > 30;
+        if (jauh) {
+          setTimeout(function () {
+            pesan('Titik sebelumnya jauh dari kecamatan yang dipilih, jadi dipindah ke sini. '
+                + 'Geser ke lokasi persis, lalu simpan.', 'error');
+          }, 50);
+        }
+        return jauh;
+      });
+    });
+  }
+
+  if (elAlamat) {
+    // 'change' = selesai mengubah lalu keluar dari kolom, bukan tiap ketikan.
+    elAlamat.addEventListener('change', function () {
+      if (elDis && elDis.value) { taruhDariIsian(true); }
     });
   }
 })();
