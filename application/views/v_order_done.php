@@ -62,8 +62,13 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
               <p>Pesanan selesai. Terima kasih sudah belanja dari UMKM lokal!</p>
               <!-- Ajakan mengulas muncul tepat saat pesanan selesai - saat
                    ingatan pembeli tentang barangnya masih segar. -->
-              <a href="<?= site_url('ulasan/tulis/' . $order['order_number'] . '/' . $order['access_token']) ?>"
-                 class="btn btn-primary mt-2">Beri ulasan</a>
+              <?php if ( ! empty($sisa_ulasan)): ?>
+                <a href="<?= site_url('ulasan/tulis/' . $order['order_number'] . '/' . $order['access_token']) ?>"
+                   class="btn btn-primary mt-2">Beri ulasan</a>
+              <?php else: ?>
+                <a href="<?= site_url('ulasan/tulis/' . $order['order_number'] . '/' . $order['access_token']) ?>"
+                   class="btn btn-black-hover-outline mt-2">Lihat ulasanmu</a>
+              <?php endif; ?>
             <?php endif; ?>
 
             <?php if (! empty($refund)): ?>

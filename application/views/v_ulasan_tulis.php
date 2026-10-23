@@ -92,7 +92,7 @@
            halaman tampil "normal" tanpa foto sehingga tidak ada yang sadar.
            Sekarang milik_pesanan() yang melampirkannya. */
       ?>
-      <?php $this->load->view('parts/ulasan_daftar', array('ulasan' => $sudah)); ?>
+      <?php $this->load->view('parts/ulasan_daftar', array('ulasan' => $sudah, 'tampilkan_produk' => TRUE)); ?>
     <?php endif; ?>
 
   </div></div></div>

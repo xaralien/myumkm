@@ -35,15 +35,33 @@ class Review_model extends CI_Model {
             // NOT EXISTS, bukan LEFT JOIN + IS NULL: lebih jelas maksudnya
             // dan tidak menggandakan baris kalau datanya aneh.
             ->where('NOT EXISTS (SELECT 1 FROM reviews r WHERE r.order_item_id = oi.id)', NULL, FALSE)
+            /* SATU ulasan per PRODUK per pesanan. Produk yang sama dengan
+               varian/add-on berbeda tersimpan sebagai beberapa baris (kunci
+               keranjang = produk|varian|add-on), dan dulu tiap baris punya
+               formulir sendiri - setelah mengulas satu, pembeli diminta
+               mengulas produk yang sama lagi. Yang ditampilkan hanya baris
+               pertama tiap produk, dan produk yang sudah diulas di pesanan
+               ini tidak ditawarkan lagi. */
+            ->where('NOT EXISTS (SELECT 1 FROM reviews r2 WHERE r2.order_id = oi.order_id AND r2.product_id = oi.product_id)', NULL, FALSE)
+            ->where('NOT EXISTS (SELECT 1 FROM order_items oi2 WHERE oi2.order_id = oi.order_id
+                       AND oi2.product_id = oi.product_id AND oi2.id < oi.id)', NULL, FALSE)
             ->get()->result_array();
     }
 
     /** Ulasan yang sudah ditulis untuk satu pesanan. */
     public function milik_pesanan($order_id)
     {
-        $baris = $this->db->where('order_id', (int) $order_id)
-                          ->order_by('id', 'ASC')
-                          ->get('reviews')->result_array();
+        /* Nama & alamat produk ikut diambil: satu pesanan bisa berisi
+           beberapa produk, dan tanpa namanya dua ulasan untuk dua produk
+           berbeda tampak seperti ulasan ganda di halaman "Sudah kamu ulas". */
+        $baris = $this->db
+            ->select('r.*, p.name AS produk_nama, p.slug AS produk_slug, s.slug AS toko_slug', FALSE)
+            ->from('reviews r')
+            ->join('products p', 'p.id = r.product_id', 'left')
+            ->join('stores s', 's.id = r.store_id', 'left')
+            ->where('r.order_id', (int) $order_id)
+            ->order_by('r.id', 'ASC')
+            ->get()->result_array();
 
         /* Media ikut dilampirkan. Sebelumnya tidak, sehingga halaman "Sudah
            kamu ulas" menampilkan ulasan tanpa foto - padahal fotonya ada di
@@ -80,6 +98,14 @@ class Review_model extends CI_Model {
 
         if ($order['order_status'] !== 'delivered') {
             return array('ok' => FALSE, 'pesan' => 'Ulasan bisa ditulis setelah pesanan selesai.');
+        }
+
+        // Satu ulasan per produk per pesanan - lihat bisa_diulas().
+        $sudah = $this->db->where('order_id', (int) $order['id'])
+                          ->where('product_id', (int) $item['product_id'])
+                          ->count_all_results('reviews');
+        if ($sudah) {
+            return array('ok' => FALSE, 'pesan' => 'Produk ini sudah kamu ulas.');
         }
 
         $data = array(
