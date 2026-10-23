@@ -51,9 +51,17 @@ class Review_model extends CI_Model {
     /** Ulasan yang sudah ditulis untuk satu pesanan. */
     public function milik_pesanan($order_id)
     {
-        $baris = $this->db->where('order_id', (int) $order_id)
-                          ->order_by('id', 'ASC')
-                          ->get('reviews')->result_array();
+        /* Nama & alamat produk ikut diambil: satu pesanan bisa berisi
+           beberapa produk, dan tanpa namanya dua ulasan untuk dua produk
+           berbeda tampak seperti ulasan ganda di halaman "Sudah kamu ulas". */
+        $baris = $this->db
+            ->select('r.*, p.name AS produk_nama, p.slug AS produk_slug, s.slug AS toko_slug', FALSE)
+            ->from('reviews r')
+            ->join('products p', 'p.id = r.product_id', 'left')
+            ->join('stores s', 's.id = r.store_id', 'left')
+            ->where('r.order_id', (int) $order_id)
+            ->order_by('r.id', 'ASC')
+            ->get()->result_array();
 
         /* Media ikut dilampirkan. Sebelumnya tidak, sehingga halaman "Sudah
            kamu ulas" menampilkan ulasan tanpa foto - padahal fotonya ada di
