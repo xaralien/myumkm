@@ -8,6 +8,7 @@
       'q'        => $f['q'],
       'category' => $f['category'],
       'sort'     => $f['sort'],
+      'sort2'    => $f['sort2'],
       'store'    => $f['store_id'] ?: '',
       'luar'     => $f['jangkauan'] === 'luar' ? '1' : '',
     ), 'strlen');
@@ -48,8 +49,19 @@
       <span class="visually-hidden">Urutkan</span>
       <select onchange="location = this.value;" aria-label="Urutkan produk">
         <?php foreach ($sorts as $kunci => $label): ?>
-          <option value="<?= html_escape($ubah(array('sort' => $kunci))) ?>"
+          <option value="<?= html_escape($ubah(array('sort' => $kunci, 'sort2' => $f['sort2'] === $kunci ? '' : $f['sort2'], 'page' => ''))) ?>"
             <?= $f['sort'] === $kunci ? 'selected' : '' ?>><?= html_escape($label) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <label>
+      <span class="visually-hidden">Lalu urutkan</span>
+      <select onchange="location = this.value;" aria-label="Urutan kedua">
+        <option value="<?= html_escape($ubah(array('sort2' => '', 'page' => ''))) ?>">lalu: &mdash;</option>
+        <?php foreach ($sorts as $kunci => $label): ?>
+          <?php if ($kunci === $f['sort']) { continue; } ?>
+          <option value="<?= html_escape($ubah(array('sort2' => $kunci, 'page' => ''))) ?>"
+            <?= $f['sort2'] === $kunci ? 'selected' : '' ?>>lalu: <?= html_escape($label) ?></option>
         <?php endforeach; ?>
       </select>
     </label>
@@ -77,7 +89,7 @@
     <!-- Pencarian, kategori, dan urutan yang sedang aktif ikut dibawa.
          Tanpa ini, menerapkan filter harga diam-diam menghapus kata kunci
          yang baru saja diketik pembeli. -->
-    <?php foreach (array('q' => $f['q'], 'category' => $f['category'], 'sort' => $f['sort']) as $k => $v): ?>
+    <?php foreach (array('q' => $f['q'], 'category' => $f['category'], 'sort' => $f['sort'], 'sort2' => $f['sort2'], 'luar' => $f['jangkauan'] === 'luar' ? '1' : '') as $k => $v): ?>
       <?php if ($v !== '' && $v !== NULL): ?>
         <input type="hidden" name="<?= $k ?>" value="<?= html_escape($v) ?>">
       <?php endif; ?>

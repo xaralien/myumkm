@@ -161,9 +161,13 @@ class Product_model extends CI_Model
         'terlaris' => array('terjual_count', 'DESC'),
     );
 
-    public function sort_options()
+    /**
+     * @param bool $dengan_dekat tampilkan "Terdekat" - hanya masuk akal
+     *                           kalau lokasi/titik pembeli diketahui
+     */
+    public function sort_options($dengan_dekat = TRUE)
     {
-        return array(
+        return ($dengan_dekat ? array('dekat' => 'Terdekat') : array()) + array(
             'baru'     => 'Terbaru',
             'terlaris' => 'Terlaris',
             'ulasan'   => 'Ulasan terbaik',
@@ -341,6 +345,24 @@ class Product_model extends CI_Model
         return $this->count_filtered($f);
     }
 
+    /**
+     * Daftar kunci urut yang sah, paling banyak dua, tanpa duplikat.
+     * Nilai dari URL tidak pernah masuk ke ORDER BY - hanya dicocokkan ke
+     * sort_map.
+     */
+    public function kunci_urut(array $f)
+    {
+        $bawaan = (! empty($f['district_id']) || $this->mode_dekat($f)) ? 'dekat' : 'baru';
+        $k1 = isset($f['sort']) && $f['sort'] !== '' ? $f['sort'] : $bawaan;
+        $k2 = isset($f['sort2']) ? $f['sort2'] : '';
+        $sah = function ($k) { return $k === 'dekat' || isset($this->sort_map[$k]); };
+        $out = array($sah($k1) ? $k1 : $bawaan);
+        if ($k2 !== '' && $sah($k2) && $k2 !== $out[0]) {
+            $out[] = $k2;
+        }
+        return $out;
+    }
+
     public function count_filtered(array $f)
     {
         if (!$this->mode_dekat($f)) {
@@ -393,6 +415,8 @@ class Product_model extends CI_Model
                boleh disebut hanya alias dari SELECT. Ini penyebab
                "Unknown column 's.latitude' in 'having clause'". */
             $select .= ', ' . $jarak . ' AS jarak_km';
+            $select .= ', CASE WHEN ' . $jarak . ' <= 2 THEN 1 WHEN ' . $jarak . ' <= 5 THEN 2
+                               WHEN ' . $jarak . ' <= 10 THEN 3 WHEN ' . $jarak . ' <= 25 THEN 4 ELSE 5 END AS jarak_pita';
             $select .= ', s.radius_km AS store_radius_km';
         }
 
@@ -408,31 +432,34 @@ class Product_model extends CI_Model
             ->join('districts d', 'd.id = s.district_id', 'left')
             ->join('regencies rg', 'rg.id = s.regency_id', 'left');
 
-        if ($dekat) {
-            /* Jarak hanya MENGURUTKAN, tidak lagi menyaring. Produk jauh
-               tetap muncul, hanya di belakang.
-
-               Pengecualian: kalau pembeli memilih urutan lain (harga,
-               ulasan), urutan itu yang menang - dia sedang mencari
-               berdasarkan hal lain, dan memaksa jarak di depan membuat
-               pilihannya seolah diabaikan. */
-            if (empty($f['sort']) || $f['sort'] === 'baru') {
-                $this->db->order_by('jarak_km', 'ASC');
+        /* Dua tingkat urutan pilihan pembeli: sort lalu sort2, mis.
+           "Terdekat, lalu Termurah". Tanpa pilihan: terdekat kalau lokasi
+           diketahui, kalau tidak terbaru. */
+        $kunci = $this->kunci_urut($f);
+        foreach ($kunci as $i => $k) {
+            if ($k === 'dekat') {
+                if ($dekat) {
+                    /* Jarak GPS hampir tidak pernah sama persis - kalau
+                       diurutkan per meter, urutan kedua tidak akan pernah
+                       berpengaruh. Jadi saat ada urutan kedua, jarak
+                       dikelompokkan per pita dulu. */
+                    $this->db->order_by(isset($kunci[$i + 1]) ? 'jarak_pita' : 'jarak_km', 'ASC');
+                } elseif ($prox !== NULL) {
+                    $this->db->order_by($prox . ' ASC', '', FALSE);
+                }
+                continue;
             }
-        } elseif ($prox !== NULL) {
-            $this->db->order_by($prox . ' ASC', '', FALSE);
+            $sort = $this->sort_map[$k];
+            $this->db->order_by('p.' . $sort[0], $sort[1]);
+            if ($k === 'ulasan') {
+                // Lihat catatan di sort_map: bintang tinggi dari satu ulasan
+                // tidak boleh mengalahkan bintang sedikit lebih rendah dari
+                // ratusan ulasan.
+                $this->db->order_by('p.rating_count', 'DESC');
+            }
         }
-
-        $key = isset($f['sort']) ? $f['sort'] : 'baru';
-        $sort = isset($this->sort_map[$key]) ? $this->sort_map[$key] : $this->sort_map['baru'];
-        $this->db->order_by('p.' . $sort[0], $sort[1]);
-
-        if ($key === 'ulasan') {
-            // Lihat catatan di sort_map: bintang tinggi dari satu ulasan
-            // tidak boleh mengalahkan bintang sedikit lebih rendah dari
-            // ratusan ulasan.
-            $this->db->order_by('p.rating_count', 'DESC');
-        }
+        // Penentu terakhir supaya paginasi stabil.
+        $this->db->order_by('p.id', 'DESC');
 
         return $this->db->limit((int) $limit, (int) $offset)->get()->result_array();
     }

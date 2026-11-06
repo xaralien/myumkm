@@ -15,7 +15,7 @@ class Promo extends CI_Controller
         $this->load->library(array('location_lib', 'voucher_lib'));
         $this->load->model('product_model');
 
-        $f = array('sort' => 'terlaris');
+        $f = array('sort' => 'dekat', 'sort2' => 'terlaris');
         if ($p['kata_kunci']) {
             $f['q'] = $p['kata_kunci'];
         }
