@@ -112,6 +112,17 @@ class Cart_lib
             }
         }
 
+        /* Toko yang tidak mengirim ke lokasi pembeli ditolak sejak di sini,
+           bukan baru di checkout setelah keranjang terisi. */
+        $luar = $this->luar_jangkauan($product['store_id']);
+        if ($luar !== NULL) {
+            return array(
+                'ok'      => FALSE,
+                'code'    => 'luar_jangkauan',
+                'message' => $luar . ' Ganti lokasi "Kirim ke" kalau ingin mengirim ke alamat lain.',
+            );
+        }
+
         /* ---- BEBERAPA TOKO DALAM SATU KERANJANG -----------------------
          | Dulu keranjang dibatasi satu toko. Sekarang checkout memecah
          | keranjang per toko menjadi beberapa pesanan yang dibayar dengan
@@ -197,9 +208,12 @@ class Cart_lib
     public function store()
     {
         $id = $this->store_id();
-        if (! $id) {
-            return NULL;
-        }
+        return $id ? $this->toko_wilayah($id) : NULL;
+    }
+
+    /** Baris toko lengkap dengan nama wilayahnya (untuk shipping_fee). */
+    public function toko_wilayah($id)
+    {
         return $this->CI->db
             ->select('s.*,
                 d.name AS district_name,
@@ -209,8 +223,29 @@ class Cart_lib
             ->join('districts d', 'd.id = s.district_id', 'left')
             ->join('regencies r', 'r.id = s.regency_id', 'left')
             ->join('provinces p', 'p.id = s.province_id', 'left')
-            ->where('s.id', $id)
+            ->where('s.id', (int) $id)
             ->get()->row_array();
+    }
+
+    /**
+     * Apakah toko ini mengirim ke "Kirim ke" pembeli?
+     *
+     * @return string|NULL pesan penolakan; NULL kalau melayani atau
+     *                     lokasi pembeli belum dipilih
+     */
+    public function luar_jangkauan($store_id)
+    {
+        $this->CI->load->library('location_lib');
+        $lokasi = $this->CI->location_lib->get();
+        if (! $lokasi) {
+            return NULL;
+        }
+        $toko = $this->toko_wilayah($store_id);
+        if (! $toko) {
+            return NULL;
+        }
+        $hasil = $this->shipping_fee($lokasi['district_id'], 0, $toko);
+        return $hasil['ok'] ? NULL : $hasil['pesan'];
     }
 
     /* -------------------------------------------------- pembacaan data --- */
@@ -435,6 +470,16 @@ class Cart_lib
         if ((int) $tujuan['district_id'] === (int) $toko['district_id']) {
             $tingkat = 'kecamatan';
             $ongkir  = (int) $toko['ongkir_kecamatan'];
+        } elseif (isset($toko['layani_kota']) && ! (int) $toko['layani_kota']) {
+            /* Toko memilih hanya melayani kecamatannya sendiri (mis. jasa
+               antar jalan kaki, makanan yang harus segera sampai). */
+            return array(
+                'ok' => FALSE,
+                'ongkir' => 0,
+                'tingkat' => 'kota',
+                'pesan' => $toko['name'] . ' hanya melayani pengiriman di kecamatan '
+                    . (isset($toko['district_name']) ? $toko['district_name'] : 'tokonya') . '.'
+            );
         } elseif ((int) $tujuan['regency_id'] === (int) $toko['regency_id']) {
             $tingkat = 'kota';
             $ongkir  = (int) $toko['ongkir_kota'];

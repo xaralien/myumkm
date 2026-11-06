@@ -177,6 +177,7 @@ $pensil = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="c
             <a href="<?= site_url('akun/pesanan') ?>"><?= t('Pesanan saya') ?></a>
             <a href="<?= site_url('favorit') ?>"><?= t('Favorit & toko diikuti') ?></a>
           <a href="<?= site_url('akun/alamat') ?>"><?= t('Alamat saya') ?></a>
+          <a href="<?= site_url('akun/ajak') ?>"><?= t('Ajak teman') ?></a>
             <a href="<?= site_url('akun/pesan') ?>"><?= t('Pesan') ?></a>
             <!-- <a href="<?= site_url('track') ?>">Lacak pesanan</a> -->
 

@@ -56,6 +56,12 @@ class Voucher_lib
         if ( ! (int) $v['is_active']) {
             return $this->tolak('Voucher ' . $v['kode'] . ' sudah tidak berlaku.');
         }
+        // Voucher pribadi (mis. hadiah referral) hanya untuk akun pemiliknya.
+        if ( ! empty($v['user_id']) && (int) $v['user_id'] !== (int) $user_id) {
+            return $this->tolak($user_id
+                ? 'Voucher ' . $v['kode'] . ' khusus untuk akun lain.'
+                : 'Voucher ' . $v['kode'] . ' khusus untuk akun pemiliknya. Masuk dulu untuk memakainya.');
+        }
         if ($v['mulai'] && $v['mulai'] > $kini) {
             return $this->tolak('Voucher ' . $v['kode'] . ' baru berlaku mulai ' . tgl_id(substr($v['mulai'], 0, 10)) . '.');
         }

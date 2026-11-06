@@ -88,6 +88,7 @@ class Auth extends CI_Controller
             $this->form_validation->set_rules('phone',     'Nomor WhatsApp',  'required|trim|callback_valid_phone');
             $this->form_validation->set_rules('password',  'Password',        'required|min_length[8]');
             $this->form_validation->set_rules('password2', 'Ulangi password', 'required|matches[password]');
+            $this->form_validation->set_rules('kode_referral', 'Kode referral', 'trim|max_length[12]|callback_kode_referral_sah');
 
             $this->form_validation->set_message('required',   '{field} wajib diisi.');
             $this->form_validation->set_message('min_length', '{field} minimal {param} karakter.');
@@ -121,7 +122,22 @@ class Auth extends CI_Controller
                         $this->kirim_tautan_verifikasi($row);
                     }
 
-                    $this->session->set_flashdata('sukses', 'Akun dibuat. Selamat datang!');
+                    // Kode referral: teman langsung mendapat voucher.
+                    $pesan = 'Akun dibuat. Selamat datang!';
+                    $kode  = (string) $this->input->post('kode_referral', TRUE);
+                    if ($row && $kode !== '') {
+                        $this->load->library('referral_lib');
+                        $v = $this->referral_lib->daftarkan($row['id'], $kode);
+                        if ($v) {
+                            $this->load->helper('money');
+                            $pesan .= ' Kamu dapat voucher ' . $v['kode'] . ' senilai ' . rupiah($v['nilai'])
+                                    . ($v['min_belanja'] ? ' (min. belanja ' . rupiah($v['min_belanja']) . ')' : '')
+                                    . ' - pakai di checkout sebelum ' . tgl_id(substr($v['selesai'], 0, 10)) . '.';
+                        }
+                    }
+                    $this->session->unset_userdata('kode_ref');
+
+                    $this->session->set_flashdata('sukses', $pesan);
                     return redirect($this->sesudah_masuk());
                 }
                 $this->session->set_flashdata('error', $hasil['pesan']);
@@ -129,6 +145,18 @@ class Auth extends CI_Controller
         }
 
         $data = array('next' => $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE)));
+
+        /* ?ref=KODE dari tautan ajakan diingat di session, supaya tetap
+           terisi walau calon pembeli sempat melihat-lihat dulu. */
+        $this->load->library('referral_lib');
+        if ($this->input->get('ref')) {
+            $this->session->set_userdata('kode_ref', $this->referral_lib->rapikan($this->input->get('ref', TRUE)));
+        }
+        $data['referral_aktif'] = $this->referral_lib->aktif();
+        $data['kode_ref']       = (string) $this->session->userdata('kode_ref');
+        $this->load->library('pengaturan_lib');
+        $data['hadiah_teman']   = (int) $this->pengaturan_lib->get('referral_teman_nominal');
+        $this->load->helper('money');
         $data['pages'] = 'v_register';
         $this->load->view('index', $data);
     }
@@ -472,6 +500,18 @@ class Auth extends CI_Controller
             'nomor' => $this->samarkan((string) $this->session->userdata('otp_nomor')),
             'next'  => $this->auth_lib->tujuan_aman($this->input->get_post('next', TRUE)),
         ));
+    }
+
+    /** Validasi formulir daftar: kode referral (opsional) harus sah. */
+    public function kode_referral_sah($kode)
+    {
+        $this->load->library('referral_lib');
+        $cek = $this->referral_lib->periksa_kode($kode, $this->normalize_phone($this->input->post('phone', TRUE)));
+        if ($cek === TRUE) {
+            return TRUE;
+        }
+        $this->form_validation->set_message('kode_referral_sah', $cek);
+        return FALSE;
     }
 
     /** Validasi isian lupa sandi: email yang sah, atau nomor HP. */

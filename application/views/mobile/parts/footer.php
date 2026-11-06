@@ -154,6 +154,7 @@
       <nav class="mb-sheet-menu" aria-label="Menu akun">
         <a href="<?= site_url('favorit') ?>"><?= t('Favorit & toko diikuti') ?></a>
         <a href="<?= site_url('akun/alamat') ?>"><?= t('Alamat saya') ?></a>
+        <a href="<?= site_url('akun/ajak') ?>"><?= t('Ajak teman') ?></a>
         <a href="<?= site_url('akun/pesanan') ?>">
           Pesanan saya
           <span class="mb-sheet-angka" data-akun-notif="pesanan_saya" hidden></span>

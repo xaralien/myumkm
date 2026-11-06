@@ -110,6 +110,13 @@ class Rincian_lib
                     . ($toko['libur_pesan'] ?? '' ? ' (' . $toko['libur_pesan'] . ')' : '') . '.';
             }
 
+            // Batas pesanan per hari yang diatur penjual.
+            $kuota = $this->kuota_harian($toko);
+            if ($kuota && $kuota['penuh']) {
+                $k['galat'][] = $toko['name'] . ' sudah menerima ' . $kuota['maks'] . ' pesanan hari ini (batas harian toko). '
+                    . 'Coba lagi besok, atau tanyakan lewat chat.';
+            }
+
             if ($district) {
                 $o = $this->CI->cart_lib->shipping_fee($district, $subtotal, $toko);
                 $k['ongkir_ok']    = (bool) $o['ok'];
@@ -284,6 +291,31 @@ class Rincian_lib
     protected function bagian_barang($v, $pot)
     {
         return ($v && $v['jenis'] !== 'ongkir') ? (int) $pot : 0;
+    }
+
+    /**
+     * Kuota pesanan hari ini (stores.maks_pesanan_harian). Yang dihitung:
+     * pesanan yang dibuat hari ini dan belum dibatalkan - termasuk yang
+     * belum dibayar, karena slotnya sedang dipegang pembeli itu. Pesanan
+     * yang dibatalkan atau kedaluwarsa tanpa dibayar mengembalikan slotnya.
+     *
+     * @return array|NULL ['maks','terpakai','sisa','penuh'], NULL = tanpa batas
+     */
+    public function kuota_harian(array $toko)
+    {
+        $maks = isset($toko['maks_pesanan_harian']) ? (int) $toko['maks_pesanan_harian'] : 0;
+        if ($maks <= 0 || empty($toko['id'])) {
+            return NULL;
+        }
+        $terpakai = (int) $this->CI->db->where('store_id', (int) $toko['id'])
+            ->where('created_at >=', date('Y-m-d 00:00:00'))
+            ->where('order_status !=', 'cancelled')
+            // 'failed' tetap dihitung: invoicenya gagal dibuat, tapi pembeli
+            // masih bisa menekan "Bayar sekarang". 'expired' tidak.
+            ->where_not_in('payment_status', array('expired', 'refunded'))
+            ->count_all_results('orders');
+        return array('maks' => $maks, 'terpakai' => $terpakai,
+                     'sisa' => max(0, $maks - $terpakai), 'penuh' => $terpakai >= $maks);
     }
 
     /** Tanggal libur terakhir kalau toko sedang libur hari ini, atau NULL. */

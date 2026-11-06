@@ -66,6 +66,11 @@
                       array('admin/users', 'admin/broadcast', 'admin/pengaturan')); ?>
         <?php elseif ($me['role'] === 'pendamping'): ?>
           <a href="<?= site_url('pendamping') ?>">Toko binaan</a>
+        <?php elseif (isset($store['is_active']) && ! (int) $store['is_active']): ?>
+          <!-- Toko belum disetujui: hanya profil & legalitas yang terbuka
+               (lihat Seller_Controller::boleh_saat_menunggu). -->
+          <a href="<?= site_url('seller/profile') ?>" class="<?= trim($aktif('seller/profile')) ?>">Profil toko</a>
+          <a href="<?= site_url('seller/legalitas') ?>" class="<?= trim($aktif('seller/legalitas')) ?>">Legalitas</a>
         <?php else: ?>
           <a href="<?= site_url('seller') ?>" class="<?= uri_string() === 'seller' || strpos(uri_string(), 'seller/form') === 0 ? 'is-aktif' : '' ?>">Produk</a>
           <a href="<?= site_url('seller/orders') ?>" class="panel-link-notif<?= $aktif(array('seller/orders', 'seller/cetak')) ?>">
@@ -98,6 +103,14 @@
   </nav>
 
   <div class="container panel-isi">
+    <?php if (isset($store['is_active']) && ! (int) $store['is_active'] && $me['role'] !== 'admin'): ?>
+      <div class="alert-box alert-warn mb-4" role="status">
+        <strong>Tokomu menunggu persetujuan admin.</strong> Biasanya 1x24 jam. Sementara itu, lengkapi
+        <a href="<?= site_url('seller/profile') ?>">profil toko</a> dan
+        <a href="<?= site_url('seller/legalitas') ?>">dokumen legalitas</a> supaya pemeriksaannya cepat.
+        Produk, pesanan, dan fitur toko lainnya terbuka setelah disetujui.
+      </div>
+    <?php endif; ?>
     <?php if ($this->session->flashdata('sukses')): ?>
       <div class="alert-box alert-ok mb-4"><?= html_escape($this->session->flashdata('sukses')) ?></div>
     <?php endif; ?>

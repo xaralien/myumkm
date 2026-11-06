@@ -29,6 +29,10 @@ class Voucher_model extends CI_Model
         $store_id === NULL
             ? $this->db->where('v.store_id IS NULL', NULL, FALSE)
             : $this->db->where('v.store_id', (int) $store_id);
+        // Voucher pribadi hasil referral dikelola otomatis, tidak ikut daftar admin.
+        if ($store_id === NULL && $this->db->field_exists('user_id', 'vouchers')) {
+            $this->db->where('v.user_id IS NULL', NULL, FALSE);
+        }
     }
 
     /**

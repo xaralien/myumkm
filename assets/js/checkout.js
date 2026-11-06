@@ -138,6 +138,14 @@
   dis.addEventListener('change', hitung);
   document.querySelectorAll('[data-tanggal]').forEach(function (el) { el.addEventListener('change', hitung); });
 
+  // Tombol voucher milik pembeli (hadiah referral): sekali ketuk dipasang.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pakai-voucher]');
+    if (!b) { return; }
+    b.disabled = true;
+    voucher('pasang', b.getAttribute('data-pakai-voucher'));
+  });
+
   $('btnVoucher').addEventListener('click', function () {
     var k = $('kodeVoucher').value.trim();
     if (k) { voucher('pasang', k); }

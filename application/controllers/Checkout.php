@@ -65,6 +65,8 @@ class Checkout extends CI_Controller
             // Rincian awal tanpa wilayah: daftar toko, barang, dan voucher.
             'rincian'   => $this->rincian(0, (array) $this->input->post('tanggal_kirim')),
             'kode_voucher' => $this->kode_voucher(),
+            // Voucher pribadi (hadiah referral) yang masih bisa dipakai.
+            'voucher_saya' => $this->voucher_saya(),
         );
 
         /* Buku alamat, hanya untuk yang sudah login. Tamu tetap mengisi
@@ -141,6 +143,16 @@ class Checkout extends CI_Controller
             return $this->json($j, 422);
         }
         return $this->json($j);
+    }
+
+    protected function voucher_saya()
+    {
+        $uid = $this->auth_lib->id();
+        if ( ! $uid || ! is_file(APPPATH . 'libraries/Referral_lib.php')) {
+            return array();
+        }
+        $this->load->library('referral_lib');
+        return $this->referral_lib->voucher_aktif($uid);
     }
 
     protected function kode_voucher()
@@ -276,6 +288,25 @@ class Checkout extends CI_Controller
             'order_status'      => 'pending',
         );
 
+        /* Catatan & gambar dari pembeli, per toko. Gambar disimpan lebih
+           dulu supaya kesalahan berkas (jenis/ukuran) bisa ditolak SEBELUM
+           ada pesanan yang tersimpan. */
+        $catatan_post = (array) $this->input->post('catatan_toko', TRUE);
+        $catatan = array();
+        foreach (array_keys($r['kelompok']) as $sid) {
+            $teks = isset($catatan_post[$sid]) ? trim((string) $catatan_post[$sid]) : '';
+            $gbr  = $this->simpan_gambar_catatan('gambar_toko_' . (int) $sid);
+            if (is_string($gbr) && strpos($gbr, '!') === 0) {
+                $this->hapus_gambar_catatan($catatan);
+                $this->session->set_flashdata('error', substr($gbr, 1));
+                return redirect('checkout' . ($this->langsung ? '?langsung=1' : ''));
+            }
+            $catatan[$sid] = array(
+                'catatan_pembeli' => $teks !== '' ? mb_substr($teks, 0, 1000) : NULL,
+                'catatan_gambar'  => $gbr ?: NULL,
+            );
+        }
+
         $kolom_order = array_flip($this->db->list_fields('orders'));
         $this->load->library('voucher_lib');
 
@@ -300,7 +331,7 @@ class Checkout extends CI_Controller
                 'total'           => $k['total'],
                 'tanggal_kirim'   => $k['tanggal_kirim'],
                 'dp_jumlah'       => $k['dp_jumlah'],
-            );
+            ) + $catatan[$sid];
             $order = array_intersect_key($order, $kolom_order);
 
             $saved = $this->order_model->create($order, array_values($k['items']));
@@ -321,6 +352,7 @@ class Checkout extends CI_Controller
 
         if ($gagal || $this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
+            $this->hapus_gambar_catatan($catatan);
             $this->session->set_flashdata('error', $gagal ?: 'Pesanan gagal disimpan. Coba lagi sebentar lagi.');
             return redirect('checkout' . ($this->langsung ? '?langsung=1' : ''));
         }
@@ -401,6 +433,62 @@ class Checkout extends CI_Controller
             );
         }
         return $out;
+    }
+
+    const GAMBAR_CATATAN_MAKS = 5242880;   // 5 MB
+
+    /**
+     * Simpan gambar catatan pesanan dari field $field.
+     *
+     * Jenis berkas ditentukan dari ISINYA (getimagesize), bukan nama atau
+     * header dari browser - keduanya bisa dipalsukan. Nama berkas acak
+     * 32 huruf, jadi tidak bisa ditebak.
+     *
+     * @return string|NULL nama berkas, NULL kalau tidak ada unggahan,
+     *                     atau '!pesan' kalau berkasnya ditolak
+     */
+    protected function simpan_gambar_catatan($field)
+    {
+        if (empty($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) {
+            return NULL;
+        }
+        $f = $_FILES[$field];
+        if ($f['error'] === UPLOAD_ERR_INI_SIZE || $f['error'] === UPLOAD_ERR_FORM_SIZE || $f['size'] > self::GAMBAR_CATATAN_MAKS) {
+            return '!Gambar catatan terlalu besar. Maksimal 5 MB.';
+        }
+        if ($f['error'] !== UPLOAD_ERR_OK || ! is_uploaded_file($f['tmp_name'])) {
+            return '!Gambar catatan gagal diunggah. Coba lagi.';
+        }
+        $jenis = array(IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp');
+        $info = @getimagesize($f['tmp_name']);
+        if ( ! $info || ! isset($jenis[$info[2]])) {
+            return '!Gambar catatan harus berupa JPG, PNG, atau WEBP.';
+        }
+
+        $folder = FCPATH . 'upload' . DIRECTORY_SEPARATOR . 'pesanan';
+        if ( ! is_dir($folder)) {
+            @mkdir($folder, 0755, TRUE);
+        }
+        $nama = bin2hex(random_bytes(16)) . '.' . $jenis[$info[2]];
+        if ( ! move_uploaded_file($f['tmp_name'], $folder . DIRECTORY_SEPARATOR . $nama)) {
+            return '!Gambar catatan gagal disimpan. Coba lagi.';
+        }
+        @chmod($folder . DIRECTORY_SEPARATOR . $nama, 0644);
+
+        // Diperkecil supaya tidak memakan kuota pembeli & penjual; tidak dipotong.
+        $this->load->helper('gambar');
+        rapikan_gambar($folder . DIRECTORY_SEPARATOR . $nama, 1200);
+        return $nama;
+    }
+
+    /** Buang gambar catatan yang terlanjur tersimpan kalau checkout batal. */
+    protected function hapus_gambar_catatan(array $catatan)
+    {
+        foreach ($catatan as $c) {
+            if ( ! empty($c['catatan_gambar'])) {
+                @unlink(FCPATH . 'upload' . DIRECTORY_SEPARATOR . 'pesanan' . DIRECTORY_SEPARATOR . basename($c['catatan_gambar']));
+            }
+        }
     }
 
     protected function set_rules()

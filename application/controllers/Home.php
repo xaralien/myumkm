@@ -105,7 +105,7 @@ class Home extends CI_Controller
         $titik = $this->session->userdata('dekat');
 
         if ($titik && method_exists($this->product_model, 'toko_sekitar')) {
-            $toko = $this->product_model->toko_sekitar($titik['lat'], $titik['lng'], 25, 12);
+            $toko = $this->product_model->toko_sekitar($titik['lat'], $titik['lng'], 25, 12, $lokasi);
             $toko = array_values(array_filter($toko, function ($t) {
                 return (int) $t['jml_produk'] > 0;
             }));
@@ -135,6 +135,10 @@ class Home extends CI_Controller
             $dis = (int) $lokasi['district_id'];
             $reg = (int) $lokasi['regency_id'];
 
+            $jangkau = $this->product_model->syarat_jangkauan($lokasi);
+            if ($jangkau !== NULL) {
+                $this->db->where($jangkau, NULL, FALSE);
+            }
             $this->db->where('s.province_id', (int) $lokasi['province_id'])
                 ->order_by("CASE WHEN s.district_id = {$dis} THEN 1
                                       WHEN s.regency_id  = {$reg} THEN 2

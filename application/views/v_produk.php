@@ -203,12 +203,12 @@ foreach ($addons as $a) {
                     </div>
 
                     <div class="produk-aksi">
-                        <button type="button" class="btn btn-black-hover-outline" data-act="add">
+                        <button type="button" class="btn btn-black-hover-outline btn-luar-jangkauan" data-act="add"<?= ! empty($ekstra['luar_jangkauan']) ? ' disabled title="Toko ini tidak mengirim ke lokasimu"' : '' ?>>
                             <?= t('Tambah ke keranjang') ?>
                         </button>
                         <!-- Beli sekarang: lewat wadah terpisah, jadi isi
                              keranjang yang sudah dikumpulkan tidak terganggu. -->
-                        <button type="button" class="btn btn-primary" data-act="buy">
+                        <button type="button" class="btn btn-primary btn-luar-jangkauan" data-act="buy"<?= ! empty($ekstra['luar_jangkauan']) ? ' disabled title="Toko ini tidak mengirim ke lokasimu"' : '' ?>>
                             <?= t('Beli sekarang') ?>
                         </button>
                     </div>

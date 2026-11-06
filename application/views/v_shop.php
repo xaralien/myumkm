@@ -136,6 +136,8 @@
       <?php endif; ?>
     </p>
 
+    <?php $this->load->view('parts/katalog_jangkauan'); ?>
+
     <!-- =============== DAFTAR PRODUK =============== -->
     <?php if ($total === 0): ?>
 
@@ -219,11 +221,15 @@
                 <?php endif; ?>
               </div>
 
+              <?php if ($f['jangkauan'] === 'luar'): ?>
+                <span class="kartu-luar-label">Tidak mengirim ke lokasimu</span>
+              <?php else: ?>
               <button type="button" class="icon-cross btn-add"
                 data-id="<?= (int) $p['id'] ?>"
                 aria-label="Tambah <?= html_escape($p['name']) ?> ke keranjang">
                 <img src="<?= base_url('assets/') ?>images/cross.svg" alt="" class="img-fluid">
               </button>
+              <?php endif; ?>
 
             </div>
           </div>

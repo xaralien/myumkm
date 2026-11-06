@@ -15,10 +15,24 @@ $e = isset($ekstra) ? $ekstra : array();
   <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'produk', 'objek_id' => $p['id'])); ?>
 </div>
 
+<?php if ( ! empty($e['luar_jangkauan'])): ?>
+  <div class="alert-box alert-warn mb-3 jangkauan-luar">
+    <strong>Tidak mengirim ke <?= html_escape($this->location_lib->label()) ?>.</strong>
+    <?= html_escape($e['luar_jangkauan']) ?>
+    <button type="button" class="link-btn" data-gps>Ganti lokasi</button>
+  </div>
+<?php endif; ?>
+
 <?php if ( ! empty($e['libur'])): ?>
   <div class="alert-box alert-warn mb-3">
     Toko sedang libur sampai <strong><?= tgl_id($e['libur']) ?></strong>.
     <?= ! empty($p['is_preorder']) ? 'Pre-order tetap bisa, dikirim setelah toko buka.' : 'Pesanan bisa dibuat lagi setelah toko buka.' ?>
+  </div>
+<?php endif; ?>
+
+<?php if (empty($e['libur']) && ! empty($e['kuota_penuh'])): ?>
+  <div class="alert-box alert-warn mb-3">
+    Kuota pesanan toko ini untuk hari ini sudah penuh. Pesanan bisa dibuat lagi besok.
   </div>
 <?php endif; ?>
 

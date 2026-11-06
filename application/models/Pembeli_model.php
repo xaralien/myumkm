@@ -124,6 +124,7 @@ class Pembeli_model extends CI_Model
         $this->dasar_katalog();
         $this->db->where('p.terjual_count >', 0);
         if ($lokasi && ! empty($lokasi['province_id'])) {
+            $this->saring_jangkauan($lokasi);
             $this->db->order_by('(s.province_id = ' . (int) $lokasi['province_id'] . ')', 'DESC', FALSE);
         }
         return $this->db->order_by('p.terjual_count', 'DESC')
@@ -167,6 +168,7 @@ class Pembeli_model extends CI_Model
                                    WHERE o.user_id = ' . (int) $user_id . ' AND oi.product_id IS NOT NULL)', NULL, FALSE);
 
         if ($lokasi && ! empty($lokasi['province_id'])) {
+            $this->saring_jangkauan($lokasi);
             $this->db->order_by('(s.province_id = ' . (int) $lokasi['province_id'] . ')', 'DESC', FALSE);
         }
         $produk = $this->db->order_by('p.terjual_count', 'DESC')
@@ -180,6 +182,16 @@ class Pembeli_model extends CI_Model
     }
 
     /* ========================================================= bantuan === */
+
+    /** Sembunyikan toko yang tidak mengirim ke wilayah pembeli. */
+    protected function saring_jangkauan(array $lokasi)
+    {
+        $this->load->model('product_model');
+        $syarat = $this->product_model->syarat_jangkauan($lokasi);
+        if ($syarat !== NULL) {
+            $this->db->where($syarat, NULL, FALSE);
+        }
+    }
 
     /** Kolom yang dibutuhkan kartu produk di beranda maupun katalog. */
     protected function kolom_kartu()

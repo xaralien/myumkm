@@ -205,45 +205,51 @@ $avatar = $store['avatar']
                 <?= form_error('ongkir_kecamatan') ?>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" for="ongkir_kota">Dalam kabupaten/kota *</label>
-                <div class="rupiah-wrap">
-                    <input type="text" id="ongkir_kota" name="ongkir_kota"
-                        class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
-                        value="<?= set_value('ongkir_kota', (int) $store['ongkir_kota']) ?>" required>
+            <?php
+              /* Saklar jangkauan. Tidak dicentang = toko tidak melayani tingkat
+                 itu; pesanan dari sana ditolak saat checkout. Bertingkat: kalau
+                 luar kecamatan tidak dilayani, yang lebih jauh juga tidak
+                 (diatur jangkauan.js di bawah dan diperiksa lagi di server). */
+              $centang = function ($nama, $bawaan) {
+                  $v = $this->input->post($nama);
+                  return ($this->input->method() === 'post') ? ($v === '1') : $bawaan;
+              };
+              $layani = array(
+                  'kota'     => $centang('layani_kota', ! isset($store['layani_kota']) || (int) $store['layani_kota']),
+                  'provinsi' => $centang('layani_provinsi', $store['ongkir_provinsi'] !== NULL),
+                  'luar'     => $centang('layani_luar', $store['ongkir_luar'] !== NULL),
+              );
+              $tingkat = array(
+                  'kota'     => array('ongkir_kota', 'Melayani luar kecamatan', 'dalam kabupaten/kota yang sama',
+                                      (int) $store['ongkir_kota']),
+                  'provinsi' => array('ongkir_provinsi', 'Melayani luar kabupaten/kota', 'masih dalam provinsi yang sama',
+                                      $store['ongkir_provinsi'] === NULL ? '' : (int) $store['ongkir_provinsi']),
+                  'luar'     => array('ongkir_luar', 'Melayani luar provinsi', 'pengiriman jauh - pastikan barangmu tahan perjalanan',
+                                      $store['ongkir_luar'] === NULL ? '' : (int) $store['ongkir_luar']),
+              );
+            ?>
+            <div class="jangkauan" id="jangkauanToko">
+              <?php foreach ($tingkat as $k => $t): ?>
+                <div class="jangkauan-tingkat mb-3" data-tingkat="<?= $k ?>">
+                  <label class="form-check jangkauan-saklar">
+                    <input type="checkbox" class="form-check-input" name="layani_<?= $k ?>" value="1"
+                           id="layani_<?= $k ?>" <?= $layani[$k] ? 'checked' : '' ?>>
+                    <span><strong><?= $t[1] ?></strong> <span class="hint">(<?= $t[2] ?>)</span></span>
+                  </label>
+                  <div class="jangkauan-tarif" <?= $layani[$k] ? '' : 'hidden' ?>>
+                    <label class="form-label" for="<?= $t[0] ?>">Ongkir</label>
+                    <div class="rupiah-wrap">
+                      <input type="text" id="<?= $t[0] ?>" name="<?= $t[0] ?>"
+                             class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
+                             placeholder="0 = gratis ongkir"
+                             value="<?= set_value($t[0], $t[3]) ?>">
+                    </div>
+                    <?= form_error($t[0]) ?>
+                  </div>
                 </div>
-                <?= form_error('ongkir_kota') ?>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="ongkir_provinsi">Luar kota, dalam provinsi</label>
-                <div class="rupiah-wrap">
-                    <input type="text" id="ongkir_provinsi" name="ongkir_provinsi"
-                        class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
-                        value="<?= set_value('ongkir_provinsi', $store['ongkir_provinsi'] === NULL ? '' : (int) $store['ongkir_provinsi']) ?>">
-                </div>
-                <!-- Kosong dan nol BERBEDA artinya di sini, dan bedanya besar. -->
-                <p class="hint">
-                    <strong>Kosongkan</strong> kalau kamu tidak melayani luar kota &mdash;
-                    pesanan dari sana akan ditolak saat checkout.
-                    Isi <strong>0</strong> berarti melayani dengan ongkir gratis.
-                </p>
-                <?= form_error('ongkir_provinsi') ?>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="ongkir_luar">Luar provinsi</label>
-                <div class="rupiah-wrap">
-                    <input type="text" id="ongkir_luar" name="ongkir_luar"
-                        class="form-control input-rupiah" inputmode="numeric" autocomplete="off"
-                        value="<?= set_value('ongkir_luar', $store['ongkir_luar'] === NULL ? '' : (int) $store['ongkir_luar']) ?>">
-                </div>
-                <p class="hint">
-                    <strong>Kosongkan</strong> kalau barangmu tidak tahan perjalanan jauh
-                    &mdash; bunga segar atau kue basah, misalnya. Pesanan dari luar provinsi
-                    akan ditolak saat checkout, dan pembeli diarahkan menanyakannya lewat chat.
-                </p>
-                <?= form_error('ongkir_luar') ?>
+              <?php endforeach; ?>
+              <p class="hint">Yang tidak dicentang tidak dilayani: pembeli dari wilayah itu tidak bisa checkout
+                dan diarahkan bertanya lewat chat. Isi <strong>0</strong> untuk gratis ongkir.</p>
             </div>
 
             <div class="mb-3">
@@ -257,6 +263,20 @@ $avatar = $store['avatar']
                 <?= form_error('gratis_ongkir_min') ?>
             </div>
 
+        </div>
+
+        <div class="form-card">
+            <h3 class="form-card-title">Kapasitas pesanan</h3>
+            <div class="mb-1">
+                <label class="form-label" for="maks_pesanan_harian">Maksimal pesanan per hari</label>
+                <input type="number" id="maks_pesanan_harian" name="maks_pesanan_harian" class="form-control"
+                       min="1" max="999" inputmode="numeric" placeholder="Kosong = tidak dibatasi"
+                       value="<?= set_value('maks_pesanan_harian', ! empty($store['maks_pesanan_harian']) ? (int) $store['maks_pesanan_harian'] : '') ?>">
+                <p class="hint">Misalnya 5. Setelah 5 pesanan masuk hari ini, pembeli tidak bisa checkout
+                    sampai besok, dan halaman toko menampilkan "Kuota hari ini penuh". Pesanan yang dibatalkan
+                    tidak dihitung.</p>
+                <?= form_error('maks_pesanan_harian') ?>
+            </div>
         </div>
 
         <div class="form-card">
@@ -298,6 +318,31 @@ $avatar = $store['avatar']
     };
 </script>
 <script src="<?= aset('assets/js/region-select.js') ?>"></script>
+<script>
+  /* Jangkauan bertingkat: mematikan satu tingkat ikut mematikan yang lebih
+     jauh, menyalakan satu tingkat ikut menyalakan yang lebih dekat. */
+  (function () {
+    var urut = ['kota', 'provinsi', 'luar'];
+    var kotak = urut.map(function (k) { return document.getElementById('layani_' + k); });
+    function tampil() {
+      kotak.forEach(function (c) {
+        if (!c) { return; }
+        c.closest('.jangkauan-tingkat').querySelector('.jangkauan-tarif').hidden = !c.checked;
+      });
+    }
+    kotak.forEach(function (c, i) {
+      if (!c) { return; }
+      c.addEventListener('change', function () {
+        for (var j = 0; j < kotak.length; j++) {
+          if (c.checked && j < i) { kotak[j].checked = true; }
+          if (!c.checked && j > i) { kotak[j].checked = false; }
+        }
+        tampil();
+      });
+    });
+    tampil();
+  })();
+</script>
 <script src="<?= aset('assets/js/format-rupiah.js') ?>"></script>
 <script src="<?= aset('assets/js/avatar-preview.js') ?>"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">

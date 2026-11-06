@@ -39,6 +39,7 @@ application/config/ai.php
 upload/produk/*
 upload/avatar/*
 upload/banner/*
+upload/pesanan/*
 # Dokumen legalitas penjual (KTP, NIB) - JANGAN pernah ikut ter-commit.
 application/dokumen_toko/*
 !application/dokumen_toko/index.html

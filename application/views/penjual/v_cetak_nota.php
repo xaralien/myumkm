@@ -33,6 +33,12 @@
         <tr><td>Sisa</td><td class="k"><?= empty($o['lunas_at']) ? rupiah($o['total'] - $o['dp_jumlah']) : 'LUNAS' ?></td></tr>
       <?php endif; ?>
     </table>
+    <?php if ( ! empty($o['catatan_pembeli'])): ?>
+      <p class="kecil"><strong>Catatan pembeli:</strong> <?= nl2br(html_escape($o['catatan_pembeli'])) ?></p>
+    <?php endif; ?>
+    <?php if ( ! empty($o['catatan_gambar'])): ?>
+      <p class="kecil">Ada gambar contoh dari pembeli - lihat di detail pesanan.</p>
+    <?php endif; ?>
     <div class="garis"></div>
     <div class="kecil" style="text-align:center">Terima kasih sudah mendukung UMKM lokal!<br><?= html_escape($brand) ?></div>
   </div>
