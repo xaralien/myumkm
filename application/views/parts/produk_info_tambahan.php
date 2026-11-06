@@ -15,6 +15,14 @@ $e = isset($ekstra) ? $ekstra : array();
   <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'produk', 'objek_id' => $p['id'])); ?>
 </div>
 
+<?php if ( ! empty($e['luar_jangkauan'])): ?>
+  <div class="alert-box alert-warn mb-3 jangkauan-luar">
+    <strong>Tidak mengirim ke <?= html_escape($this->location_lib->label()) ?>.</strong>
+    <?= html_escape($e['luar_jangkauan']) ?>
+    <button type="button" class="link-btn" data-gps>Ganti lokasi</button>
+  </div>
+<?php endif; ?>
+
 <?php if ( ! empty($e['libur'])): ?>
   <div class="alert-box alert-warn mb-3">
     Toko sedang libur sampai <strong><?= tgl_id($e['libur']) ?></strong>.

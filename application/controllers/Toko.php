@@ -21,7 +21,7 @@ class Toko extends CI_Controller {
         parent::__construct();
         $this->load->model(array('review_model'));
         $this->load->helper(array('url', 'form', 'money'));
-        $this->load->library(array('auth_lib'));
+        $this->load->library(array('auth_lib', 'cart_lib', 'location_lib'));
     }
 
     public function index($slug = NULL)
@@ -196,6 +196,7 @@ class Toko extends CI_Controller {
             'mengikuti' => $uid ? $this->pembeli_model->mengikuti($uid, $toko['id']) : FALSE,
             'pengikut'  => $this->pembeli_model->jumlah_pengikut($toko['id']),
             'lencana'   => $lencana,
+            'luar_jangkauan' => $this->cart_lib->luar_jangkauan($toko['id']),
         );
     }
 }

@@ -9,6 +9,7 @@
       'category' => $f['category'],
       'sort'     => $f['sort'],
       'store'    => $f['store_id'] ?: '',
+      'luar'     => $f['jangkauan'] === 'luar' ? '1' : '',
     ), 'strlen');
     foreach ($ganti as $k => $v) {
       if ($v === NULL || $v === '') { unset($q[$k]); } else { $q[$k] = $v; }
@@ -121,6 +122,8 @@
   </form>
 </aside>
 
+<div style="padding: 0 16px;"><?php $this->load->view('parts/katalog_jangkauan'); ?></div>
+
 <?php if (! $products): ?>
   <p class="mb-kosong">
     Tidak ada produk yang cocok.<br>
@@ -163,6 +166,9 @@
             <?php if ((int) $p['variant_count'] > 1): ?><small>mulai </small><?php endif; ?>
             <?= rupiah($p['price']) ?>
           </span>
+          <?php if ($f['jangkauan'] === 'luar'): ?>
+            <span class="kartu-luar-label">Tidak mengirim ke lokasimu</span>
+          <?php endif; ?>
         </div>
       </a>
     <?php endforeach; ?>
@@ -171,11 +177,11 @@
   <?php if ($pagess > 1): ?>
     <nav class="mb-halaman" aria-label="Halaman">
       <?php if ($page > 1): ?>
-        <a href="<?= html_escape($ubah(array()) . ($f['q'] || $f['category'] || $f['sort'] ? '&amp;' : '?') . 'page=' . ($page - 1)) ?>">Sebelumnya</a>
+        <a href="<?= html_escape($ubah(array('page' => $page - 1))) ?>">Sebelumnya</a>
       <?php endif; ?>
       <span>Halaman <?= (int) $page ?> dari <?= (int) $pagess ?></span>
       <?php if ($page < $pagess): ?>
-        <a href="<?= html_escape($ubah(array()) . ($f['q'] || $f['category'] || $f['sort'] ? '&amp;' : '?') . 'page=' . ($page + 1)) ?>">Berikutnya</a>
+        <a href="<?= html_escape($ubah(array('page' => $page + 1))) ?>">Berikutnya</a>
       <?php endif; ?>
     </nav>
   <?php endif; ?>

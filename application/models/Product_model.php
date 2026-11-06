@@ -201,7 +201,7 @@ class Product_model extends CI_Model
             /* Penyaring kotak - bisa memakai indeks ix_stores_koordinat.
                Jarak persisnya dihitung belakangan lewat HAVING. */
             $this->bbox_filter($f['dekat_lat'], $f['dekat_lng'], $f['radius']);
-        } elseif (!empty($f['province_id'])) {
+        } elseif (!empty($f['province_id']) && !$this->jangkauan_menggantikan_provinsi($f)) {
             /* PENTING: filter provinsi hanya berlaku kalau mode radius
                TIDAK aktif.
 
@@ -218,6 +218,20 @@ class Product_model extends CI_Model
 
         if (!empty($f['strict']) && !empty($f['district_id']) && !$dekat) {
             $this->db->where('s.district_id', (int) $f['district_id']);
+        }
+
+        /* Jangkauan layanan toko. Toko yang tidak mengirim ke "Kirim ke"
+           pembeli disembunyikan dari daftar - menampilkannya hanya memberi
+           harapan palsu yang baru ketahuan di checkout. 'luar' kebalikannya:
+           daftar khusus produk di luar jangkauan, untuk tautan "Lihat". */
+        $jangkau = $this->syarat_jangkauan($f);
+        if ($jangkau !== NULL) {
+            $mode = isset($f['jangkauan']) ? $f['jangkauan'] : 'dalam';
+            if ($mode === 'luar') {
+                $this->db->where('NOT ' . $jangkau, NULL, FALSE);
+            } elseif ($mode !== 'semua') {
+                $this->db->where($jangkau, NULL, FALSE);
+            }
         }
 
         if (!empty($f['store_id'])) {
@@ -274,6 +288,57 @@ class Product_model extends CI_Model
                   WHEN s.province_id = {$p} THEN 3
                   ELSE 4
                 END";
+    }
+
+    /**
+     * Syarat SQL "toko s melayani pengiriman ke wilayah pembeli" - cermin
+     * dari Cart_lib::shipping_fee, supaya katalog dan checkout sepakat.
+     * NULL kalau wilayah pembeli belum diketahui (semua toko tampil).
+     *
+     * @param array $w berisi district_id, regency_id, province_id
+     */
+    public function syarat_jangkauan(array $w)
+    {
+        if (empty($w['district_id']) || empty($w['regency_id']) || empty($w['province_id'])) {
+            return NULL;
+        }
+        $d = (int) $w['district_id'];
+        $r = (int) $w['regency_id'];
+        $p = (int) $w['province_id'];
+
+        static $ada_kolom = NULL;
+        if ($ada_kolom === NULL) {
+            $ada_kolom = $this->db->field_exists('layani_kota', 'stores');
+        }
+        $kota = $ada_kolom ? 's.layani_kota = 1 AND ' : '';
+
+        return "(s.district_id = {$d} OR ({$kota}(
+                    s.regency_id = {$r}
+                    OR (s.regency_id <> {$r} AND s.province_id = {$p} AND s.ongkir_provinsi IS NOT NULL)
+                    OR (s.province_id <> {$p} AND s.ongkir_luar IS NOT NULL))))";
+    }
+
+    /**
+     * Daftar utama (toko yang melayani) tidak perlu dibatasi provinsi lagi:
+     * syarat jangkauan sudah menyaring, dan toko luar provinsi yang memang
+     * mau mengirim ke sini (ongkir_luar diisi) justru harus terlihat.
+     * Daftar 'luar' tetap dibatasi provinsi supaya tidak berisi toko
+     * se-Indonesia.
+     */
+    protected function jangkauan_menggantikan_provinsi(array $f)
+    {
+        $mode = isset($f['jangkauan']) ? $f['jangkauan'] : 'dalam';
+        return $mode === 'dalam' && $this->syarat_jangkauan($f) !== NULL;
+    }
+
+    /** Jumlah produk yang cocok dengan saringan tapi tokonya di luar jangkauan. */
+    public function count_luar_jangkauan(array $f)
+    {
+        if ($this->syarat_jangkauan($f) === NULL) {
+            return 0;
+        }
+        $f['jangkauan'] = 'luar';
+        return $this->count_filtered($f);
     }
 
     public function count_filtered(array $f)
@@ -687,7 +752,7 @@ class Product_model extends CI_Model
      *
      * @return array berisi kolom jarak_km
      */
-    public function toko_sekitar($lat, $lng, $radius_km = 10, $limit = 20)
+    public function toko_sekitar($lat, $lng, $radius_km = 10, $limit = 20, $lokasi = NULL)
     {
         $jarak = $this->jarak_sql($lat, $lng);
 
@@ -705,6 +770,11 @@ class Product_model extends CI_Model
             ->where('s.is_active', 1);
 
         $this->bbox_filter($lat, $lng, $radius_km);
+
+        $jangkau = $lokasi ? $this->syarat_jangkauan($lokasi) : NULL;
+        if ($jangkau !== NULL) {
+            $this->db->where($jangkau, NULL, FALSE);
+        }
 
         /* Batas jarak di SINI tetap ada, dan itu disengaja: bagian ini
            memang daftar "toko di sekitarmu", jadi toko dari kota lain

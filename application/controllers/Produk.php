@@ -163,6 +163,7 @@ class Produk extends CI_Controller
             'grosir'  => isset($tiers[$p['id']]) ? $tiers[$p['id']] : array(),
             'libur'   => $libur,
             'kuota_penuh' => $kuota && $kuota['penuh'],
+            'luar_jangkauan' => $this->cart_lib->luar_jangkauan($p['store_id']),
         );
     }
 

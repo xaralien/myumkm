@@ -35,6 +35,9 @@ class Shop extends CI_Controller
             'sort' => (string) $this->input->get('sort', TRUE),
             'store_id' => (int) $this->input->get('store'),
             'strict' => (bool) $this->input->get('strict'),
+            /* Bawaan: hanya toko yang mengirim ke "Kirim ke" pembeli.
+               ?luar=1: daftar terpisah produk di luar jangkauan. */
+            'jangkauan' => $this->input->get('luar') ? 'luar' : 'dalam',
         );
 
         /* Wilayah pengunjung disuntikkan dari server, BUKAN dari query string.
@@ -108,6 +111,7 @@ class Shop extends CI_Controller
             'range' => $this->product_model->price_range(isset($f['province_id']) ? $f['province_id'] : NULL),
             'lokasi' => $lokasi,
             'sebaran' => $this->product_model->count_by_proximity($f),
+            'jml_luar' => $f['jangkauan'] === 'dalam' ? $this->product_model->count_luar_jangkauan($f) : 0,
             'sorts' => $this->product_model->sort_options(),
             'pagination' => $this->build_pagination($total, $page),
             'ada_filter' => ($f['q'] !== '' ||

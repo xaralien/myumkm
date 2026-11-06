@@ -228,7 +228,7 @@
                   <?php endif; ?>
                 </div>
 
-                <button type="button" class="icon-cross btn-add" data-id="<?= (int) $p['id'] ?>"
+                <button type="button" class="icon-cross btn-add" data-id="<?= (int) $p['id'] ?>"<?= ! empty($toko_ekstra['luar_jangkauan']) ? ' disabled' : '' ?>
                         aria-label="Tambah <?= html_escape($p['name']) ?> ke keranjang">
                   <img src="<?= base_url('assets/') ?>images/cross.svg" alt="" class="img-fluid">
                 </button>
