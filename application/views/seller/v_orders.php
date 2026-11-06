@@ -194,7 +194,12 @@ $tampil = function ($peta, $kode) {
             </a>
           <?php endif; ?>
 
-          <?php if ($o['boleh_maju']): ?>
+          <?php if ($o['boleh_maju'] && $o['status_baru'] === 'delivered' && ! empty($bukti_min)): ?>
+            <!-- Selesai wajib foto bukti: diarahkan ke formulir unggah. -->
+            <a href="<?= site_url('seller/chat/' . $o['id']) ?>#bukti-sampai" class="btn btn-sm btn-primary">
+              <?= html_escape($tampil($label_tombol, $o['status_baru'])) ?> (unggah foto)
+            </a>
+          <?php elseif ($o['boleh_maju']): ?>
             <!-- POST, bukan tautan GET. Tautan yang mengubah data bisa
                  terpicu sendiri oleh prefetch browser, pemindai antivirus,
                  atau preview tautan WhatsApp. -->

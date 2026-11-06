@@ -1462,6 +1462,7 @@ class Seller extends Seller_Controller
             'orders' => $orders,
             'cari' => $cari,
             'undo_menit' => (int) (self::UNDO_DETIK / 60),
+            'bukti_min'  => $this->bukti_sampai_min(),
         );
         $this->render('seller/v_orders', $data);
     }
@@ -1531,6 +1532,19 @@ class Seller extends Seller_Controller
             return redirect('seller/orders');
         }
 
+        /* Bukti barang sampai: wajib sejumlah foto sebelum pesanan boleh
+           ditandai selesai. Diperiksa di server - tombol di daftar pesanan
+           pun diarahkan ke formulir unggah, tapi permintaan langsung tanpa
+           foto tetap ditolak di sini. */
+        $bukti = array();
+        $min_bukti = $baru === 'delivered' ? $this->bukti_sampai_min() : 0;
+        if ($min_bukti > 0) {
+            $bukti = $this->simpan_bukti_sampai($min_bukti);
+            if ($bukti === FALSE) {
+                return redirect('seller/chat/' . $order['id'] . '#bukti-sampai');
+            }
+        }
+
         $this->db->trans_begin();
 
         $this
@@ -1542,6 +1556,7 @@ class Seller extends Seller_Controller
 
         if ($this->db->affected_rows() < 1) {
             $this->db->trans_rollback();
+            $this->hapus_foto_chat($bukti);
             $this->session->set_flashdata(
                 'error',
                 'Status sudah berubah di tempat lain. Muat ulang halaman.'
@@ -1566,10 +1581,24 @@ class Seller extends Seller_Controller
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
+            $this->hapus_foto_chat($bukti);
             $this->session->set_flashdata('error', 'Gagal mengubah status.');
             return redirect('seller/orders');
         }
         $this->db->trans_commit();
+
+        /* Foto bukti masuk ke percakapan pesanan: pembeli melihatnya, dan
+           admin memakainya kalau nanti ada sengketa. */
+        if ($bukti) {
+            $this->load->model('chat_model');
+            $ket = trim((string) $this->input->post('catatan_bukti', TRUE));
+            foreach ($bukti as $i => $nama) {
+                $this->chat_model->kirim($order['id'], 'seller', 'foto',
+                    'Bukti barang sampai (' . ($i + 1) . '/' . count($bukti) . ')'
+                        . ($i === 0 && $ket !== '' ? ': ' . mb_substr($ket, 0, 300) : ''),
+                    $nama, $this->me['id']);
+            }
+        }
 
         // Pembeli diberi tahu lewat percakapan pesanan - di situ juga nomor
         // resinya tersimpan dan mudah ditemukan lagi.
@@ -2156,6 +2185,7 @@ class Seller extends Seller_Controller
         $data['kurir_daftar'] = $this->ekspedisi_lib->daftar();
         $data['lacak'] = $order['order_status'] === 'delivering'
             ? $this->ekspedisi_lib->lacak($order['courier'], $order['tracking_number']) : NULL;
+        $data['bukti_min'] = $this->bukti_sampai_min();
         $this->render('seller/v_chat', $data);
     }
 
@@ -2205,9 +2235,9 @@ class Seller extends Seller_Controller
      * @param  string $field nama input file
      * @return string|NULL|FALSE nama berkas, NULL bila kosong, FALSE bila gagal
      */
-    protected function unggah_foto_chat($field)
+    protected function unggah_foto_chat($field, $berkas = NULL)
     {
-        $f = isset($_FILES[$field]) ? $_FILES[$field] : NULL;
+        $f = $berkas !== NULL ? $berkas : (isset($_FILES[$field]) ? $_FILES[$field] : NULL);
 
         if (! $f || $f['error'] === UPLOAD_ERR_NO_FILE || $f['name'] === '') {
             return NULL;
@@ -2278,6 +2308,64 @@ class Seller extends Seller_Controller
         rapikan_gambar($nyata . DIRECTORY_SEPARATOR . $nama, 900);
 
         return $nama;
+    }
+
+    /** Jumlah minimal foto bukti saat menandai selesai (0 = tidak wajib). */
+    protected function bukti_sampai_min()
+    {
+        $this->load->library('pengaturan_lib');
+        return max(0, min(5, (int) $this->pengaturan_lib->get('bukti_sampai_min')));
+    }
+
+    /**
+     * Simpan foto bukti barang sampai (input bukti[]).
+     *
+     * @return array|FALSE nama berkas; FALSE (flash galat sudah diisi)
+     *                     kalau jumlahnya kurang atau ada berkas yang ditolak
+     */
+    protected function simpan_bukti_sampai($min)
+    {
+        $f = isset($_FILES['bukti']) && is_array($_FILES['bukti']['name']) ? $_FILES['bukti'] : NULL;
+        $daftar = array();
+        if ($f) {
+            foreach ($f['name'] as $i => $nama) {
+                if ($f['error'][$i] === UPLOAD_ERR_NO_FILE || $nama === '') {
+                    continue;
+                }
+                $daftar[] = array('name' => $nama, 'type' => $f['type'][$i], 'tmp_name' => $f['tmp_name'][$i],
+                                  'error' => $f['error'][$i], 'size' => $f['size'][$i]);
+            }
+        }
+        if (count($daftar) < $min) {
+            $this->session->set_flashdata('error',
+                'Unggah minimal ' . $min . ' foto bukti barang sudah sampai (mis. barang di tujuan dan serah terima ke penerima).');
+            return FALSE;
+        }
+        $daftar = array_slice($daftar, 0, 5);
+
+        $simpan = array();
+        foreach ($daftar as $b) {
+            $nama = $this->unggah_foto_chat('bukti', $b);
+            if ( ! $nama) {
+                $this->hapus_foto_chat($simpan);
+                if ($nama === NULL) {
+                    $this->session->set_flashdata('error', 'Ada foto bukti yang kosong. Pilih ulang fotonya.');
+                }
+                return FALSE;
+            }
+            $simpan[] = $nama;
+        }
+        return $simpan;
+    }
+
+    protected function hapus_foto_chat(array $nama)
+    {
+        foreach ($nama as $n) {
+            $p = FCPATH . 'upload' . DIRECTORY_SEPARATOR . 'produk' . DIRECTORY_SEPARATOR . basename($n);
+            if (is_file($p)) {
+                @unlink($p);
+            }
+        }
     }
 
     protected function json_chat($data, $kode = 200)

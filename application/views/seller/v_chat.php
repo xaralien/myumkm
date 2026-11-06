@@ -88,9 +88,23 @@
       <?php elseif ($st === 'delivering'): ?>
         <?php $this->load->view('parts/lacak_resi', array('lacak' => $lacak)); ?>
         <p class="hint mt-2">Menunggu pembeli mengonfirmasi pesanan diterima.</p>
-        <?= form_open('seller/ubah_status/' . $order['id']) ?>
-          <button type="submit" class="btn btn-black-hover-outline w-100">Tandai selesai</button>
-        <?= form_close() ?>
+        <?php if ( ! empty($bukti_min)): ?>
+          <?= form_open_multipart('seller/ubah_status/' . $order['id'], array('id' => 'bukti-sampai', 'class' => 'bukti-sampai')) ?>
+            <p class="bukti-sampai-judul">Sudah sampai? Unggah minimal <strong><?= (int) $bukti_min ?> foto</strong> bukti</p>
+            <p class="hint mb-2">Misalnya barang di alamat tujuan dan saat diserahkan ke penerima. Foto dikirim ke pembeli lewat chat ini.</p>
+            <?php for ($i = 0; $i < max(2, (int) $bukti_min); $i++): ?>
+              <input type="file" name="bukti[]" class="form-control mb-2" accept="image/jpeg,image/png,image/webp"
+                     <?= $i < (int) $bukti_min ? 'required' : '' ?> aria-label="Foto bukti <?= $i + 1 ?>">
+            <?php endfor; ?>
+            <input type="text" name="catatan_bukti" class="form-control mb-2" maxlength="300"
+                   placeholder="Keterangan (opsional), mis. diterima Bu Rina di depan rumah">
+            <button type="submit" class="btn btn-black-hover-outline w-100">Kirim foto &amp; tandai selesai</button>
+          <?= form_close() ?>
+        <?php else: ?>
+          <?= form_open('seller/ubah_status/' . $order['id']) ?>
+            <button type="submit" class="btn btn-black-hover-outline w-100">Tandai selesai</button>
+          <?= form_close() ?>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
 
