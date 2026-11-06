@@ -77,6 +77,21 @@
             </select>
           </label>
 
+          <!-- Urutan kedua, mis. Terdekat lalu Termurah. -->
+          <label class="filter-sort">
+            <span>lalu</span>
+            <select name="sort2" class="form-control" data-autosubmit aria-label="Urutan kedua">
+              <option value="">&mdash;</option>
+              <?php foreach ($sorts as $k => $label): ?>
+                <?php if ($k === $f['sort']) { continue; } ?>
+                <option value="<?= $k ?>" <?= $f['sort2'] === $k ? 'selected' : '' ?>>
+                  <?= html_escape($label) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <?php if ($f['jangkauan'] === 'luar'): ?><input type="hidden" name="luar" value="1"><?php endif; ?>
+
           <button type="button" class="btn-filter-toggle" id="btnFilter" aria-expanded="false">
             Filter<?= $ada_filter ? ' <span class="dot"></span>' : '' ?>
           </button>

@@ -27,7 +27,7 @@ class Home extends CI_Controller
            di beranda memang bisa dikirim ke lokasi pengunjung. Kalau beranda
            menampilkan produk dari provinsi lain, pembeli baru tahu tidak
            bisa dikirim setelah sampai di checkout. */
-        $f = array('sort' => 'baru');
+        $f = array('sort' => 'dekat', 'sort2' => 'baru');
         if ($lokasi) {
             $f['district_id'] = (int) $lokasi['district_id'];
             $f['regency_id']  = (int) $lokasi['regency_id'];

@@ -33,6 +33,7 @@ class Shop extends CI_Controller
             'min' => $this->angka($this->input->get('min')),
             'max' => $this->angka($this->input->get('max')),
             'sort' => (string) $this->input->get('sort', TRUE),
+            'sort2' => (string) $this->input->get('sort2', TRUE),
             'store_id' => (int) $this->input->get('store'),
             'strict' => (bool) $this->input->get('strict'),
             /* Bawaan: hanya toko yang mengirim ke "Kirim ke" pembeli.
@@ -59,9 +60,17 @@ class Shop extends CI_Controller
             $f['max'] = $tukar;
         }
 
-        // Nilai sort yang tidak dikenal dikembalikan ke default.
-        if (!array_key_exists($f['sort'], $this->product_model->sort_options())) {
-            $f['sort'] = 'baru';
+        /* Dua tingkat urutan: sort lalu sort2. "Terdekat" hanya ditawarkan
+           kalau lokasi atau titik pembeli diketahui. Nilai yang tidak
+           dikenal dikembalikan ke bawaan. */
+        $titik = $this->session->userdata('dekat');
+        $bisa_dekat = $lokasi || ($titik && isset($titik['lat']) && $titik['lat'] !== NULL);
+        $sorts = $this->product_model->sort_options($bisa_dekat);
+        if (!array_key_exists($f['sort'], $sorts)) {
+            $f['sort'] = $bisa_dekat ? 'dekat' : 'baru';
+        }
+        if (!array_key_exists($f['sort2'], $sorts) || $f['sort2'] === $f['sort']) {
+            $f['sort2'] = '';
         }
 
         // ---- Hitung total dulu, baru tentukan halaman --------------------
@@ -112,7 +121,7 @@ class Shop extends CI_Controller
             'lokasi' => $lokasi,
             'sebaran' => $this->product_model->count_by_proximity($f),
             'jml_luar' => $f['jangkauan'] === 'dalam' ? $this->product_model->count_luar_jangkauan($f) : 0,
-            'sorts' => $this->product_model->sort_options(),
+            'sorts' => $sorts,
             'pagination' => $this->build_pagination($total, $page),
             'ada_filter' => ($f['q'] !== '' ||
                 $f['category'] !== '' ||
