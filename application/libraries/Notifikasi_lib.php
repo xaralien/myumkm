@@ -240,8 +240,10 @@ class Notifikasi_lib
             $penjual = 'Pesanan baru sudah dibayar! ' . $order['order_number'] . "\n"
                 . implode("\n", $baris) . "\n"
                 . 'Total ' . rupiah($order['total']) . "\n"
-                . 'Kirim ke: ' . $order['recipient_name'] . ', ' . $order['recipient_city'] . "\n\n"
-                . 'Proses di: ' . site_url('seller/orders');
+                . 'Kirim ke: ' . $order['recipient_name'] . ', ' . $order['recipient_city'] . "\n"
+                . ( ! empty($order['catatan_pembeli']) ? 'Catatan pembeli: ' . mb_substr($order['catatan_pembeli'], 0, 300) . "\n" : '')
+                . ( ! empty($order['catatan_gambar']) ? "Ada gambar contoh dari pembeli (lihat di detail pesanan).\n" : '')
+                . "\n" . 'Proses di: ' . site_url('seller/orders');
             $this->wa($toko['phone'], $penjual, 'pesanan_baru_toko');
         }
     }

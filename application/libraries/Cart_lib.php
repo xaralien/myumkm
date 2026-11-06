@@ -435,6 +435,16 @@ class Cart_lib
         if ((int) $tujuan['district_id'] === (int) $toko['district_id']) {
             $tingkat = 'kecamatan';
             $ongkir  = (int) $toko['ongkir_kecamatan'];
+        } elseif (isset($toko['layani_kota']) && ! (int) $toko['layani_kota']) {
+            /* Toko memilih hanya melayani kecamatannya sendiri (mis. jasa
+               antar jalan kaki, makanan yang harus segera sampai). */
+            return array(
+                'ok' => FALSE,
+                'ongkir' => 0,
+                'tingkat' => 'kota',
+                'pesan' => $toko['name'] . ' hanya melayani pengiriman di kecamatan '
+                    . (isset($toko['district_name']) ? $toko['district_name'] : 'tokonya') . '.'
+            );
         } elseif ((int) $tujuan['regency_id'] === (int) $toko['regency_id']) {
             $tingkat = 'kota';
             $ongkir  = (int) $toko['ongkir_kota'];

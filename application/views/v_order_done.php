@@ -168,6 +168,7 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
               </tr>
             <?php endif; ?>
           </table>
+          <?php $this->load->view('parts/catatan_pembeli', array('order' => $order, 'judul_catatan' => 'Catatan pesananmu')); ?>
         </div>
 
         <div class="form-card">

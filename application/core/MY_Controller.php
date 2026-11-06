@@ -120,9 +120,34 @@ class Seller_Controller extends CI_Controller {
             redirect('akun/buka_toko');
         }
 
-        /* Toko yang BELUM disetujui admin tetap boleh masuk panel - pemiliknya
-           bisa menyiapkan produk sambil menunggu. Produknya tidak tampil di
-           katalog, karena semua query katalog mensyaratkan s.is_active = 1. */
+        /* Toko yang BELUM disetujui admin (atau dinonaktifkan admin) hanya
+           boleh melengkapi profil toko dan dokumen legalitas. Fitur lain -
+           produk, pesanan, voucher, keuangan, promosi - terkunci sampai
+           admin menyetujui, supaya admin memeriksa toko sebelum ada apa pun
+           yang dijual atau dijanjikan ke pembeli. */
+        if ( ! (int) $this->store['is_active'] && ! $this->boleh_saat_menunggu()) {
+            $pesan = 'Tokomu masih menunggu persetujuan admin (biasanya 1x24 jam). '
+                   . 'Sementara itu, lengkapi profil toko dan dokumen legalitas.';
+            if ($this->input->is_ajax_request()) {
+                $this->output->set_status_header(403)->set_content_type('application/json')
+                     ->set_output(json_encode(array('ok' => FALSE, 'pesan' => $pesan)))->_display();
+                exit;
+            }
+            $this->session->set_flashdata('info', $pesan);
+            redirect('seller/profile');
+        }
+    }
+
+    /** Halaman yang tetap boleh dibuka selama toko belum disetujui. */
+    protected function boleh_saat_menunggu()
+    {
+        $boleh = array(
+            'seller'    => array('profile', 'update_profile', 'notif', 'inbox_json'),
+            'legalitas' => array('index', 'simpan', 'berkas'),
+        );
+        $kelas  = strtolower($this->router->fetch_class());
+        $metode = strtolower($this->router->fetch_method());
+        return isset($boleh[$kelas]) && in_array($metode, $boleh[$kelas], TRUE);
     }
 
     protected function render($view, $data = array())

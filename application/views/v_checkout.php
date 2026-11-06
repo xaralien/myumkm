@@ -28,7 +28,8 @@
       <div class="alert-box alert-error mb-4" role="alert"><?= html_escape($this->session->flashdata('error')) ?></div>
     <?php endif; ?>
 
-    <?= form_open('checkout/place', array('id' => 'formCheckout')) ?>
+    <!-- multipart: catatan per toko boleh membawa satu gambar contoh. -->
+    <?= form_open_multipart('checkout/place', array('id' => 'formCheckout')) ?>
     <?php if (! empty($langsung)): ?>
       <!-- Penanda "beli sekarang" ikut terkirim, supaya pesanan dibuat dari
            wadah berisi satu barang itu - bukan dari keranjang biasa. -->
@@ -278,6 +279,19 @@
                 </p>
               <?php endif; ?>
 
+              <?php $catatan_post = (array) $this->input->post('catatan_toko'); $isi_catatan = isset($catatan_post[$sid]) ? (string) $catatan_post[$sid] : ''; ?>
+              <details class="ck-catatan" <?= $isi_catatan !== '' ? 'open' : '' ?>>
+                <summary>Tambah catatan &amp; gambar untuk toko ini <span class="hint">(opsional)</span></summary>
+                <label class="form-label mt-2" for="catatan_<?= (int) $sid ?>">Catatan pesanan</label>
+                <textarea class="form-control" id="catatan_<?= (int) $sid ?>" name="catatan_toko[<?= (int) $sid ?>]"
+                          rows="3" maxlength="1000"
+                          placeholder="Misalnya tulisan di kartu ucapan, warna, ukuran, atau model yang diinginkan"><?= html_escape($isi_catatan) ?></textarea>
+                <label class="form-label mt-2" for="gambar_<?= (int) $sid ?>">Gambar contoh</label>
+                <input type="file" class="form-control" id="gambar_<?= (int) $sid ?>" name="gambar_toko_<?= (int) $sid ?>"
+                       accept="image/jpeg,image/png,image/webp">
+                <p class="hint mb-0">Foto contoh, desain, atau referensi. JPG, PNG, atau WEBP, maksimal 5 MB.</p>
+              </details>
+
               <div class="summary-row"><span>Subtotal</span><strong><?= rupiah($k['subtotal']) ?></strong></div>
               <div class="summary-row"><span>Ongkos kirim</span><strong data-k="ongkir">Pilih wilayah dulu</strong></div>
               <div class="summary-row is-potongan" data-baris="diskon_toko" hidden><span>Voucher toko</span><strong data-k="diskon_toko"></strong></div>
@@ -308,6 +322,18 @@
                 </li>
               <?php endforeach; ?>
             </ul>
+            <?php $belum = array_diff(array_column(isset($voucher_saya) ? $voucher_saya : array(), 'kode'), $kode_voucher); ?>
+            <?php if ($belum): ?>
+              <p class="hint mb-1 mt-2">Voucher milikmu:</p>
+              <div class="ck-voucher-saya">
+                <?php foreach ($voucher_saya as $vs): if ( ! in_array($vs['kode'], $belum, TRUE)) { continue; } ?>
+                  <button type="button" class="btn btn-sm btn-black-hover-outline" data-pakai-voucher="<?= html_escape($vs['kode']) ?>"
+                          title="<?= html_escape($vs['nama']) ?><?= $vs['min_belanja'] ? ' - min. belanja ' . rupiah($vs['min_belanja']) : '' ?>">
+                    <?= html_escape($vs['kode']) ?> &middot; <?= rupiah($vs['nilai']) ?>
+                  </button>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
             <p class="hint mb-0" id="pesanVoucher" aria-live="polite"></p>
           </div>
 

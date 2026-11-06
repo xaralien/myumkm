@@ -85,6 +85,28 @@ class Akun extends Member_Controller
        ===================================================================== */
 
     /** Daftar alamat tersimpan. GET akun/alamat */
+    /** Ajak teman: kode referral, tautan, daftar teman, dan voucher hadiah. GET akun/ajak */
+    public function ajak()
+    {
+        $this->load->library(array('referral_lib', 'pengaturan_lib'));
+        if ( ! $this->referral_lib->aktif()) {
+            $this->session->set_flashdata('info', 'Program ajak teman sedang tidak berjalan.');
+            return redirect('akun/profil');
+        }
+        $kode = $this->referral_lib->kode_user($this->me['id']);
+        $p = $this->pengaturan_lib;
+        $data = $this->referral_lib->ringkasan($this->me['id']) + array(
+            'kode'           => $kode,
+            'tautan'         => site_url('auth/register?ref=' . rawurlencode($kode)),
+            'hadiah_teman'   => (int) $p->get('referral_teman_nominal'),
+            'hadiah_ajak'    => (int) $p->get('referral_pengajak_nominal'),
+            'min_belanja'    => (int) $p->get('referral_min_belanja'),
+            'nama_brand'     => (string) $p->get('nama_brand'),
+            'pages'          => 'akun/v_ajak',
+        );
+        $this->load->view('index', $data);
+    }
+
     public function alamat()
     {
         $this->load->model('address_model');
@@ -517,10 +539,10 @@ class Akun extends Member_Controller
                 $this->session->set_flashdata(
                     'sukses',
                     'Toko dibuat dan menunggu persetujuan admin. Sambil menunggu, '
-                        . 'kamu sudah bisa menambahkan produk - produknya tampil di '
-                        . 'katalog begitu toko disetujui.'
+                        . 'lengkapi profil toko dan dokumen legalitas - fitur lain '
+                        . 'terbuka begitu toko disetujui.'
                 );
-                return redirect('seller');
+                return redirect('seller/profile');
             }
         }
 

@@ -69,6 +69,15 @@ class Pengaturan_lib
                 'smtp_user'     => array('label' => 'SMTP user', 'jenis' => 'teks', 'bawaan' => ''),
                 'smtp_pass'     => array('label' => 'SMTP password', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),
             ),
+            'Referral' => array(
+                'referral_aktif'            => array('label' => 'Program ajak teman (kode referral)', 'jenis' => 'ya_tidak', 'bawaan' => '1'),
+                'referral_teman_nominal'    => array('label' => 'Voucher untuk teman yang mendaftar (Rp)', 'jenis' => 'angka', 'bawaan' => 10000,
+                                                     'catatan' => 'Diberikan begitu teman mendaftar memakai kode. 0 = tanpa voucher.'),
+                'referral_pengajak_nominal' => array('label' => 'Voucher untuk yang mengajak (Rp)', 'jenis' => 'angka', 'bawaan' => 10000,
+                                                     'catatan' => 'Diberikan setelah pesanan pertama teman lunas.'),
+                'referral_min_belanja'      => array('label' => 'Minimal belanja memakai voucher referral (Rp)', 'jenis' => 'angka', 'bawaan' => 50000),
+                'referral_berlaku_hari'     => array('label' => 'Masa berlaku voucher referral (hari)', 'jenis' => 'angka', 'bawaan' => 30),
+            ),
             'Peta' => array(
                 'google_maps_key' => array('label' => 'Kunci API Google Maps (opsional)', 'jenis' => 'teks', 'bawaan' => '',
                                            'catatan' => 'Cadangan terakhir untuk membaca kecamatan dari GPS, setelah OpenStreetMap dan BigDataCloud. '

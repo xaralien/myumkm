@@ -101,6 +101,7 @@
       <?php if ($order['recipient_notes']): ?>
         <p class="hint mb-0">Catatan: <?= html_escape($order['recipient_notes']) ?></p>
       <?php endif; ?>
+      <?php $this->load->view('parts/catatan_pembeli', array('order' => $order, 'judul_catatan' => 'Catatan & gambar dari pembeli')); ?>
     </div>
 
     <div class="form-card">

@@ -532,7 +532,8 @@ class Seller extends Seller_Controller
 
 
         $this->form_validation->set_rules('ongkir_kecamatan', 'Ongkir dalam kecamatan', 'required|integer|greater_than_equal_to[0]');
-        $this->form_validation->set_rules('ongkir_kota', 'Ongkir dalam kota', 'required|integer|greater_than_equal_to[0]');
+        $this->form_validation->set_rules('ongkir_kota', 'Ongkir dalam kota', 'trim|integer|greater_than_equal_to[0]');
+        $this->form_validation->set_rules('maks_pesanan_harian', 'Maksimal pesanan per hari', 'trim|integer|greater_than_equal_to[1]|less_than_equal_to[999]');
         $this->form_validation->set_rules('ongkir_provinsi', 'Ongkir luar kota', 'trim|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('ongkir_luar', 'Ongkir luar provinsi', 'trim|integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('gratis_ongkir_min', 'Gratis ongkir mulai', 'required|integer|greater_than_equal_to[0]');
@@ -590,14 +591,30 @@ class Seller extends Seller_Controller
             return $this->profile();  // pesan sudah di-flashdata
         }
 
-        /* Kosong berarti toko TIDAK melayani luar kotanya - disimpan NULL,
-           bukan 0. Nol artinya "gratis", dan itu beda jauh. */
-        $luar = $this->input->post('ongkir_provinsi');
-        $luar = ($luar === '' || $luar === NULL) ? NULL : (int) $luar;
+        /* Jangkauan dipilih lewat saklar per tingkat, bertingkat: tidak
+           melayani luar kecamatan berarti tidak melayani yang lebih jauh.
+           Tingkat yang tidak dilayani disimpan NULL (bukan 0 - nol artinya
+           "gratis ongkir", dan itu beda jauh). Form lama tanpa saklar
+           (kolom layani_* tidak terkirim sama sekali) memakai aturan lama:
+           tarif kosong = tidak melayani. */
+        $ada_saklar = $this->input->post('layani_kota') !== NULL || $this->input->post('layani_provinsi') !== NULL
+                   || $this->input->post('layani_luar') !== NULL || $this->input->post('ongkir_kota') !== NULL;
+        $tarif = function ($nama) {
+            $v = $this->input->post($nama);
+            return ($v === '' || $v === NULL) ? 0 : (int) $v;
+        };
+        $layani_kota = $this->input->post('layani_kota') === '1';
+        $layani_prov = $layani_kota && $this->input->post('layani_provinsi') === '1';
+        $layani_luar = $layani_prov && $this->input->post('layani_luar') === '1';
 
-        // Aturan kosong-vs-nol yang sama berlaku untuk luar provinsi.
-        $luar_prov = $this->input->post('ongkir_luar');
-        $luar_prov = ($luar_prov === '' || $luar_prov === NULL) ? NULL : (int) $luar_prov;
+        $luar      = $layani_prov ? $tarif('ongkir_provinsi') : NULL;
+        $luar_prov = $layani_luar ? $tarif('ongkir_luar') : NULL;
+        if ( ! $ada_saklar) {
+            $layani_kota = TRUE;
+            $v = $this->input->post('ongkir_provinsi'); $luar      = ($v === '' || $v === NULL) ? NULL : (int) $v;
+            $v = $this->input->post('ongkir_luar');     $luar_prov = ($v === '' || $v === NULL) ? NULL : (int) $v;
+        }
+        $maks = (int) $this->input->post('maks_pesanan_harian');
 
         $this->db->trans_begin();
 
@@ -623,6 +640,8 @@ class Seller extends Seller_Controller
             'ongkir_kota' => (int) $this->input->post('ongkir_kota'),
             'ongkir_provinsi' => $luar,
             'ongkir_luar'     => $luar_prov,
+            'layani_kota'     => $layani_kota ? 1 : 0,
+            'maks_pesanan_harian' => $maks > 0 ? $maks : NULL,
             'gratis_ongkir_min' => (int) $this->input->post('gratis_ongkir_min'),
             'waktu_proses_hari' => (int) $this->input->post('waktu_proses_hari'),
             'latitude' => $this->input->post('latitude') ?: NULL,

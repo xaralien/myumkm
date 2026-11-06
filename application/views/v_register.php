@@ -57,6 +57,18 @@
                  autocomplete="new-password" minlength="8" required>
           <?= form_error('password2') ?>
         </div>
+        <?php if ( ! empty($referral_aktif)): ?>
+          <div class="mb-4">
+            <label class="form-label" for="kode_referral">Kode referral <span class="hint">(opsional)</span></label>
+            <input type="text" id="kode_referral" name="kode_referral" class="form-control" maxlength="12"
+                   autocomplete="off" style="text-transform: uppercase"
+                   placeholder="Dari teman yang mengajakmu" value="<?= html_escape(set_value('kode_referral', $kode_ref)) ?>">
+            <?php if ($hadiah_teman > 0): ?>
+              <p class="hint">Daftar pakai kode teman, dapat voucher belanja <?= rupiah($hadiah_teman) ?>.</p>
+            <?php endif; ?>
+            <?= form_error('kode_referral') ?>
+          </div>
+        <?php endif; ?>
         <button type="submit" class="btn btn-primary w-100">Daftar</button>
       <?= form_close() ?>
 

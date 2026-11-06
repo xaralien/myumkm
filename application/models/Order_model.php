@@ -210,6 +210,12 @@ class Order_model extends CI_Model
         $this->notifikasi_lib->pesanan_dibayar($order);
         $this->kabar_stok_menipis($order);
 
+        // Pesanan lunas pertama dari akun yang diajak teman -> hadiah pengajak.
+        if (is_file(APPPATH . 'libraries/Referral_lib.php')) {
+            $this->load->library('referral_lib');
+            $this->referral_lib->pesanan_lunas($order);
+        }
+
         return TRUE;
     }
 

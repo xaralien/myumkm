@@ -22,6 +22,12 @@ $e = isset($ekstra) ? $ekstra : array();
   </div>
 <?php endif; ?>
 
+<?php if (empty($e['libur']) && ! empty($e['kuota_penuh'])): ?>
+  <div class="alert-box alert-warn mb-3">
+    Kuota pesanan toko ini untuk hari ini sudah penuh. Pesanan bisa dibuat lagi besok.
+  </div>
+<?php endif; ?>
+
 <?php if ( ! empty($p['is_preorder'])): ?>
   <div class="po-info mb-3">
     <strong>Pre-order</strong> &mdash; dibuat setelah dipesan, siap dikirim

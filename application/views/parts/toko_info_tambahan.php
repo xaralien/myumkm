@@ -10,6 +10,12 @@ $e = isset($toko_ekstra) ? $toko_ekstra : array();
       Pesanan baru bisa dibuat setelah toko buka.
     </div>
   <?php endif; ?>
+  <?php if (empty($e['libur']) && ! empty($e['kuota']['penuh'])): ?>
+    <div class="alert-box alert-warn mb-2">
+      Kuota pesanan toko ini untuk hari ini sudah penuh (<?= (int) $e['kuota']['maks'] ?> pesanan per hari).
+      Pesanan bisa dibuat lagi besok.
+    </div>
+  <?php endif; ?>
   <?php if ( ! empty($e['lencana'])): ?>
     <div class="lencana-baris mb-2">
       <?php foreach ($e['lencana'] as $l): ?>

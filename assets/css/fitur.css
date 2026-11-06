@@ -367,3 +367,29 @@ html.hemat-kuota .nt-hero-foto, html.hemat-kuota .banner-kartu img, html.hemat-k
 .wa-geser-opsi.is-nonaktif { cursor: not-allowed; }
 .wa-geser-opsi.is-nonaktif span { color: #9ca3af; }
 @media (prefers-reduced-motion: reduce) { .wa-geser-jempol, .wa-geser-opsi span { transition: none; } }
+
+/* ---- Profil toko: jangkauan layanan -------------------------------- */
+.jangkauan-tingkat { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px; }
+.jangkauan-saklar { display: flex; gap: 10px; align-items: flex-start; margin: 0; cursor: pointer; }
+.jangkauan-saklar .form-check-input { margin-top: .25rem; flex: none; }
+.jangkauan-tarif { margin-top: 8px; }
+
+/* ---- Catatan & gambar dari pembeli --------------------------------- */
+.ck-catatan { margin: 10px 0; padding: 10px 12px; border: 1px dashed #cbd5e1; border-radius: 10px; }
+.ck-catatan summary { cursor: pointer; font-weight: 600; }
+.catatan-pembeli { margin: 10px 0; padding: 12px 14px; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; text-align: left; }
+.catatan-pembeli-judul { margin: 0 0 4px; font-weight: 700; font-size: .9rem; }
+.catatan-pembeli-isi { margin: 0 0 8px; white-space: normal; word-break: break-word; }
+.catatan-pembeli-gambar { display: inline-flex; flex-direction: column; gap: 4px; font-size: .85rem; }
+.catatan-pembeli-gambar img { max-width: 220px; max-height: 220px; border-radius: 8px; border: 1px solid #e5e7eb; object-fit: contain; background: #fff; }
+@media print { .catatan-pembeli { background: none; border: 1px solid #999; } .catatan-pembeli-gambar span { display: none; } }
+
+/* ---- Ajak teman (referral) ----------------------------------------- */
+.ajak-kode { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ajak-kode strong { font-size: 1.6rem; letter-spacing: .15em; padding: 6px 14px; border: 2px dashed #16a34a; border-radius: 10px; background: #f0fdf4; }
+.ajak-tautan { display: flex; gap: 8px; }
+.ajak-tautan .form-control { min-width: 0; }
+.ajak-daftar { list-style: none; padding: 0; margin: 0; }
+.ajak-daftar li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.ajak-daftar li:last-child { border-bottom: 0; }
+.ck-voucher-saya { display: flex; flex-wrap: wrap; gap: 6px; }
