@@ -69,6 +69,11 @@ class Pengaturan_lib
                 'smtp_user'     => array('label' => 'SMTP user', 'jenis' => 'teks', 'bawaan' => ''),
                 'smtp_pass'     => array('label' => 'SMTP password', 'jenis' => 'teks', 'bawaan' => '', 'rahasia' => TRUE),
             ),
+            'Pesanan' => array(
+                'bukti_sampai_min' => array('label' => 'Foto bukti wajib saat penjual menandai pesanan selesai', 'jenis' => 'angka', 'bawaan' => 2,
+                                            'catatan' => 'Jumlah minimal foto (mis. barang di tujuan + serah terima). 0 = tidak wajib, maksimal 5. '
+                                                       . 'Konfirmasi "pesanan diterima" oleh pembeli tidak memerlukan foto.'),
+            ),
             'Referral' => array(
                 'referral_aktif'            => array('label' => 'Program ajak teman (kode referral)', 'jenis' => 'ya_tidak', 'bawaan' => '1'),
                 'referral_teman_nominal'    => array('label' => 'Voucher untuk teman yang mendaftar (Rp)', 'jenis' => 'angka', 'bawaan' => 10000,
