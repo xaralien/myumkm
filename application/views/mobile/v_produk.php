@@ -52,7 +52,7 @@
     <!-- Seluruh bagian ini tautan ke halaman toko; panah di ujung menandai
          bahwa ia bisa ditekan. -->
     <a href="<?= site_url('toko/' . $p['store_slug']) ?>">
-      <b><?= html_escape($p['store_name']) ?></b>
+      <?php if (! toko_anonim()): ?><b><?= html_escape($p['store_name']) ?></b><?php endif; ?>
       <?php $this->load->view('parts/toko_nilai', array(
           'rating'        => $p['store_rating'],
           'jumlah_ulasan' => $p['store_rating_count'],

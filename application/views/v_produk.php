@@ -7,7 +7,7 @@ $link_toko = site_url('toko/' . $p['store_slug']);
 // Pesan WhatsApp disiapkan lengkap supaya penjual langsung tahu
 // produk mana yang ditanyakan, tanpa pembeli perlu menjelaskan ulang.
 $pesan_wa = rawurlencode(
-    'Halo ' . $p['store_name'] . ', saya mau tanya produk "'
+    'Halo ' . nama_toko($p['store_name'], $p['store_district']) . ', saya mau tanya produk "'
     . $p['name'] . '" - ' . current_url()
 );
 
@@ -123,7 +123,9 @@ foreach ($addons as $a) {
                          diklik membuat orang mengira tokonya tidak punya
                          halaman sendiri. -->
                     <a class="produk-toko-info" href="<?= html_escape($link_toko) ?>">
+                        <?php if (! toko_anonim()): ?>
                         <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
+                        <?php endif; ?>
                         <?php $this->load->view('parts/toko_nilai', array(
                             'rating'        => $p['store_rating'],
                             'jumlah_ulasan' => $p['store_rating_count'],
@@ -256,7 +258,7 @@ foreach ($addons as $a) {
         <!-- ==================== PRODUK LAIN ==================== -->
         <?php if ($lainnya): ?>
             <div class="mt-5">
-                <h2 class="produk-sub">Produk lain dari <?= html_escape($p['store_name']) ?></h2>
+                <h2 class="produk-sub">Produk lain dari <?= toko_anonim() ? 'penjual ini' : html_escape($p['store_name']) ?></h2>
                 <div class="row mt-3">
                     <?php foreach ($lainnya as $l): ?>
                         <div class="col-6 col-md-3 mb-4">

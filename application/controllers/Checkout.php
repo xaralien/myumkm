@@ -183,7 +183,7 @@ class Checkout extends CI_Controller
         foreach ($r['kelompok'] as $sid => $k) {
             $kel[] = array(
                 'store_id'       => (int) $sid,
-                'nama'           => $k['toko']['name'],
+                'nama'           => nama_toko($k['toko']['name'], $k['toko']['district_name']),
                 'subtotal'       => $k['subtotal'],
                 'ongkir'         => $k['ongkir'],
                 'ongkir_ok'      => $k['ongkir_ok'],
@@ -554,7 +554,7 @@ class Checkout extends CI_Controller
             'order'    => $order,
             'items'    => $this->order_model->items($order['id']),
             'toko'     => $toko,
-            'whatsapp' => $toko ? $toko['phone'] : '',
+            'whatsapp' => ($toko && ! toko_anonim()) ? $toko['phone'] : '',
         );
         /* Status refund untuk ditampilkan, dan apakah tombolnya perlu
            muncul. Hanya pesanan yang sudah dibayar dan belum selesai -

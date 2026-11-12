@@ -223,9 +223,16 @@ $pesanWa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']
         </div>
 
         <div class="text-center">
+          <?php if (toko_anonim()): ?>
+            <!-- Mode toko anonim: tanpa WhatsApp toko, bertanya lewat chat pesanan. -->
+            <a href="<?= site_url('chat/' . $order['order_number'] . '/' . $order['access_token']) ?>" class="btn btn-primary">
+              Tanya penjual lewat chat
+            </a>
+          <?php elseif ($whatsapp): ?>
           <a href="https://wa.me/<?= $whatsapp ?>?text=<?= $pesanWa ?>" class="btn btn-primary">
             Tanya lewat WhatsApp
           </a>
+          <?php endif; ?>
           <a href="<?= site_url('shop') ?>" class="btn btn-black-hover-outline">Belanja lagi</a>
         </div>
 

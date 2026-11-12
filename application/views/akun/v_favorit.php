@@ -42,7 +42,7 @@
         <div class="fitur-grid mb-5">
           <?php foreach ($toko as $t): ?>
             <div class="fitur-kartu">
-              <h3><a href="<?= site_url('toko/' . $t['slug']) ?>"><?= html_escape($t['name']) ?></a></h3>
+              <h3><a href="<?= site_url('toko/' . $t['slug']) ?>"><?= html_escape(nama_toko($t['name'], $t['district_name'])) ?></a></h3>
               <p class="hint mb-2"><?= html_escape($t['district_name']) ?>, <?= html_escape($t['regency_name']) ?> &middot; <?= (int) $t['jml_produk'] ?> produk</p>
               <?php $this->load->view('parts/tombol_ikuti', array('toko_id' => $t['id'], 'aktif' => TRUE, 'pengikut' => $this->pembeli_model->jumlah_pengikut($t['id']))); ?>
             </div>

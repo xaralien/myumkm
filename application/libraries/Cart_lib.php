@@ -477,7 +477,7 @@ class Cart_lib
                 'ok' => FALSE,
                 'ongkir' => 0,
                 'tingkat' => 'kota',
-                'pesan' => $toko['name'] . ' hanya melayani pengiriman di kecamatan '
+                'pesan' => nama_toko($toko['name'], isset($toko['district_name']) ? $toko['district_name'] : NULL) . ' hanya melayani pengiriman di kecamatan '
                     . (isset($toko['district_name']) ? $toko['district_name'] : 'tokonya') . '.'
             );
         } elseif ((int) $tujuan['regency_id'] === (int) $toko['regency_id']) {
@@ -490,7 +490,7 @@ class Cart_lib
                     'ok' => FALSE,
                     'ongkir' => 0,
                     'tingkat' => 'provinsi',
-                    'pesan' => $toko['name'] . ' hanya melayani '
+                    'pesan' => nama_toko($toko['name'], isset($toko['district_name']) ? $toko['district_name'] : NULL) . ' hanya melayani '
                         . $toko['regency_name'] . ' dan sekitarnya.'
                 );
             }
@@ -506,7 +506,7 @@ class Cart_lib
                     'ok' => FALSE,
                     'ongkir' => 0,
                     'tingkat' => 'luar',
-                    'pesan' => $toko['name'] . ' belum melayani pengiriman ke luar '
+                    'pesan' => nama_toko($toko['name'], isset($toko['district_name']) ? $toko['district_name'] : NULL) . ' belum melayani pengiriman ke luar '
                         . $toko['province_name'] . '. Coba tanyakan lewat chat '
                         . 'atau pilih toko yang lebih dekat dengan tujuanmu.'
                 );

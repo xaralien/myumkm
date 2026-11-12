@@ -61,7 +61,7 @@
           </div>
           <div class="mb-kartu-isi">
             <span class="mb-kartu-nama"><?= html_escape($p['name']) ?></span>
-            <span class="mb-kartu-toko"><?= html_escape($p['store_name']) ?></span>
+            <span class="mb-kartu-toko"><?= html_escape(toko_anonim() ? (string) ($p['store_district'] ?? '') : $p['store_name']) ?></span>
 
             <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
             <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>
@@ -104,12 +104,12 @@
       <?php foreach ($toko_dekat as $t): ?>
         <a href="<?= site_url('toko/' . $t['slug']) ?>" class="mb-toko">
           <span class="mb-toko-avatar">
-            <?php if (! empty($t['avatar'])): ?>
+            <?php if (! empty($t['avatar']) && ! toko_anonim()): ?>
               <img src="<?= base_url('upload/avatar/' . $t['avatar']) ?>" alt="">
-            <?php else: ?><?= html_escape($inisial($t['name'])) ?><?php endif; ?>
+            <?php else: ?><?= html_escape($inisial(toko_anonim() ? (string) $t['district_name'] : $t['name'])) ?><?php endif; ?>
           </span>
           <span class="mb-toko-teks">
-            <b><?= html_escape($t['name']) ?></b>
+            <b><?= html_escape(nama_toko($t['name'], $t['district_name'] ?? NULL)) ?></b>
             <em>
               <?= (int) $t['jml_produk'] ?> produk<?php
                 if (! empty($t['label_jarak'])) { echo ' &middot; ' . html_escape($t['label_jarak']); }

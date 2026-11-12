@@ -78,9 +78,9 @@
           <?php endif; ?>
           <b><?= html_escape($unggulan['name']) ?></b>
           <span class="nt-meta">
-            <?= html_escape($unggulan['store_name']) ?><?php
+            <?php if (toko_anonim()): ?><?= html_escape((string) $unggulan['store_district']) ?><?php else: ?><?= html_escape($unggulan['store_name']) ?><?php
               if (! empty($unggulan['store_district'])) { echo ', ' . html_escape($unggulan['store_district']); }
-            ?>
+            ?><?php endif; ?>
           </span>
           <span class="nt-harga"><?= rupiah($unggulan['price']) ?></span>
         </a>
@@ -195,7 +195,7 @@
                 <?php endif; ?>
 
                 <p class="product-store">
-                  <?= html_escape($p['store_name']) ?>
+                  <?php if (! toko_anonim()): ?><?= html_escape($p['store_name']) ?><?php endif; ?>
                   <?php if (!empty($p['store_district'])): ?>
                     <em><?= html_escape($p['store_district']) ?><?php
                       if (isset($p['proximity']) && (int) $p['proximity'] > 1) {
@@ -271,14 +271,14 @@
         <div class="nt-toko-kartu">
           <div class="nt-toko-kepala">
             <span class="nt-avatar nt-avatar-<?= $i % 3 ?>">
-              <?php if (! empty($t['avatar'])): ?>
+              <?php if (! empty($t['avatar']) && ! toko_anonim()): ?>
                 <img src="<?= base_url('upload/avatar/' . $t['avatar']) ?>" alt="">
               <?php else: ?>
-                <?= html_escape($inisial($t['name'])) ?>
+                <?= html_escape($inisial(toko_anonim() ? (string) $t['district_name'] : $t['name'])) ?>
               <?php endif; ?>
             </span>
             <div class="nt-toko-nama">
-              <b><?= html_escape($t['name']) ?></b>
+              <b><?= html_escape(nama_toko($t['name'], $t['district_name'])) ?></b>
               <span class="nt-meta">
                 <?= (int) $t['jml_produk'] ?> produk<?php
                   if (! empty($t['district_name'])) { echo ', ' . html_escape($t['district_name']); }

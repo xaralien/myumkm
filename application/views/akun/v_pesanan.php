@@ -33,7 +33,7 @@
               <span class="akun-pesanan-kiri">
                 <strong><?= html_escape($o['order_number']) ?></strong>
                 <em>
-                  <?= html_escape($o['store_name'] ?: 'Toko') ?> &middot;
+                  <?= html_escape($o['store_name'] ? nama_toko($o['store_name'], $o['store_district'] ?? NULL) : 'Toko') ?> &middot;
                   <?= date('d/m/Y', strtotime($o['created_at'])) ?>
                 </em>
               </span>

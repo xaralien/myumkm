@@ -205,7 +205,7 @@
                 <?php endif; ?>
 
                 <p class="product-store">
-                  <?= html_escape($p['store_name']) ?>
+                  <?php if (! toko_anonim()): ?><?= html_escape($p['store_name']) ?><?php endif; ?>
                   <?php if (!empty($p['store_district'])): ?>
                     <em><?= html_escape($p['store_district']) ?><?php
                       if (isset($p['proximity']) && (int) $p['proximity'] > 1) {

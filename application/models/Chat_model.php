@@ -180,9 +180,10 @@ class Chat_model extends CI_Model
     /** Kotak masuk pembeli: semua pesanan miliknya. */
     public function inbox_user($user_id, $limit = 60)
     {
-        return $this->inbox_dasar('dibaca_customer')->db
-            ->select('s.name AS lawan, s.slug AS keterangan, o.access_token', FALSE)
+        $rows = $this->inbox_dasar('dibaca_customer')->db
+            ->select('s.name AS lawan, s.slug AS keterangan, o.access_token, dk.name AS lawan_kec', FALSE)
             ->join('stores s', 's.id = o.store_id', 'left')
+            ->join('districts dk', 'dk.id = s.district_id', 'left')
             ->where('o.user_id', (int) $user_id)
             ->where('o.payment_status', 'paid')
             ->order_by('belum > 0', 'DESC', FALSE)
@@ -190,6 +191,20 @@ class Chat_model extends CI_Model
             ->order_by('COALESCE(waktu_akhir, o.created_at)', 'DESC', FALSE)
             ->limit((int) $limit)
             ->get()->result_array();
+        return $this->samarkan_toko($rows);
+    }
+
+    /** Mode toko anonim: pembeli melihat "Penjual di <kecamatan>". */
+    protected function samarkan_toko(array $rows)
+    {
+        foreach ($rows as &$r) {
+            if (array_key_exists('lawan', $r) && $r['lawan'] !== NULL) {
+                $r['lawan'] = nama_toko($r['lawan'], isset($r['lawan_kec']) ? $r['lawan_kec'] : NULL);
+            }
+            unset($r['lawan_kec']);
+        }
+        unset($r);
+        return $rows;
     }
 
     /* =====================================================================
@@ -262,9 +277,11 @@ class Chat_model extends CI_Model
     {
         return $this->db
             ->select('c.*, s.name AS store_name, s.slug AS store_slug, s.avatar AS store_avatar,
+                      dk.name AS store_district,
                       o.order_number, o.access_token, o.order_status, o.payment_status', FALSE)
             ->from('conversations c')
             ->join('stores s', 's.id = c.store_id')
+            ->join('districts dk', 'dk.id = s.district_id', 'left')
             ->join('orders o', 'o.id = c.order_id', 'left')
             ->where('c.id', (int) $id)
             ->get()->row_array();
@@ -391,13 +408,14 @@ class Chat_model extends CI_Model
 
     public function inbox_user_conv($user_id, $limit = 60)
     {
-        return $this->inbox_conv('dibaca_customer')
-            ->select('s.name AS lawan', FALSE)
+        return $this->samarkan_toko($this->inbox_conv('dibaca_customer')
+            ->select('s.name AS lawan, dk.name AS lawan_kec', FALSE)
             ->join('stores s', 's.id = c.store_id')
+            ->join('districts dk', 'dk.id = s.district_id', 'left')
             ->where('c.user_id', (int) $user_id)
             ->order_by('belum > 0', 'DESC', FALSE)
             ->order_by('waktu_akhir', 'DESC', FALSE)
             ->limit((int) $limit)
-            ->get()->result_array();
+            ->get()->result_array());
     }
 }

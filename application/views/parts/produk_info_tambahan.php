@@ -9,7 +9,7 @@ $e = isset($ekstra) ? $ekstra : array();
 <div class="produk-ekstra">
   <?php $this->load->view('parts/tombol_favorit', array('produk_id' => $p['id'], 'aktif' => ! empty($e['favorit']), 'kecil' => FALSE)); ?>
   <?php $this->load->view('parts/bagikan', array(
-      'teks' => $p['name'] . ' - ' . rupiah($p['price']) . ' dari ' . $p['store_name'] . ' (' . $p['store_regency'] . ')',
+      'teks' => $p['name'] . ' - ' . rupiah($p['price']) . ' dari ' . nama_toko($p['store_name'], $p['store_district']) . ' (' . $p['store_regency'] . ')',
       'url'  => site_url('produk/' . $p['store_slug'] . '/' . $p['slug']),
   )); ?>
   <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'produk', 'objek_id' => $p['id'])); ?>
