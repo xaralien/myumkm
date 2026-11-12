@@ -55,9 +55,11 @@ class Track extends CI_Controller
            belum punya store_id, jadi tetap ditangani kalau kosong. */
         $toko = NULL;
         if (! empty($order['store_id'])) {
-            $toko = $this->db->select('name, phone')
-                ->where('id', (int) $order['store_id'])
-                ->get('stores')->row_array();
+            $toko = $this->db->select('s.name, s.phone, d.name AS district_name', FALSE)
+                ->from('stores s')
+                ->join('districts d', 'd.id = s.district_id', 'left')
+                ->where('s.id', (int) $order['store_id'])
+                ->get()->row_array();
         }
 
         $data = array(

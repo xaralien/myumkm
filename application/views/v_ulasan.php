@@ -45,7 +45,7 @@
     <div class="ul-kepala-produk">
       <img src="<?= base_url('upload/produk/' . $p['image']) ?>" alt="" loading="lazy">
       <div>
-        <strong><?= $tab === 'toko' ? html_escape($p['store_name']) : html_escape($p['name']) ?></strong>
+        <strong><?= $tab === 'toko' ? html_escape(nama_toko($p['store_name'], $p['store_district'] ?? NULL)) : html_escape($p['name']) ?></strong>
         <em><?= $tab === 'toko' ? 'Ulasan dari seluruh produk toko' : 'Ulasan produk ini' ?></em>
       </div>
     </div>

@@ -103,12 +103,12 @@ class Produk extends CI_Controller
             'jarak'     => $jarak,
             // Berapa hari penjual memproses pesanan sebelum dikirim.
             'proses'    => max(1, (int) $p['store_proses']),
-            'wa_toko'   => $p['store_phone'],
+            'wa_toko'   => toko_anonim() ? '' : $p['store_phone'],
 
             // Dipakai di <title> dan meta description.
-            'judul'     => $p['name'] . ' - ' . $p['store_name'],
+            'judul'     => $p['name'] . ' - ' . nama_toko($p['store_name'], $p['store_district']),
             'meta_desc' => $this->ringkas(
-                html_teks($p['description']) ?: ($p['name'] . ' dari ' . $p['store_name']
+                html_teks($p['description']) ?: ($p['name'] . ' dari ' . nama_toko($p['store_name'], $p['store_district'])
                     . ', ' . $p['store_district']),
                 155
             ),

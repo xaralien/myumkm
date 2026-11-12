@@ -220,7 +220,7 @@ class Notifikasi_lib
 
         $pembeli = 'Halo ' . $order['customer_name'] . ', pembayaran pesanan '
             . $order['order_number'] . ' sebesar ' . rupiah($order['total']) . ' sudah kami terima.' . "\n\n"
-            . ($toko ? $toko['name'] . ' akan segera memprosesnya. ' : '')
+            . ($toko ? nama_toko($toko['name'], $toko['district_name']) . ' akan segera memprosesnya. ' : '')
             . 'Pantau pesananmu di: ' . $lacak . "\n\n- " . $brand;
 
         $this->wa($order['customer_phone'], $pembeli, 'pesanan_dibayar');
@@ -302,8 +302,9 @@ class Notifikasi_lib
 
     protected function toko($store_id)
     {
-        return $this->CI->db->select('id, name, phone')
-            ->where('id', (int) $store_id)->get('stores')->row_array();
+        return $this->CI->db->select('s.id, s.name, s.phone, d.name AS district_name', FALSE)
+            ->from('stores s')->join('districts d', 'd.id = s.district_id', 'left')
+            ->where('s.id', (int) $store_id)->get()->row_array();
     }
 
     protected function catat($kanal, $tujuan, $judul, $isi, $status, $galat, $acara)

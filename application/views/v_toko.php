@@ -1,6 +1,6 @@
 <!-- application/views/v_toko.php - halaman publik satu toko -->
 <?php
-  $inisial = strtoupper(mb_substr(trim($toko['name']), 0, 1));
+  $inisial = strtoupper(mb_substr(trim(toko_anonim() ? (string) $toko['district_name'] : $toko['name']), 0, 1));
 
   $url = function (array $ganti = array()) use ($toko, $tab) {
     $q = array_filter(array(
@@ -21,13 +21,13 @@
     <div class="tk-kepala-in">
 
       <span class="tk-avatar">
-        <?php if ($toko['avatar']): ?>
+        <?php if ($toko['avatar'] && ! toko_anonim()): ?>
           <img src="<?= base_url('upload/avatar/' . $toko['avatar']) ?>" alt="">
         <?php else: ?><?= html_escape($inisial) ?><?php endif; ?>
       </span>
 
       <div class="tk-info">
-        <h1><?= html_escape($toko['name']) ?></h1>
+        <h1><?= html_escape(nama_toko($toko['name'], $toko['district_name'])) ?></h1>
         <p class="tk-lokasi">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
           <?= html_escape($toko['district_name']) ?>, <?= html_escape($toko['regency_name']) ?>

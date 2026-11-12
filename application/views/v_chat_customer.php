@@ -16,7 +16,7 @@
           <p class="hint mb-1">Nomor pesanan</p>
           <p class="order-number mb-0"><?= html_escape($order['order_number']) ?></p>
         </div>
-        <?php if ($toko): ?><p class="hint mb-0"><?= html_escape($toko['name']) ?></p><?php endif; ?>
+        <?php if ($toko && ! toko_anonim()): ?><p class="hint mb-0"><?= html_escape($toko['name']) ?></p><?php endif; ?>
       </div>
     </div>
 

@@ -69,7 +69,7 @@ class Cart extends CI_Controller
             ),
             'variants'   => $this->product_model->variants($product_id),
             'addons'     => $this->product_model->addons_for_product($product_id),
-            'store_name' => $product['store_name'],
+            'store_name' => toko_anonim() ? 'Penjual UMKM' : $product['store_name'],
             // Perkiraan hari proses - pengganti "bisa kirim hari ini" ala toko bunga.
             'proses'     => max(1, (int) $product['store_proses']),
         ));

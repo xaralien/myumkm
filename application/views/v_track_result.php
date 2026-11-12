@@ -13,7 +13,8 @@ if ($kini === FALSE) {
 $batal = ($order['order_status'] === 'cancelled');
 $lunas = ($order['payment_status'] === 'paid');
 
-$wa = $toko ? $toko['phone'] : '';
+/* Mode toko anonim: tanpa WhatsApp toko; bertanya lewat chat pesanan. */
+$wa = ($toko && ! toko_anonim()) ? $toko['phone'] : '';
 $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number']);
 ?>
 
@@ -131,7 +132,7 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
             <?php if ($toko): ?>
               <tr>
                 <td>Toko</td>
-                <td><?= html_escape($toko['name']) ?></td>
+                <td><?= html_escape(nama_toko($toko['name'], $toko['district_name'] ?? NULL)) ?></td>
               </tr>
             <?php endif; ?>
           </table>
@@ -184,6 +185,8 @@ $pesan_wa = rawurlencode('Halo, saya mau tanya pesanan ' . $order['order_number'
           <?php if ($wa): ?>
             <a href="https://wa.me/<?= $wa ?>?text=<?= $pesan_wa ?>" class="btn btn-primary"
               target="_blank" rel="noopener">Tanya toko lewat WhatsApp</a>
+          <?php elseif ($toko && $lunas): ?>
+            <a href="<?= site_url('chat/' . $order['order_number'] . '/' . $order['access_token']) ?>" class="btn btn-primary">Tanya penjual lewat chat</a>
           <?php endif; ?>
           <a href="<?= site_url('track') ?>" class="btn btn-black-hover-outline">Cari pesanan lain</a>
         </div>

@@ -1,7 +1,7 @@
 <!-- application/views/v_chat_conv.php - percakapan dengan toko (tanpa pesanan) -->
 <div class="hero hero-page">
   <div class="container"><div class="row"><div class="col-lg-12">
-    <div class="intro-excerpt text-center"><h1><?= html_escape($conv['store_name']) ?></h1></div>
+    <div class="intro-excerpt text-center"><h1><?= html_escape(nama_toko($conv['store_name'], $conv['store_district'])) ?></h1></div>
   </div></div></div>
 </div>
 
@@ -12,7 +12,7 @@
       <div class="chat-kepala">
         <div>
           <p class="hint mb-1">Percakapan dengan toko</p>
-          <p class="order-number mb-0"><?= html_escape($conv['store_name']) ?></p>
+          <p class="order-number mb-0"><?= html_escape(nama_toko($conv['store_name'], $conv['store_district'])) ?></p>
         </div>
         <a href="<?= site_url('toko/' . $conv['store_slug']) ?>"
            class="btn btn-black-hover-outline btn-sm">Lihat toko</a>

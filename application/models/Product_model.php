@@ -250,7 +250,7 @@ class Product_model extends CI_Model
                 ->group_start()
                 ->like('p.name', $f['q'])
                 ->or_like('p.description', $f['q'])
-                ->or_like('s.name', $f['q'])
+                ->or_like(toko_anonim() ? 'p.name' : 's.name', $f['q'])
                 ->group_end();
         }
 

@@ -153,9 +153,9 @@
         <div class="mb-kartu-isi">
           <span class="mb-kartu-nama"><?= html_escape($p['name']) ?></span>
           <span class="mb-kartu-toko">
-            <?= html_escape($p['store_name']) ?><?php
+            <?php if (toko_anonim()): ?><?= html_escape((string) $p['store_district']) ?><?php else: ?><?= html_escape($p['store_name']) ?><?php
               if (! empty($p['store_district'])) { echo ' &middot; ' . html_escape($p['store_district']); }
-            ?>
+            ?><?php endif; ?>
           </span>
           <?php $teks_terjual = isset($p['terjual']) ? terjual_teks($p['terjual']) : ''; ?>
           <?php if ((int) $p['rating_count'] > 0 || $teks_terjual): ?>

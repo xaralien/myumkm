@@ -124,7 +124,7 @@ class Tagihan_lib
         foreach ($orders as $o) {
             $item[] = array(
                 'name'     => ($tagihan['jenis'] === 'pelunasan' ? 'Pelunasan ' : ($tagihan['jenis'] === 'dp' ? 'Uang muka ' : 'Pesanan '))
-                              . $o['order_number'] . ' - ' . $o['store_name'],
+                              . $o['order_number'] . ' - ' . nama_toko($o['store_name'], isset($o['store_district']) ? $o['store_district'] : NULL),
                 'price'    => (int) $o['tagihan_jumlah'],
                 'quantity' => 1,
             );
@@ -171,7 +171,8 @@ class Tagihan_lib
     public function orders($tagihan_id)
     {
         return $this->CI->db
-            ->select('o.*, tor.jumlah AS tagihan_jumlah, s.name AS store_name', FALSE)
+            ->select('o.*, tor.jumlah AS tagihan_jumlah, s.name AS store_name,
+                      (SELECT name FROM districts WHERE id = s.district_id) AS store_district', FALSE)
             ->from('tagihan_order tor')
             ->join('orders o', 'o.id = tor.order_id')
             ->join('stores s', 's.id = o.store_id', 'left')

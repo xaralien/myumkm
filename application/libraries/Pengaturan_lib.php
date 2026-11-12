@@ -38,6 +38,9 @@ class Pengaturan_lib
         return array(
             'Umum' => array(
                 'nama_brand'   => array('label' => 'Nama marketplace', 'jenis' => 'teks', 'bawaan' => 'Sapa UMKM'),
+                'toko_anonim'  => array('label' => 'Sembunyikan nama toko dari pembeli', 'jenis' => 'ya_tidak', 'bawaan' => '1',
+                                        'catatan' => 'Pembeli hanya melihat asal penjual (mis. "Penjual di Tebet"), tanpa nama, logo, '
+                                                   . 'dan WhatsApp toko. Chat lewat aplikasi tetap bisa. Penjual & admin tetap melihat nama asli.'),
                 'slogan'       => array('label' => 'Slogan', 'jenis' => 'teks', 'bawaan' => 'Belanja langsung dari pelaku UMKM di kotamu'),
                 'wa_admin'     => array('label' => 'WhatsApp admin (628...)', 'jenis' => 'teks', 'bawaan' => ''),
                 'email_admin'  => array('label' => 'Email admin', 'jenis' => 'teks', 'bawaan' => ''),

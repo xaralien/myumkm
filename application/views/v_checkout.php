@@ -235,7 +235,7 @@
           <?php foreach ($rincian['kelompok'] as $sid => $k): $t = $k['toko']; ?>
             <div class="ck-toko" data-toko="<?= (int) $sid ?>">
               <p class="ringkasan-toko">
-                <?= html_escape($t['name']) ?>
+                <?= html_escape(nama_toko($t['name'], $t['district_name'])) ?>
                 <em>Dikirim dari <?= html_escape($t['district_name']) ?>, <?= html_escape($t['regency_name']) ?></em>
               </p>
 

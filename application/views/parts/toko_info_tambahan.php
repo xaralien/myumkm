@@ -37,7 +37,7 @@ $e = isset($toko_ekstra) ? $toko_ekstra : array();
         'pengikut' => isset($e['pengikut']) ? $e['pengikut'] : 0,
     )); ?>
     <?php $this->load->view('parts/bagikan', array(
-        'teks' => $toko['name'] . ' - UMKM dari ' . $toko['regency_name'],
+        'teks' => nama_toko($toko['name'], $toko['district_name']) . ' - UMKM dari ' . $toko['regency_name'],
         'url'  => site_url('toko/' . $toko['slug']),
     )); ?>
     <?php $this->load->view('parts/tombol_laporkan', array('jenis' => 'toko', 'objek_id' => $toko['id'])); ?>

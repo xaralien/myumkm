@@ -31,7 +31,7 @@ class Akun extends Member_Controller
         $data = array(
             'akun'    => $this->akun,
             'pesanan' => $this->db
-                ->select('o.*, s.name AS store_name', FALSE)
+                ->select('o.*, s.name AS store_name, (SELECT name FROM districts WHERE id = s.district_id) AS store_district', FALSE)
                 ->from('orders o')
                 ->join('stores s', 's.id = o.store_id', 'left')
                 ->where('o.user_id', (int) $this->me['id'])

@@ -106,14 +106,14 @@ class Rincian_lib
             // asalkan tanggal kirimnya setelah toko buka lagi.
             $libur = $this->libur($toko);
             if ($libur && ! $po['ada']) {
-                $k['galat'][] = $toko['name'] . ' sedang libur sampai ' . tgl_id($libur)
+                $k['galat'][] = nama_toko($toko['name'], $toko['district_name']) . ' sedang libur sampai ' . tgl_id($libur)
                     . ($toko['libur_pesan'] ?? '' ? ' (' . $toko['libur_pesan'] . ')' : '') . '.';
             }
 
             // Batas pesanan per hari yang diatur penjual.
             $kuota = $this->kuota_harian($toko);
             if ($kuota && $kuota['penuh']) {
-                $k['galat'][] = $toko['name'] . ' sudah menerima ' . $kuota['maks'] . ' pesanan hari ini (batas harian toko). '
+                $k['galat'][] = nama_toko($toko['name'], $toko['district_name']) . ' sudah menerima ' . $kuota['maks'] . ' pesanan hari ini (batas harian toko). '
                     . 'Coba lagi besok, atau tanyakan lewat chat.';
             }
 
@@ -186,7 +186,7 @@ class Rincian_lib
             $k['diskon_toko']  = $pot;
             $k['voucher_toko'] = $v;
             $hasil['voucher'][$kd] = array('ok' => TRUE, 'pesan' => '', 'ket' => $this->CI->voucher_lib->keterangan($v),
-                                           'potongan' => $pot, 'toko' => $k['toko']['name']);
+                                           'potongan' => $pot, 'toko' => nama_toko($k['toko']['name'], $k['toko']['district_name']));
             unset($k);
         }
 

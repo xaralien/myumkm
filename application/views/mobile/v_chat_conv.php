@@ -7,15 +7,15 @@
     </a>
 
     <span class="mb-chat-avatar" aria-hidden="true">
-      <?php if (! empty($conv['store_avatar'])): ?>
+      <?php if (! empty($conv['store_avatar']) && ! toko_anonim()): ?>
         <img src="<?= base_url('upload/avatar/' . $conv['store_avatar']) ?>" alt="">
       <?php else: ?>
-        <?= html_escape(strtoupper(mb_substr($conv['store_name'], 0, 1))) ?>
+        <?= html_escape(strtoupper(mb_substr(nama_toko($conv['store_name'], $conv['store_district']), toko_anonim() ? 11 : 0, 1))) ?>
       <?php endif; ?>
     </span>
 
     <div class="mb-chat-judul">
-      <strong><?= html_escape($conv['store_name']) ?></strong>
+      <strong><?= html_escape(nama_toko($conv['store_name'], $conv['store_district'])) ?></strong>
       <em><?= $conv['order_number'] ? html_escape($conv['order_number']) : 'Tanya sebelum beli' ?></em>
     </div>
 

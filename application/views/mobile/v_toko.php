@@ -1,6 +1,6 @@
 <!-- application/views/mobile/v_toko.php - halaman toko versi HP -->
 <?php
-  $inisial = strtoupper(mb_substr(trim($toko['name']), 0, 1));
+  $inisial = strtoupper(mb_substr(trim(toko_anonim() ? (string) $toko['district_name'] : $toko['name']), 0, 1));
 
   /* Keduanya hanya dikirim controller pada tab produk. Diberi nilai
      bawaan di sini supaya tab ulasan tidak memicu peringatan - dan karena
@@ -25,12 +25,12 @@
 <section class="mb-tk-kepala">
   <div class="mb-tk-atas">
     <span class="mb-tk-avatar">
-      <?php if ($toko['avatar']): ?>
+      <?php if ($toko['avatar'] && ! toko_anonim()): ?>
         <img src="<?= base_url('upload/avatar/' . $toko['avatar']) ?>" alt="">
       <?php else: ?><?= html_escape($inisial) ?><?php endif; ?>
     </span>
     <div class="mb-tk-nama">
-      <h1><?= html_escape($toko['name']) ?></h1>
+      <h1><?= html_escape(nama_toko($toko['name'], $toko['district_name'])) ?></h1>
       <p>
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
         <?= html_escape($toko['district_name']) ?>, <?= html_escape($toko['regency_name']) ?>

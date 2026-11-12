@@ -15,7 +15,7 @@ $url = site_url('produk/' . $p['store_slug'] . '/' . $p['slug']);
     <span class="kp-harga">
       <?php if ((int) ($p['variant_count'] ?? 0) > 1): ?><small>mulai </small><?php endif; ?><?= rupiah($p['price']) ?>
     </span>
-    <span class="kp-toko"><?= html_escape($p['store_name']) ?><?= ! empty($p['store_district']) ? ' · ' . html_escape($p['store_district']) : '' ?></span>
+    <span class="kp-toko"><?php if (toko_anonim()): ?><?= html_escape(! empty($p['store_district']) ? $p['store_district'] : '') ?><?php else: ?><?= html_escape($p['store_name']) ?><?= ! empty($p['store_district']) ? ' · ' . html_escape($p['store_district']) : '' ?><?php endif; ?></span>
     <?php if ( ! empty($p['terjual_count'])): ?>
       <span class="kp-terjual"><?= terjual_teks($p['terjual_count']) ?></span>
     <?php endif; ?>
