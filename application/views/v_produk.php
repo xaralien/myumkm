@@ -116,52 +116,6 @@ foreach ($addons as $a) {
 
                 <?php $this->load->view('parts/produk_info_tambahan'); ?>
 
-                <!-- ---------- TOKO ---------- -->
-                <?php
-                  /* Disembunyikan sementara (permintaan pemilik): rating &
-                     jumlah terjual toko, dan tombol Tanya. Ubah ke TRUE
-                     untuk menampilkannya lagi. */
-                  $tampil_nilai_toko = FALSE;
-                  $tampil_tanya      = FALSE;
-                ?>
-                <div class="produk-toko">
-                    <!-- Seluruh bagian kiri jadi satu tautan ke halaman toko:
-                         nama toko yang terlihat seperti judul tapi tidak bisa
-                         diklik membuat orang mengira tokonya tidak punya
-                         halaman sendiri. -->
-                    <a class="produk-toko-info" href="<?= html_escape($link_toko) ?>">
-                        <?php if (! toko_anonim()): ?>
-                        <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
-                        <?php endif; ?>
-                        <?php if ($tampil_nilai_toko): ?>
-                        <?php $this->load->view('parts/toko_nilai', array(
-                            'rating'        => $p['store_rating'],
-                            'jumlah_ulasan' => $p['store_rating_count'],
-                            'terjual'       => $p['store_terjual'],
-                        )); ?>
-                        <?php endif; ?>
-                        <span class="produk-toko-lokasi">
-                            <?= html_escape($p['store_district']) ?>,
-                            <?= html_escape($p['store_regency']) ?>
-                            <?php if ($jarak && isset($label_jarak[$jarak])): ?>
-                                <span class="badge-jarak"><?= $label_jarak[$jarak] ?></span>
-                            <?php endif; ?>
-                        </span>
-                    </a>
-
-                    <!-- Tombol Tanya berdiri sendiri - inilah satu-satunya
-                         jalan yang membawa produk ini ke dalam percakapan. -->
-                    <?php if ($tampil_tanya): ?>
-                    <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'produk-toko-tanya')) ?>
-                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
-                        <button type="submit">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                            Tanya
-                        </button>
-                    <?= form_close() ?>
-                    <?php endif; ?>
-                </div>
-
                 <!-- ---------- PILIHAN ---------- -->
                 <div class="produk-form"
                     data-id="<?= (int) $p['id'] ?>"
@@ -265,6 +219,60 @@ foreach ($addons as $a) {
                 </div>
             </div>
         <?php endif; ?>
+
+        <!-- ==================== ASAL PENJUAL ====================
+             Dipindah ke bawah deskripsi: di atas, kartu ini memisahkan
+             foto dari pilihan varian, sehingga pembeli tidak sadar foto
+             ikut berganti saat memilih. -->
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <!-- ---------- TOKO ---------- -->
+                <?php
+                  /* Disembunyikan sementara (permintaan pemilik): rating &
+                     jumlah terjual toko, dan tombol Tanya. Ubah ke TRUE
+                     untuk menampilkannya lagi. */
+                  $tampil_nilai_toko = FALSE;
+                  $tampil_tanya      = FALSE;
+                ?>
+                <div class="produk-toko">
+                    <!-- Seluruh bagian kiri jadi satu tautan ke halaman toko:
+                         nama toko yang terlihat seperti judul tapi tidak bisa
+                         diklik membuat orang mengira tokonya tidak punya
+                         halaman sendiri. -->
+                    <a class="produk-toko-info" href="<?= html_escape($link_toko) ?>">
+                        <?php if (! toko_anonim()): ?>
+                        <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
+                        <?php endif; ?>
+                        <?php if ($tampil_nilai_toko): ?>
+                        <?php $this->load->view('parts/toko_nilai', array(
+                            'rating'        => $p['store_rating'],
+                            'jumlah_ulasan' => $p['store_rating_count'],
+                            'terjual'       => $p['store_terjual'],
+                        )); ?>
+                        <?php endif; ?>
+                        <span class="produk-toko-lokasi">
+                            <?= html_escape($p['store_district']) ?>,
+                            <?= html_escape($p['store_regency']) ?>
+                            <?php if ($jarak && isset($label_jarak[$jarak])): ?>
+                                <span class="badge-jarak"><?= $label_jarak[$jarak] ?></span>
+                            <?php endif; ?>
+                        </span>
+                    </a>
+
+                    <!-- Tombol Tanya berdiri sendiri - inilah satu-satunya
+                         jalan yang membawa produk ini ke dalam percakapan. -->
+                    <?php if ($tampil_tanya): ?>
+                    <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'produk-toko-tanya')) ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                        <button type="submit">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                            Tanya
+                        </button>
+                    <?= form_close() ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
         <!-- ==================== PRODUK LAIN ==================== -->
         <?php if ($lainnya): ?>
