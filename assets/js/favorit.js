@@ -42,7 +42,9 @@ document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-salin]');
   if (!b) return;
   var url = b.getAttribute('data-salin');
-  var selesai = function () { var t = b.textContent; b.textContent = 'Tersalin ✓'; setTimeout(function () { b.textContent = t; }, 1800); };
+  // Hanya label yang diganti (kalau ada), supaya ikon di tombol tidak hilang.
+  var el = b.querySelector('[data-salin-teks]') || b;
+  var selesai = function () { var t = el.textContent; el.textContent = 'Tersalin ✓'; setTimeout(function () { el.textContent = t; }, 1800); };
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(url).then(selesai);
   } else {
@@ -50,3 +52,28 @@ document.addEventListener('click', function (e) {
     i.select(); try { document.execCommand('copy'); selesai(); } catch (x) {} document.body.removeChild(i);
   }
 });
+
+/* Menu Bagikan: tampilkan "Lainnya…" kalau HP punya menu bagikan bawaan,
+   dan tutup menu saat mengeklik di luar atau memilih salah satu. */
+(function () {
+  if (navigator.share) {
+    document.querySelectorAll('[data-bagikan-native]').forEach(function (b) { b.hidden = false; });
+  }
+  document.addEventListener('click', function (e) {
+    var nat = e.target.closest && e.target.closest('[data-bagikan-native]');
+    if (nat) {
+      navigator.share({ title: nat.getAttribute('data-judul'), text: nat.getAttribute('data-judul'),
+                        url: nat.getAttribute('data-url') }).catch(function () {});
+    }
+    document.querySelectorAll('details[data-bagikan][open]').forEach(function (d) {
+      var diMenu = d.contains(e.target);
+      var pilih = e.target.closest && e.target.closest('.bagikan-menu a, [data-bagikan-native]');
+      if (!diMenu || pilih) { d.removeAttribute('open'); }
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('details[data-bagikan][open]').forEach(function (d) { d.removeAttribute('open'); });
+    }
+  });
+})();

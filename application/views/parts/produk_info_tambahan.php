@@ -7,7 +7,7 @@ $e = isset($ekstra) ? $ekstra : array();
 <?php $this->load->view('parts/produk_lencana', array('p' => $p, 'verif' => isset($e['verif']) ? $e['verif'] : array())); ?>
 
 <div class="produk-ekstra">
-  <?php $this->load->view('parts/tombol_favorit', array('produk_id' => $p['id'], 'aktif' => ! empty($e['favorit']), 'kecil' => FALSE)); ?>
+  <?php $this->load->view('parts/tombol_favorit', array('produk_id' => $p['id'], 'aktif' => ! empty($e['favorit']), 'kecil' => TRUE)); ?>
   <?php $this->load->view('parts/bagikan', array(
       'teks' => $p['name'] . ' - ' . rupiah($p['price']) . ' dari ' . nama_toko($p['store_name'], $p['store_district']) . ' (' . $p['store_regency'] . ')',
       'url'  => site_url('produk/' . $p['store_slug'] . '/' . $p['slug']),
