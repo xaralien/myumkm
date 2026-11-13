@@ -117,6 +117,13 @@ foreach ($addons as $a) {
                 <?php $this->load->view('parts/produk_info_tambahan'); ?>
 
                 <!-- ---------- TOKO ---------- -->
+                <?php
+                  /* Disembunyikan sementara (permintaan pemilik): rating &
+                     jumlah terjual toko, dan tombol Tanya. Ubah ke TRUE
+                     untuk menampilkannya lagi. */
+                  $tampil_nilai_toko = FALSE;
+                  $tampil_tanya      = FALSE;
+                ?>
                 <div class="produk-toko">
                     <!-- Seluruh bagian kiri jadi satu tautan ke halaman toko:
                          nama toko yang terlihat seperti judul tapi tidak bisa
@@ -126,11 +133,13 @@ foreach ($addons as $a) {
                         <?php if (! toko_anonim()): ?>
                         <span class="produk-toko-nama"><?= html_escape($p['store_name']) ?></span>
                         <?php endif; ?>
+                        <?php if ($tampil_nilai_toko): ?>
                         <?php $this->load->view('parts/toko_nilai', array(
                             'rating'        => $p['store_rating'],
                             'jumlah_ulasan' => $p['store_rating_count'],
                             'terjual'       => $p['store_terjual'],
                         )); ?>
+                        <?php endif; ?>
                         <span class="produk-toko-lokasi">
                             <?= html_escape($p['store_district']) ?>,
                             <?= html_escape($p['store_regency']) ?>
@@ -142,6 +151,7 @@ foreach ($addons as $a) {
 
                     <!-- Tombol Tanya berdiri sendiri - inilah satu-satunya
                          jalan yang membawa produk ini ke dalam percakapan. -->
+                    <?php if ($tampil_tanya): ?>
                     <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'produk-toko-tanya')) ?>
                         <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
                         <button type="submit">
@@ -149,6 +159,7 @@ foreach ($addons as $a) {
                             Tanya
                         </button>
                     <?= form_close() ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- ---------- PILIHAN ---------- -->

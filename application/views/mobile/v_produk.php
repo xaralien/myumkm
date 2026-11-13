@@ -48,19 +48,28 @@
 
   <?php $this->load->view('parts/produk_info_tambahan'); ?>
 
+  <?php
+    /* Disembunyikan sementara (permintaan pemilik): rating & jumlah
+       terjual toko, dan tombol Tanya. Ubah ke TRUE untuk menampilkannya. */
+    $tampil_nilai_toko = FALSE;
+    $tampil_tanya      = FALSE;
+  ?>
   <div class="mb-detail-toko">
     <!-- Seluruh bagian ini tautan ke halaman toko; panah di ujung menandai
          bahwa ia bisa ditekan. -->
     <a href="<?= site_url('toko/' . $p['store_slug']) ?>">
       <?php if (! toko_anonim()): ?><b><?= html_escape($p['store_name']) ?></b><?php endif; ?>
+      <?php if ($tampil_nilai_toko): ?>
       <?php $this->load->view('parts/toko_nilai', array(
           'rating'        => $p['store_rating'],
           'jumlah_ulasan' => $p['store_rating_count'],
           'terjual'       => $p['store_terjual'],
       )); ?>
+      <?php endif; ?>
       <em><?= html_escape($p['store_district']) ?>, <?= html_escape($p['store_regency']) ?></em>
     </a>
     <!-- Produk ini ikut terbawa ke percakapan. -->
+    <?php if ($tampil_tanya): ?>
     <?= form_open('chat/toko/' . $p['store_slug'], array('class' => 'mb-tanya')) ?>
       <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
       <button type="submit">
@@ -68,6 +77,7 @@
         Tanya
       </button>
     <?= form_close() ?>
+    <?php endif; ?>
   </div>
 
   <?php if ($variants): ?>
